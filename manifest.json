@@ -1,0 +1,32 @@
+{
+  "name": "X検索ミュートツール",
+  "version": "1.0.7",
+  "manifest_version": 3,
+  "description": "Xの検索結果にミュートワードを設定出来るようにします",
+  "offline_enabled": false,
+  "icons": {
+    "128": "icons/icon128.png",
+    "48": "icons/icon48.png",
+    "32": "icons/icon32.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+   "https://twitter.com/*",
+   "https://x.com/*"
+   ],
+      "js": ["./run.js"]
+    }
+  ], 
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://lucycal.stars.ne.jp/x_mute_filter/updateFile/*"
+  ],
+  "options_page": "option.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": { "default_popup": "popup.html" }
+}

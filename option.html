@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+        <title>オプション</title>
+        <script type="text/javascript" src="./option.js"></script>
+        <style>
+            .main{
+                width:80%;
+                margin:0 auto;
+            }
+            h4{
+                margin:2em 0 0.1em 0;
+            }
+            textarea{
+                width:98%;
+                height:10em;
+            }
+            .checkBox_label{
+                cursor: pointer;
+            }
+            input[type="number"]{
+                width:4em;
+            }
+            .mini_area{
+                width:98%;
+                height:5em;
+            }
+            #default_icon_name{
+                width:20em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <h2>オプション</h2>
+            <hr>
+            ※設定によってはスパムではない一般のツイートが巻き込まれて非表示になってしまう場合もあります
+            <hr>
+            <label class="checkBox_label"><h4><input type="checkbox" id="online_update">実行時にオンラインで定義を更新<br>※Xの仕様変更でツールが動かなくなってしまった場合に対応出来る…かもしれません</h4></label><br>
+            <label class="checkBox_label"><h4><input type="checkbox" id="online_spam_list">オンラインスパムリストを利用（β）<br></h4></label><br>
+            ※スパムやインプレッション稼ぎな投稿しているアカウントの一覧をオンラインで取得しミュートに利用します。個人で更新しているので追加が追いつかない可能性大なのでおまけ程度の効果かも…<br>
+            <br>
+            <div>※本ツールが通信を行うのは上記<span style="color:red;">オンラインの定義更新とオンラインスパムリストの取得</span>のみです。どちらも初期設定OFFのためONにするまでは通信しません。また、オンライン定義更新時もアカウント情報や本ツールの設定値などユーザー情報を送信することはありません。</div>
+            <h4>ミュートアカウントリストのインポート</h4>
+            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button><br>
+            <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
+            ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+            <h4>ミュートワード（1行1ワード）</h4>
+            <textarea id="mute_words"></textarea>
+            <h4>セーフワード（ミュートワードに一致しても除外しない/1行1ワード）</h4>
+            <textarea id="exclude_words"></textarea>
+            <label class="checkBox_label"><h4><input type="checkbox" id="reg_exp">ミュート/セーフワードに正規表現を使用する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="post_check_all">ミュート/セーフワードをポスト全体からチェックする（OFF時はポスト本文のみ、ON時はユーザー名やIDも含んでチェック）</h4></label>
+            <h4>セーフユーザー（1行1ユーザー）</h4>
+            <div>※非表示にしたくないユーザー名を記載（先頭の@は不要、記載した場合無視されます）</div>
+            <textarea id="safe_user"></textarea>
+            <label class="checkBox_label"><h4><input type="checkbox" id="verified_hidden">認証済みアカウント（青バッジ）のポストを非表示にする</h4></label>
+            ※特定の認証済みアカウントを例外とする場合はセーフユーザーオプションをご利用ください
+            <h4>ハッシュタグが次の数以上使われているポストをミュート（0で無効）</h4>
+            <input type="number" id="hashtag_border" value="0" min="0">
+            <h4>スペースが次の数以上使われているポストをミュート（0で無効）</h4>
+            <input type="number" id="space_border" value="0" min="0"><br>
+            ※トレンドワードをスペースで区切って並べるポスト対策、「ひらがな・カタカナ・漢字」直前のスペースのみカウント
+            <h4>「#」から始まる行が多いポストをミュート（0で無効）</h4>
+            「#」から始まる行が<input type="number" id="short_post_border" value="0" min="0">行以上でミュート<br>
+            ※トレンドワードを1行ずつ並べるポスト用
+            <label class="checkBox_label"><h4><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
+            <h4>デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
+            <input type="text" id="default_icon_name" value="default_profile_normal.png">
+            <label class="checkBox_label"><h4><input type="checkbox" id="block_count_view">左上にブロックしたポスト数を表示する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="hira_kata_conv">ひらがなとカタカナの区別をしない</h4></label>
+            <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
+            <input type="number" id="interval_time" value="350">ミリ秒<br>
+            <h4>ターゲットURL（1行1URL） <button id="default_set_3">初期値に戻す</button></h4>
+            ※本ツールが動作するページを指定、正規表現で指定（twitter.comとx.com以外を指定しても拡張機能自体が動作しないため注意）<br>
+            ※ポストのリプライも対象にする場合は次の指定を追加してください：twitter.com/.*/status/
+            <textarea id="target_url" class="mini_area">twitter.com/search
+twitter.com/hashtag</textarea>
+            <label class="checkBox_label"><h4><input type="checkbox" id="x_conv">twitter.comとx.comを同一ドメインとして扱う（ターゲットURL確認用）</h4></label>
+            <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
+            ※階層はクラス名の要素から何階層上を非表示にするか<br>
+            ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
+            ※「tweetText」と記載した場合のみ特別に「tweetText」が付与されたdata属性を参照します
+            <textarea id="post_class_area" class="mini_area">tweet, 3, article
+css-1rynq56 r-8akbws r-krxsd3 r-dnmrzs r-1udh08x r-bcqeeo r-qvutc0 r-37j5jr r-1b43r93 r-14yzgew r-16dba41 r-bnwqim, 9, div
+css-901oao css-cens5h r-18jsvk2 r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
+css-901oao css-cens5h r-vlxjld r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
+css-901oao css-cens5h r-1nao33i r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div</textarea>
+            <br>
+            <label class="checkBox_label"><input type="checkbox" id="insert_default_class" checked>デフォルト設定のクラスを優先的に使用する</label>
+            <hr>    
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis">リンク画像をわかりやすくする</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis_all">「リンク画像をわかりやすくする」をターゲットURL以外（ホームなど）にも適用する</h4></label>
+            <hr>
+            <div style="margin-top:20%;"></div>
+        </div>
+    </body>
+</html>
