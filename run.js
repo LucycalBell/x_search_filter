@@ -376,7 +376,7 @@ const TARGET_URL = [
     function PostBlock(post){
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false)]);
+            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post)]);
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
             postBlockViewNumber++;
@@ -518,9 +518,12 @@ const TARGET_URL = [
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
                 if(!(safe_user_list != void 0 && safe_user_list.includes(hidden_posts[i][2].replace("@", "")))){
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.5em;'>Safe</button>";
+                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
                 } else {
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.5em;'>Safe</button>";
+                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
+                }
+                if(hidden_posts[i][3] != null){
+                    addtxt += "[ <a href='" + hidden_posts[i][3] + "' target='_blank' style='color:blue;text-decoration: underline;'>表示</a> ]";
                 }
                 addtxt += hidden_posts[i][0];
                 addtxt += "<span style='font-weight:bold;'>（非表示理由：" + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + "）</span>";
@@ -642,5 +645,15 @@ const TARGET_URL = [
             }
         }
         return "";
+    }
+
+    function getPostUrl(post){
+        let a = post.getElementsByTagName("a");
+        for(let i=0;i<a.length;i++){
+            if(0 < a[i].getElementsByTagName("time").length){
+                return a[i].href;
+            }
+        }
+        return null;
     }
     TwitterSearchBlockMain();
