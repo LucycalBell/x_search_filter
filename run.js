@@ -8,6 +8,7 @@ const TARGET_URL = [
         ["tweet", 3, "article"]
     ];
     const TWEET_DATA = "tweet";
+    const TWEET_TEXT = "tweetText";
     const LINK_IMG_STR = "card.layoutLarge.media";
     const TYPE_ARRAY = 0;
     const TYPE_INTEGER = 1;
@@ -281,7 +282,7 @@ const TARGET_URL = [
     
     function PostBlockCheck(post){
         block_type = -1;
-        let postl = post.innerText.split(/\n/);
+        let postl;
 
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
@@ -297,6 +298,8 @@ const TARGET_URL = [
 
         if(X_OPTION.POST_CHECK_ALL){
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
+        } else {
+            postl = getPostTextTag(post).innerText.split(/\n/);
         }
         if(X_OPTION.REG_EXP){
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
@@ -562,6 +565,16 @@ const TARGET_URL = [
             r = r.parentElement;
         }
         return r;
+    }
+
+    function getPostTextTag(post){
+        let r = post.getElementsByTagName("div");
+        for(let i=0;i<r.length;i++){
+            if(r[i].dataset.testid == TWEET_TEXT){
+                return r[i];
+            }
+        }
+        return document.createElement("div");
     }
     
     function getLUrl(){
