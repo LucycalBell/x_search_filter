@@ -334,7 +334,7 @@ const TARGET_URL = [
         }
 
         if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
-            if(X_OPTION.MANUAL_SPAM_LIST.includes(getPostUserName(post, true))){
+            if(X_OPTION.MANUAL_SPAM_LIST.includes(post)){
                 block_type = 7;
                 return true;
             }
@@ -353,7 +353,7 @@ const TARGET_URL = [
             }
         }
         if(0 < X_OPTION.TAG_START_BORDER){
-            if(X_OPTION.TAG_START_BORDER <= HashtagStartLine(post)){
+            if(X_OPTION.TAG_START_BORDER <= HashtagStartLine(getPostTextTag(post).innerText)){
                 block_type = 3;
                 return true;
             }
@@ -418,10 +418,10 @@ const TARGET_URL = [
 
     function SpaceCount(post){
         let cnt = 0;
-        let a = post.innerText.split(/\n/);
+        let a = getPostTextTag(post).innerText.split(/\n/);
         let r;
         for(let i=0;i<a.length;i++){
-            r = a[i].trim().match(/[ |　][ぁ-んァ-ヶー一-龯]/g);
+            r = a[i].trim().match(/[ ][ぁ-んァ-ヶー一-龯]/g);
             if(r != null){
                 cnt += r.length;
             }
