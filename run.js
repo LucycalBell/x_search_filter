@@ -353,7 +353,7 @@ const TARGET_URL = [
             }
         }
         if(0 < X_OPTION.TAG_START_BORDER){
-            if(X_OPTION.TAG_START_BORDER <= HashtagStartLine(getPostTextTag(post).innerText)){
+            if(X_OPTION.TAG_START_BORDER <= HashtagStartLine(post)){
                 block_type = 3;
                 return true;
             }
@@ -407,7 +407,7 @@ const TARGET_URL = [
 
     function HashtagStartLine(post){
         let cnt = 0;
-        let a = post.innerText.split(/\n/);
+        let a = getPostTextTag(post).innerText.split(/\n/);
         for(let i=0;i<a.length;i++){
             if(a[i].trim().startsWith("#")){
                 cnt++;
