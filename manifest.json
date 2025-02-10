@@ -21,12 +21,6 @@
   "permissions": [
     "storage"
   ],
-  "host_permissions": [
-    "https://lucycal.stars.ne.jp/x_mute_filter/updateFile/*"
-  ],
   "options_page": "option.html",
-  "background": {
-    "service_worker": "background.js"
-  },
   "action": { "default_popup": "popup.html" }
 }
