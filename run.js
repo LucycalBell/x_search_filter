@@ -333,8 +333,8 @@ const TARGET_URL = [
             }
         }
 
-        if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
-            if(X_OPTION.MANUAL_SPAM_LIST.includes(post)){
+        if(0 < manual_spam_list.length){
+            if(manual_spam_list.includes(getPostUserName(post, true))){
                 block_type = 7;
                 return true;
             }
