@@ -86,6 +86,7 @@ function LoadOption(){
                     document.getElementById("manual_import_delete").disabled = false;
                 }
             }
+            ManualExportSetting();
 
             if(noDataFlag){
                 OptionSave();
@@ -134,6 +135,7 @@ function OptionSave(){
     chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(document.getElementById("safe_user").value.split(/\n/))}, function() {
         ;
     });
+    ManualExportSetting();
 }
 
 function LinkOptionChange(){
@@ -274,4 +276,22 @@ function getOptionPram(opt, defaultValue, type){
         break;
     }
     return defaultValue;
+}
+
+function ManualExportSetting(){
+    let content;
+    if(X_OPTION.MANUAL_SPAM_LIST != null && 0 < X_OPTION.MANUAL_SPAM_LIST.length){
+        document.getElementById("manual_export").disabled = false;
+        document.getElementById("manual_export_link").disabled = false;
+        for(const item of X_OPTION.MANUAL_SPAM_LIST){
+            content += item + "\n";
+        }
+        let blob = new Blob([ content ], { "type" : "text/plain" });
+        document.getElementById("manual_export_link").href = window.URL.createObjectURL(blob);
+        window.URL.revokeObjectURL(blob);
+    } else {
+        document.getElementById("manual_export_link").href = "#";
+        document.getElementById("manual_export").disabled = true;
+        document.getElementById("manual_export_link").removeAttribute("href");
+    }
 }
