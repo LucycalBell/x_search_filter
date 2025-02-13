@@ -89,6 +89,7 @@ const TARGET_URL = [
             X_OPTION.BLOCK_COUNT_VIEW = getOptionPram(r.BLOCK_COUNT_VIEW, true, TYPE_BOOL);
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
+            X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
             X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, 350, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
@@ -307,14 +308,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).match(HiraToKana(X_OPTION.EXCLUDE_WORDS[i]))){ return false; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
                     }
                 }
             }
             for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).match(HiraToKana(X_OPTION.BLOCK_WORDS[i]))){ block_type = 0;return true; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
                     }
                 }
             }
@@ -322,14 +323,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).includes(HiraToKana(X_OPTION.EXCLUDE_WORDS[i]))){ return false; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
                     }
                 }
             }
             for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).includes(HiraToKana(X_OPTION.BLOCK_WORDS[i]))){ block_type = 0;return true; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
                     }
                 }
             }
@@ -401,6 +402,14 @@ const TARGET_URL = [
             return str;
         }
     };
+
+    function ConvertUppercase(str){
+        if(X_OPTION.CASE_CONV){
+            return str.toUpperCase();
+        } else {
+            return str;
+        }
+    }
     
     function TagCount(post){
         let cnt = 0;

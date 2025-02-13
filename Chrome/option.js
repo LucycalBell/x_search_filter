@@ -45,6 +45,7 @@ function LoadOption(){
             X_OPTION.BLOCK_COUNT_VIEW = getOptionPram(r.BLOCK_COUNT_VIEW, true, TYPE_BOOL);
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
+            X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
             X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, INTERVAL_TIME, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
@@ -72,6 +73,7 @@ function LoadOption(){
             document.getElementById("default_icon_name").value = X_OPTION.DEFAULT_ICON_NAME;
             document.getElementById("block_count_view").checked = X_OPTION.BLOCK_COUNT_VIEW;
             document.getElementById("hira_kata_conv").checked = X_OPTION.HIRA_KATA_COV;
+            document.getElementById("case_conv").checked = X_OPTION.CASE_CONV;
             document.getElementById("interval_time").value = X_OPTION.INTERVAL_TIME;
             document.getElementById("target_url").value = ArrayObjtoText(X_OPTION.TARGET_URL);
             document.getElementById("x_conv").checked = X_OPTION.URL_XT_CONVERT;
@@ -121,6 +123,7 @@ function OptionSave(){
     SAVE_OBJ.DEFAULT_ICON_NAME = document.getElementById("default_icon_name").value;
     SAVE_OBJ.BLOCK_COUNT_VIEW = document.getElementById("block_count_view").checked;
     SAVE_OBJ.HIRA_KATA_COV = document.getElementById("hira_kata_conv").checked;
+    SAVE_OBJ.CASE_CONV = document.getElementById("case_conv").checked;
     SAVE_OBJ.INTERVAL_TIME = document.getElementById("interval_time").value;
     SAVE_OBJ.TARGET_URL = document.getElementById("target_url").value.split(/\n/);
     SAVE_OBJ.URL_XT_CONVERT = document.getElementById("x_conv").checked;
@@ -183,6 +186,7 @@ function EventSet(){
     document.getElementById("default_icon_name").addEventListener("input", OptionSave, false);
     document.getElementById("block_count_view").addEventListener("click", OptionSave, false);
     document.getElementById("hira_kata_conv").addEventListener("click", OptionSave, false);
+    document.getElementById("case_conv").addEventListener("click", OptionSave, false);
     document.getElementById("interval_time").addEventListener("input", OptionSave, false);
     document.getElementById("target_url").addEventListener("input", OptionSave, false);
     document.getElementById("post_class_area").addEventListener("input", OptionSave, false);
@@ -195,7 +199,7 @@ function EventSet(){
     document.getElementById("safe_user").addEventListener("input", OptionSave, false);
     document.getElementById("manual_spamList").addEventListener("input", ManualListOptionSave, false);
     document.getElementById("manual_import_delete").addEventListener("click", ManualListDelete, false);
-    document.getElementById("accountname_space_border").addEventListener("click", OptionSave, false);
+    document.getElementById("accountname_space_border").addEventListener("input", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
