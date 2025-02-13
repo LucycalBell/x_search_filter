@@ -228,13 +228,16 @@ function ManualListOptionSave(){
     reader.onload = function(ev){
         let rd = reader.result.split(/\r\n|\n/);
         let lst = [];
+        if(document.getElementById("manual_import_type_addition").checked){
+            lst = X_OPTION.MANUAL_SPAM_LIST;
+        }
         if(rd != void 0 && rd != null && 0 < rd.length){
             for(let i=0;i<rd.length;i++){
                 if(rd[i] != void 0 && rd[i] != null && rd[i].trim() != ""){
                     lst.push(rd[i].trim());
                 }
             }
-            X_OPTION.MANUAL_SPAM_LIST = lst;
+            X_OPTION.MANUAL_SPAM_LIST = [...new Set(lst)];
             if(0 < lst.length){
                 document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
                 document.getElementById("manual_import_delete").disabled = false;
@@ -279,7 +282,7 @@ function getOptionPram(opt, defaultValue, type){
 }
 
 function ManualExportSetting(){
-    let content;
+    let content = "";
     if(X_OPTION.MANUAL_SPAM_LIST != null && 0 < X_OPTION.MANUAL_SPAM_LIST.length){
         document.getElementById("manual_export").disabled = false;
         document.getElementById("manual_export_link").disabled = false;

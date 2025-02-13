@@ -29,6 +29,15 @@
             #default_icon_name{
                 width:20em;
             }
+            .div_box{
+                border-radius: 10px;
+                border:1px solid #cdcdcd;
+                padding:0.5em;
+                margin:0.5em;
+            }
+            .sub_title{
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
@@ -37,12 +46,18 @@
             <hr>
             ※設定によってはスパムではない一般のツイートが巻き込まれて非表示になってしまう場合もあります
             <hr>
-            <h4>ミュートアカウントリストのインポート</h4>
-            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button><br>
-            <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
-            ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
-            <br><br>
-            <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+            <h4>ュートアカウントリストのインポート</h4>
+            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
+            <div class="div_box">
+                <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
+                インポートタイプ：
+                <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
+                <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
+                <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
+                ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+                <br><br>
+                <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+            </div>
             <hr>
             <h4>ミュートワード（1行1ワード）</h4>
             <textarea id="mute_words"></textarea>
