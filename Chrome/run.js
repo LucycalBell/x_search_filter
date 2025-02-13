@@ -22,7 +22,8 @@ const TARGET_URL = [
         4:"デフォルトアイコン",
         5:"認証済みアカウント",
         6:"オンラインスパムリスト一致",
-        7:"インポートスパムリスト一致"
+        7:"インポートスパムリスト一致",
+        8:"アカウント名スペース数超過"
     };
     
     let postBlockViewNumber = 0;
@@ -103,6 +104,7 @@ const TARGET_URL = [
             X_OPTION.POST_CHECK_ALL = getOptionPram(r.POST_CHECK_ALL, false, TYPE_BOOL);
             X_OPTION.ONLINE_SPAM_LIST = false;
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
+            X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -367,6 +369,12 @@ const TARGET_URL = [
         if(X_OPTION.VERIFIED_HDN){
             if(isVerified(post)){
                 block_type = 5;
+                return true;
+            }
+        }
+        if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
+            if(X_OPTION.ACCOUNTNAME_SPACE_BORDER <= AccountSpaceCount(post)){
+                block_type = 8;
                 return true;
             }
         }
@@ -657,7 +665,12 @@ const TARGET_URL = [
         return null;
     }
 
-    function getPostScreenName(post){
+    function AccountSpaceCount(post){
+        let name = getPostAccountName(post);
+        return (name.trim().match(/[ \u3000][ぁ-んァ-ヶー一-龯]/) || []).length;
+    }
+
+    function getPostAccountName(post){
         let a = post.getElementsByTagName("a");
         let postId = getPostUserName(post, true);
         for(let i=0;i<a.length;i++){

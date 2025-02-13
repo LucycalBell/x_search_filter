@@ -79,6 +79,10 @@
             <h4>「#」から始まる行が多いポストをミュート（0で無効）</h4>
             「#」から始まる行が<input type="number" id="short_post_border" value="0" min="0">行以上でミュート<br>
             ※トレンドワードを1行ずつ並べるポスト用
+            <h4>アカウント名にスペースを次の数以上使用しているユーザーのポストをミュート（0で無効）</h4>
+            アカウント名にスペースが<input type="number" id="accountname_space_border" value="0" min="0">以上でミュート<br>
+            ※トレンドワードをアカウントネームに羅列してインプレッションを稼ぐユーザー用<br>
+            ※「ひらがな・カタカナ・漢字」直前のスペースのみカウント
             <label class="checkBox_label"><h4><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
             <h4>デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
             <input type="text" id="default_icon_name" value="default_profile_normal.png">
