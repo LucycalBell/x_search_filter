@@ -656,4 +656,15 @@ const TARGET_URL = [
         }
         return null;
     }
+
+    function getPostScreenName(post){
+        let a = post.getElementsByTagName("a");
+        let postId = getPostUserName(post, true);
+        for(let i=0;i<a.length;i++){
+            if(a[i].role == "link" && a[i].href.endsWith(postId) && a[i].innerText.trim() != ""){
+                return a[i].innerText;
+            }
+        }
+        return "";
+    }
     TwitterSearchBlockMain();
