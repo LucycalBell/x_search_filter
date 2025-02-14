@@ -21,7 +21,10 @@
   "permissions": [
     "storage"
   ],
-  "options_page": "option.html",
+  "options_ui": {
+    "page": "option.html",
+    "open_in_tab": true
+  },
   "action": { "default_popup": "popup.html" },
   "browser_specific_settings": {
     "gecko": {
