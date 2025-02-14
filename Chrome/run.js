@@ -23,7 +23,8 @@ const TARGET_URL = [
         5:"認証済みアカウント",
         6:"オンラインスパムリスト一致",
         7:"インポートスパムリスト一致",
-        8:"アカウント名スペース数超過"
+        8:"アカウント名スペース数超過",
+        9:"ユーザー名のみ一致"
     };
     
     let postBlockViewNumber = 0;
@@ -106,6 +107,7 @@ const TARGET_URL = [
             X_OPTION.ONLINE_SPAM_LIST = false;
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -377,6 +379,18 @@ const TARGET_URL = [
             if(X_OPTION.ACCOUNTNAME_SPACE_BORDER <= AccountSpaceCount(post)){
                 block_type = 8;
                 return true;
+            }
+        }
+        if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+            if(isSearchPage()){
+                if(0 < getSearchWordList().length){
+                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList().some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
+                            block_type = 9;
+                            return true;
+                        }
+                    }
+                }
             }
         }
         return false;
@@ -689,4 +703,31 @@ const TARGET_URL = [
         }
         return "";
     }
+
+    function getSearchWordList(){
+        if(document.getElementById("typeaheadDropdown-3") != null){ return [];}
+        let input_lst = document.getElementsByTagName("input");
+        let wordLst;
+        let res = [];
+        for(const item of input_lst){
+            if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
+                wordLst = item.value.replaceAll("　", " ").split(" ");
+                break;
+            }
+        }
+        if(0 < wordLst.length){
+            for(const item of wordLst){
+                if(item.trim() != "" && /.+:.+/.test(item) == false){
+                    res.push(item);
+                }
+            }
+        }
+        return res;
+    }
+    function isSearchPage(){
+        let url = getLUrl().replace("https://", "");
+        if(url.match("twitter.com/search")){ return true; }
+        return false;
+    }
+
     TwitterSearchBlockMain();

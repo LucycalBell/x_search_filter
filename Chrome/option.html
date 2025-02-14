@@ -38,6 +38,12 @@
             .sub_title{
                 font-weight: bold;
             }
+            .small_bottom_margin{
+                margin-bottom:0.5em;
+            }
+            .small_top_margin{
+                margin-top:0.5em;
+            }
         </style>
     </head>
     <body>
@@ -83,8 +89,11 @@
             アカウント名にスペースが<input type="number" id="accountname_space_border" value="0" min="0">以上でミュート<br>
             ※トレンドワードをアカウントネームに羅列してインプレッションを稼ぐユーザー用<br>
             ※「ひらがな・カタカナ・漢字」直前のスペースのみカウント
-            <label class="checkBox_label"><h4><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
-            <h4>デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
+            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="search_hit_username_block">検索ワードが本文に含まれていないポストをミュート（ユーザー名の一致のみで検索に載ってしまうポストの非表示）</h4></label>
+            ※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザーネームに何れかのワードが一致する場合非表示となります<br>
+            ※このオプションはターゲットURLの設定に関わらず検索画面でのみ動作します
+            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
+            <h4 class="small_top_margin">デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
             <input type="text" id="default_icon_name" value="default_profile_normal.png">
             <label class="checkBox_label"><h4><input type="checkbox" id="block_count_view">左上にブロックしたポスト数を表示する</h4></label>
             <label class="checkBox_label"><h4><input type="checkbox" id="hira_kata_conv">ひらがなとカタカナの区別をしない</h4></label>
