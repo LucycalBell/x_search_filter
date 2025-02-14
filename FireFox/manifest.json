@@ -22,5 +22,10 @@
     "storage"
   ],
   "options_page": "option.html",
-  "action": { "default_popup": "popup.html" }
+  "action": { "default_popup": "popup.html" },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{34990865-8c54-b443-eb92-25e74b1b1824}"
+    }
+  }
 }
