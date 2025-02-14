@@ -22,7 +22,9 @@ const TARGET_URL = [
         4:"デフォルトアイコン",
         5:"認証済みアカウント",
         6:"オンラインスパムリスト一致",
-        7:"インポートスパムリスト一致"
+        7:"インポートスパムリスト一致",
+        8:"アカウント名スペース数超過",
+        9:"ユーザー名のみ一致"
     };
     
     let postBlockViewNumber = 0;
@@ -88,6 +90,7 @@ const TARGET_URL = [
             X_OPTION.BLOCK_COUNT_VIEW = getOptionPram(r.BLOCK_COUNT_VIEW, true, TYPE_BOOL);
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
+            X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
             X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, 350, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
@@ -103,6 +106,8 @@ const TARGET_URL = [
             X_OPTION.POST_CHECK_ALL = getOptionPram(r.POST_CHECK_ALL, false, TYPE_BOOL);
             X_OPTION.ONLINE_SPAM_LIST = false;
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
+            X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -305,14 +310,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).match(HiraToKana(X_OPTION.EXCLUDE_WORDS[i]))){ return false; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
                     }
                 }
             }
             for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).match(HiraToKana(X_OPTION.BLOCK_WORDS[i]))){ block_type = 0;return true; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
                     }
                 }
             }
@@ -320,14 +325,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).includes(HiraToKana(X_OPTION.EXCLUDE_WORDS[i]))){ return false; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
                     }
                 }
             }
             for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(HiraToKana(postl[p]).includes(HiraToKana(X_OPTION.BLOCK_WORDS[i]))){ block_type = 0;return true; }
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
                     }
                 }
             }
@@ -370,6 +375,24 @@ const TARGET_URL = [
                 return true;
             }
         }
+        if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
+            if(X_OPTION.ACCOUNTNAME_SPACE_BORDER <= AccountSpaceCount(post)){
+                block_type = 8;
+                return true;
+            }
+        }
+        if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+            if(isSearchPage()){
+                if(0 < getSearchWordList().length){
+                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList().some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
+                            block_type = 9;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
         return false;
     }
     
@@ -393,6 +416,14 @@ const TARGET_URL = [
             return str;
         }
     };
+
+    function ConvertUppercase(str){
+        if(X_OPTION.CASE_CONV){
+            return str.toUpperCase();
+        } else {
+            return str;
+        }
+    }
     
     function TagCount(post){
         let cnt = 0;
@@ -461,7 +492,7 @@ const TARGET_URL = [
             addtag.style.top = "0px";
             addtag.style.left = "0px";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'>非表示数<br><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
@@ -491,7 +522,7 @@ const TARGET_URL = [
         }
 
         let addtxt = "";
-        addtxt += "<div style='text-align:center;font-size:large;color:#000;'>【非表示にしたポスト】</div><div style='color:#000;'>";
+        addtxt += "<div style='text-align:center;font-size:large;color:#000;margin-top:10px;'>【非表示にしたポスト】</div><div style='color:#000;'>";
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
             addtxt += "<hr><p>※以下のオプションが設定されています</p>";
@@ -503,6 +534,9 @@ const TARGET_URL = [
             if(0 < X_OPTION.TAG_START_BORDER){
                 addtxt += "<li>ハッシュタグから始まる行が" + X_OPTION.TAG_START_BORDER + "行以上あるポストを非表示</li>";
             }
+            if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
+                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.ACCOUNTNAME_SPACE_BORDER + "以上あるアカウント名のポストを非表示</li>";
+            }
             if(X_OPTION.DEFAULT_ICON_BLOCK){
                 addtxt += "<li>プロフィールアイコン未設定アカウントからのポストを非表示</li>";
             }
@@ -511,6 +545,9 @@ const TARGET_URL = [
             }
             if(X_OPTION.VERIFIED_HDN){
                 addtxt += "<li>認証済みアカウントのポストを非表示</li>";
+            }
+            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
             }
             addtxt += "</ul>";
         }
@@ -656,4 +693,47 @@ const TARGET_URL = [
         }
         return null;
     }
+
+    function AccountSpaceCount(post){
+        let name = getPostAccountName(post);
+        return (name.trim().match(/[ \u3000][ぁ-んァ-ヶー一-龯]/g) || []).length;
+    }
+
+    function getPostAccountName(post){
+        let a = post.getElementsByTagName("a");
+        let postId = getPostUserName(post, true);
+        for(let i=0;i<a.length;i++){
+            if(a[i].role == "link" && a[i].href.endsWith(postId) && a[i].innerText.trim() != ""){
+                return a[i].innerText;
+            }
+        }
+        return "";
+    }
+
+    function getSearchWordList(){
+        if(document.getElementById("typeaheadDropdown-3") != null){ return [];}
+        let input_lst = document.getElementsByTagName("input");
+        let wordLst;
+        let res = [];
+        for(const item of input_lst){
+            if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
+                wordLst = item.value.replaceAll("　", " ").split(" ");
+                break;
+            }
+        }
+        if(0 < wordLst.length){
+            for(const item of wordLst){
+                if(item.trim() != "" && /.+:.+/.test(item) == false){
+                    res.push(item);
+                }
+            }
+        }
+        return res;
+    }
+    function isSearchPage(){
+        let url = getLUrl().replace("https://", "");
+        if(url.match("twitter.com/search")){ return true; }
+        return false;
+    }
+
     TwitterSearchBlockMain();

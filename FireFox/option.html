@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf8">
+        <meta name="viewport" content="width=device-width">
         <title>オプション</title>
         <script type="text/javascript" src="./option.js"></script>
         <style>
@@ -29,6 +30,21 @@
             #default_icon_name{
                 width:20em;
             }
+            .div_box{
+                border-radius: 10px;
+                border:1px solid #cdcdcd;
+                padding:0.5em;
+                margin:0.5em;
+            }
+            .sub_title{
+                font-weight: bold;
+            }
+            .small_bottom_margin{
+                margin-bottom:0.5em;
+            }
+            .small_top_margin{
+                margin-top:0.5em;
+            }
         </style>
     </head>
     <body>
@@ -37,10 +53,19 @@
             <hr>
             ※設定によってはスパムではない一般のツイートが巻き込まれて非表示になってしまう場合もあります
             <hr>
-            <h4>ミュートアカウントリストのインポート</h4>
-            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button><br>
-            <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
-            ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+            <h4>ュートアカウントリストのインポート</h4>
+            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
+            <div class="div_box">
+                <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
+                インポートタイプ：
+                <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
+                <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
+                <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
+                ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+                <br><br>
+                <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+            </div>
+            <hr>
             <h4>ミュートワード（1行1ワード）</h4>
             <textarea id="mute_words"></textarea>
             <h4>セーフワード（ミュートワードに一致しても除外しない/1行1ワード）</h4>
@@ -61,11 +86,19 @@
             <h4>「#」から始まる行が多いポストをミュート（0で無効）</h4>
             「#」から始まる行が<input type="number" id="short_post_border" value="0" min="0">行以上でミュート<br>
             ※トレンドワードを1行ずつ並べるポスト用
-            <label class="checkBox_label"><h4><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
-            <h4>デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
+            <h4>アカウント名にスペースを次の数以上使用しているユーザーのポストをミュート（0で無効）</h4>
+            アカウント名にスペースが<input type="number" id="accountname_space_border" value="0" min="0">以上でミュート<br>
+            ※トレンドワードをアカウントネームに羅列してインプレッションを稼ぐユーザー用<br>
+            ※「ひらがな・カタカナ・漢字」直前のスペースのみカウント
+            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="search_hit_username_block">検索ワードが本文に含まれていないポストをミュート（ユーザー名の一致のみで検索に載ってしまうポストの非表示）</h4></label>
+            ※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザーネームに何れかのワードが一致する場合非表示となります<br>
+            ※このオプションはターゲットURLの設定に関わらず検索画面でのみ動作します
+            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
+            <h4 class="small_top_margin">デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
             <input type="text" id="default_icon_name" value="default_profile_normal.png">
             <label class="checkBox_label"><h4><input type="checkbox" id="block_count_view">左上にブロックしたポスト数を表示する</h4></label>
             <label class="checkBox_label"><h4><input type="checkbox" id="hira_kata_conv">ひらがなとカタカナの区別をしない</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="case_conv">大文字小文字の区別をしない</h4></label>
             <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
             <input type="number" id="interval_time" value="350">ミリ秒<br>
             <h4>ターゲットURL（1行1URL） <button id="default_set_3">初期値に戻す</button></h4>
