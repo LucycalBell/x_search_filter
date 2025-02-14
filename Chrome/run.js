@@ -690,7 +690,7 @@ const TARGET_URL = [
 
     function AccountSpaceCount(post){
         let name = getPostAccountName(post);
-        return (name.trim().match(/[ \u3000][ぁ-んァ-ヶー一-龯]/) || []).length;
+        return (name.trim().match(/[ \u3000][ぁ-んァ-ヶー一-龯]/g) || []).length;
     }
 
     function getPostAccountName(post){
