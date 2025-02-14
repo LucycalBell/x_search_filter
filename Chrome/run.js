@@ -492,7 +492,7 @@ const TARGET_URL = [
             addtag.style.top = "0px";
             addtag.style.left = "0px";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'>非表示数<br><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
@@ -522,7 +522,7 @@ const TARGET_URL = [
         }
 
         let addtxt = "";
-        addtxt += "<div style='text-align:center;font-size:large;color:#000;'>【非表示にしたポスト】</div><div style='color:#000;'>";
+        addtxt += "<div style='text-align:center;font-size:large;color:#000;margin-top:10px;'>【非表示にしたポスト】</div><div style='color:#000;'>";
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
             addtxt += "<hr><p>※以下のオプションが設定されています</p>";
