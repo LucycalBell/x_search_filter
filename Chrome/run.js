@@ -534,6 +534,9 @@ const TARGET_URL = [
             if(0 < X_OPTION.TAG_START_BORDER){
                 addtxt += "<li>ハッシュタグから始まる行が" + X_OPTION.TAG_START_BORDER + "行以上あるポストを非表示</li>";
             }
+            if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
+                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.ACCOUNTNAME_SPACE_BORDER + "以上あるアカウント名のポストを非表示</li>";
+            }
             if(X_OPTION.DEFAULT_ICON_BLOCK){
                 addtxt += "<li>プロフィールアイコン未設定アカウントからのポストを非表示</li>";
             }
@@ -542,6 +545,9 @@ const TARGET_URL = [
             }
             if(X_OPTION.VERIFIED_HDN){
                 addtxt += "<li>認証済みアカウントのポストを非表示</li>";
+            }
+            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
             }
             addtxt += "</ul>";
         }
