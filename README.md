@@ -6,6 +6,15 @@ Xの検索結果にミュートワードを設定し、該当するポストを�
 
 ※本拡張機能はX側の仕様変更により動作しなくなる可能性があります
 
+## 使用方法
+**Chromium系ブラウザの場合**  
+[X検索ミュートツール - Chrome ウェブストア](https://chromewebstore.google.com/detail/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/nggagmpbcbkpgbjbdiobbikgehcmkmkh?authuser=0&hl=ja)
+
+**FireFoxの場合**  
+[X検索ミュートツール – 🦊 Firefox (ja) 向け拡張機能を入手](https://addons.mozilla.org/ja/firefox/addon/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/)
+
+もしくは[x_search_filter/Chrome/](https://github.com/LucycalBell/x_search_filter/tree/main/Chrome)、[x_search_filter/FireFox/](https://github.com/LucycalBell/x_search_filter/tree/main/FireFox)のソースコードを直接インポートしてください（開発者モードをONにする必要がある場合があります）
+
 ## 更新履歴(v1.0.1 - v1.0.6)
 
 **Ver.1.0.7以降の変更は[リリース](https://github.com/LucycalBell/x_search_filter/releases)をご確認ください**
