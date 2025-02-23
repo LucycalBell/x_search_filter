@@ -63,6 +63,10 @@ function LoadOption(){
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -86,6 +90,10 @@ function LoadOption(){
             document.getElementById("post_check_all").checked = X_OPTION.POST_CHECK_ALL;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
+            document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
+            document.getElementById("link_card_url_view_oneLine").checked = X_OPTION.LINK_CARD_URL_VIEW_ONELINE;
+            document.getElementById("link_card_mismatch_warning").checked = X_OPTION.LINK_CARD_MISMATCH_WARNING;
+            document.getElementById("link_card_url_safe").value = ArrayObjtoText(X_OPTION.LINK_CARD_URL_SAFE);
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
@@ -138,6 +146,10 @@ function OptionSave(){
     SAVE_OBJ.MANUAL_SPAM_LIST = X_OPTION.MANUAL_SPAM_LIST;
     SAVE_OBJ.ACCOUNTNAME_SPACE_BORDER = document.getElementById("accountname_space_border").value;
     SAVE_OBJ.SEARCH_HIT_USERNAME_BLOCK = document.getElementById("search_hit_username_block").checked;
+    SAVE_OBJ.LINK_CARD_URL_VIEW = document.getElementById("link_card_url_view").checked;
+    SAVE_OBJ.LINK_CARD_URL_VIEW_ONELINE = document.getElementById("link_card_url_view_oneLine").checked;
+    SAVE_OBJ.LINK_CARD_MISMATCH_WARNING = document.getElementById("link_card_mismatch_warning").checked;
+    SAVE_OBJ.LINK_CARD_URL_SAFE = document.getElementById("link_card_url_safe").value.split(/\n/);
     chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(SAVE_OBJ)}, function() {
         ;
     });
@@ -204,7 +216,10 @@ function EventSet(){
     document.getElementById("manual_import_delete").addEventListener("click", ManualListDelete, false);
     document.getElementById("accountname_space_border").addEventListener("input", OptionSave, false);
     document.getElementById("search_hit_username_block").addEventListener("click", OptionSave, false);
-    
+    document.getElementById("link_card_url_view").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_url_view_oneLine").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_mismatch_warning").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_url_safe").addEventListener("input", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

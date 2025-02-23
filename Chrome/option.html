@@ -9,6 +9,9 @@
                 width:80%;
                 margin:0 auto;
             }
+            body {
+                padding-bottom:20vh;
+            }
             h4{
                 margin:2em 0 0.1em 0;
             }
@@ -119,7 +122,14 @@ css-901oao css-cens5h r-1nao33i r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r
             <label class="checkBox_label"><input type="checkbox" id="insert_default_class" checked>デフォルト設定のクラスを優先的に使用する</label>
             <hr>    
             <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis">リンク画像をわかりやすくする</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis_all">「リンク画像をわかりやすくする」をターゲットURL以外（ホームなど）にも適用する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_url_view">リンクカードのリンク先URLを表示する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_url_view_oneLine">リンク先が1行に収まらない場合「…」で省略する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_mismatch_warning">表示されているURLと実際の遷移先が異なる場合赤字で警告する</h4></label>
+            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis_all">リンク系オプションをターゲットURL以外（ホームなど）にも適用する</h4></label>
+            <h4>セーフドメイン（1行1ドメイン）</h4>
+            ※ドメイン部のみで判定するため「https://」や「www」を含めると一致しなくなります
+            <textarea id="link_card_url_safe"></textare><br>
+            ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります
             <hr>
             <div style="margin-top:20%;"></div>
         </div>

@@ -26,6 +26,8 @@ const TARGET_URL = [
         8:"アカウント名スペース数超過",
         9:"ユーザー名のみ一致"
     };
+    const CLASS_LINK_ICON = "gX5c7aMKHJte";
+    const CLASS_LINK_TEXT = "38vLw0IMLBxf";
     
     let postBlockViewNumber = 0;
     let hidden_posts = [];
@@ -108,6 +110,10 @@ const TARGET_URL = [
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -249,12 +255,13 @@ const TARGET_URL = [
             }
             if(cardList[i][0].getElementsByClassName("XGarIO3t").length == 0){
                 let createNode = document.createElement("div");
-                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;background-color:#ff0000;text-align:center;'>⚠</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-left:0.1rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#f00;'>" + labeltxt + "</span>";
-                //createNode.innerHTML = "<span style='font-size:2rem;width:3rem;'>🔗</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
+                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
                 createNode.setAttribute("class", "XGarIO3t")
                 createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
                 cardList[i][0].appendChild(createNode);
-                UrlDomainCheck(cardList[i]);
+                if(X_OPTION.LINK_CARD_URL_VIEW){
+                    UrlDomainCheck(cardList[i]);
+                }
                 break;
             }
         }
@@ -276,15 +283,26 @@ const TARGET_URL = [
         },
         function (response) {
             if(response.status){
-                if(getDomain(response.url) != getDomain(cardData[1])){
-                    getCardDomain(cardData[0]).innerHTML += "<span style='color:red;font-weight:bold;'>（リンク先：" + response.url + ")</span>";
+                let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
+                let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
+                let linka_a = getCardDomain(cardData[0]);
+                if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !getDomain(response.url).includes(X_OPTION.LINK_CARD_URL_SAFE) && getDomain(response.url) != getDomain(cardData[1])){
+                    linka_a.innerHTML += "<span style='color:red;font-weight:bold;'>（URL：" + response.url + ")</span>";
+                    if(0 < link_icon.length){
+                        link_icon[0].innerText = "⚠";
+                        link_icon[0].style.backgroundColor = "#eeff00";
+                    }
+                    if(0 < link_text.length){
+                        link_icon[0].style.color = "red";
+                    }
                 } else {
-                    let linka_a = getCardDomain(cardData[0]);
+                    linka_a.innerHTML += "（URL：" + response.url + ")";
+                }
+                if(X_OPTION.LINK_CARD_URL_VIEW_ONELINE){
                     linka_a.style.whiteSpace = "nowrap";
                     linka_a.style.overflow = "hidden";
                     linka_a.style.textOverflow = "ellipsis";
                     linka_a.style.display = "inline-block";
-                    linka_a.innerHTML += "（リンク先：" + response.url + ")";
                 }
             }
         });
