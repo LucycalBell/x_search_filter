@@ -221,33 +221,77 @@ const TARGET_URL = [
         let cardList = [];
         let b;
         let labeltxt = "";
+        let linkDomain = "";
+        let viewDomain = "";
         b = document.getElementsByTagName("div");
 
         a = document.getElementsByTagName("div");
         for(let i=0;i<a.length;i++){
             if(a[i].dataset.testid != void 0 && a[i].dataset.testid == LINK_IMG_STR){
-                cardList.push(a[i]);
+                linkDomain = "";
+                viewDomain = "";
+                if(0 < a[i].getElementsByTagName("a").length && a[i].getElementsByTagName("a")[0].ariaLabel != null){
+                    linkDomain = a[i].getElementsByTagName("a")[0].href;
+                    viewDomain = a[i].getElementsByTagName("a")[0].ariaLabel.split(" ")[0];
+                }
+                cardList.push([a[i], viewDomain, linkDomain]);
             }
         }
 
         for(let i=0;i<cardList.length;i++){
             labeltxt = "";
-            b = cardList[i].getElementsByTagName("a");
+            b = cardList[i][0].getElementsByTagName("a");
             for(let q=0;q<b.length;q++){
                 if(b[q] != void 0 && b[q].ariaLabel != null && b[q].ariaLabel.includes(".")){
                     labeltxt = b[q].ariaLabel.trim();
                     break;
                 }
             }
-            if(cardList[i].getElementsByClassName("XGarIO3t").length == 0){
+            if(cardList[i][0].getElementsByClassName("XGarIO3t").length == 0){
                 let createNode = document.createElement("div");
-                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;'>🔗</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
+                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;background-color:#ff0000;text-align:center;'>⚠</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-left:0.1rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#f00;'>" + labeltxt + "</span>";
+                //createNode.innerHTML = "<span style='font-size:2rem;width:3rem;'>🔗</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
                 createNode.setAttribute("class", "XGarIO3t")
                 createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
-                cardList[i].appendChild(createNode);
+                cardList[i][0].appendChild(createNode);
+                UrlDomainCheck(cardList[i]);
                 break;
             }
         }
+    }
+
+    function getCardDomain(card){
+        let aList = card.parentElement.parentElement.getElementsByTagName("a");
+        for(const item of aList){
+            if(item.ariaLabel == void 0 && item.href.startsWith("https://t.co/")){
+                return item;
+            }
+        }
+    }
+
+    function UrlDomainCheck(cardData){
+        chrome.runtime.sendMessage({
+            type:"getUrl_tco",
+            url:cardData[2]
+        },
+        function (response) {
+            if(response.status){
+                if(getDomain(response.url) != getDomain(cardData[1])){
+                    getCardDomain(cardData[0]).innerHTML += "<span style='color:red;font-weight:bold;'>（リンク先：" + response.url + ")</span>";
+                } else {
+                    let linka_a = getCardDomain(cardData[0]);
+                    linka_a.style.whiteSpace = "nowrap";
+                    linka_a.style.overflow = "hidden";
+                    linka_a.style.textOverflow = "ellipsis";
+                    linka_a.style.display = "inline-block";
+                    linka_a.innerHTML += "（リンク先：" + response.url + ")";
+                }
+            }
+        });
+    }
+
+    function getDomain(url){
+        return url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i)[1];
     }
     
     function getPostClass(){

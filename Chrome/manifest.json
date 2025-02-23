@@ -22,5 +22,8 @@
     "storage"
   ],
   "options_page": "option.html",
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": { "default_popup": "popup.html" }
 }
