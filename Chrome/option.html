@@ -2,12 +2,24 @@
 <html>
     <head>
         <meta charset="utf8">
+        <meta name="viewport" content="width=device-width">
         <title>オプション</title>
         <script type="text/javascript" src="./option.js"></script>
         <style>
             .main{
-                width:80%;
                 margin:0 auto;
+                display: block;
+                font-family: -apple-system, BlinkMacSystemFont, "Meiryo", "Yu Gothic UI", "Hiragino Sans", "Segoe UI", "Roboto", "Meiryo", sans-serif;
+            }
+            @media (max-width: 600px) {
+                .main{
+                    width: 99%;
+                }
+            }
+            @media (min-width: 601px) {
+                .main{
+                    width: 80%;
+                }
             }
             body {
                 padding-bottom:20vh;
@@ -25,10 +37,6 @@
             input[type="number"]{
                 width:4em;
             }
-            .mini_area{
-                width:98%;
-                height:5em;
-            }
             #default_icon_name{
                 width:20em;
             }
@@ -41,12 +49,220 @@
             .sub_title{
                 font-weight: bold;
             }
-            .small_bottom_margin{
-                margin-bottom:0.5em;
-            }
             .small_top_margin{
                 margin-top:0.5em;
             }
+            .option-title {
+                font-size:x-large;
+                color: #333;
+                background-color: #FFF;
+                padding:0 1em;
+                font-weight: bold;
+                border-bottom: 2px dotted #2f96ff;
+                border-left: 5px solid #2f96ff;
+                margin-bottom:0.5em;
+                box-sizing: border-box;
+            }
+            .option_block{
+                border-radius: 5px;
+                background-color:rgb(255, 255, 255);
+                padding:0.5em;
+                position:relative;
+                margin:3em auto 0 auto;
+                width: 100%;
+            }
+
+            .switch_sub_option{
+                margin-left:55px;
+                transition: 0.4s;
+            }
+
+            .suboption_open{
+                height:2em;
+            }
+
+            .suboption_close{
+                height:0em;
+                margin:0;
+                padding:0;
+                overflow: hidden;
+            }
+
+.switch_box{
+    margin:2em 0;
+}
+
+.switch-container {
+  display: inline-flex;
+  align-items: flex-start;
+  cursor: pointer;
+  top: -1em;
+  position: relative;
+}
+
+/* オプション：テキストの余白調整 */
+.switch-label {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #333;
+  font-weight: bold;
+}
+
+.switch-text{
+    position:relative;
+    top:0;
+}
+
+.switch_sub_text{
+    color:#838383;
+}
+
+/* スイッチ本体 */
+.switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* スイッチ背景 */
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: 0.1s;
+  min-width: 50px;
+}
+
+/* スライダーの丸い部分 */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: 0.1s;
+}
+
+/* チェックされた時の背景色 */
+.switch-container input:checked + .slider {
+  background-color: #66bb6a;
+}
+
+/* チェックされた時のスライダーの位置移動 */
+.switch-container input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* フォーカス時のアクセント（任意） */
+.switch-container input:focus + .slider {
+  box-shadow: 0 0 1px #66bb6a;
+}
+
+.switch-container input:disabled + .slider:before {
+    background-color: #a8a8a8;
+}
+.switch-container input:disabled + .slider {
+    background-color: #6d6d6d;
+}
+
+.number-input {
+  width: 3em;
+  padding: 0.5em 0.8em;
+  font-size: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  font-weight: bold;
+  margin:0 0.2em;
+}
+
+.text-input {
+  width: 3em;
+  padding: 0.5em 0.8em;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  margin:0 0.2em;
+}
+
+.area-input {
+  width: 3em;
+  padding: 0.4em 0.6em;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  margin:0 0.2em;
+  width:98%;
+  height:8em;
+  box-sizing: border-box;
+}
+
+.area-input-mini {
+  height:4em;
+}
+
+/* ホバー時のエフェクト */
+.number-input:hover {
+  border-color: #999;
+}
+
+/* フォーカス時のエフェクト */
+.number-input:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 5px rgba(102,175,233,0.5);
+}
+
+.zero-bottom-margin{
+    margin-bottom:0;
+}
+
+.zero-top-margin{
+    margin-top:0;
+}
+
+.small-bottom-margin{
+    margin-bottom:1em;
+}
+
+.top-move-5{
+    top:-0.8em;
+    position: relative;
+}
+
+.line_L{
+    margin-top:1.5em;
+    margin-left:2.5em;
+    height:1em;
+    width:1em;
+    display:inline-block;
+    border-left:2px solid #000;
+    border-bottom:2px solid #000;
+    position:relative;
+    top:-0.5em;
+}
+
+.sub-tree{
+    margin-left:3em;
+}
+
+.switch_box-inline{
+    display:inline-block;
+}
+  
         </style>
     </head>
     <body>
@@ -55,82 +271,257 @@
             <hr>
             ※設定によってはスパムではない一般のツイートが巻き込まれて非表示になってしまう場合もあります
             <hr>
-            <h4>ュートアカウントリストのインポート</h4>
-            インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
-            <div class="div_box">
-                <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
-                インポートタイプ：
-                <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
-                <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
-                <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
-                ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
-                <br><br>
-                <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+            <div class="option_block">
+                <div class="option-title">ミュートアカウントリストのインポート</div>
+                インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
+                <div class="div_box">
+                    <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
+                    インポートタイプ：
+                    <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
+                    <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
+                    <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
+                    ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+                    <br><br>
+                    <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+                </div>
             </div>
-            <hr>
-            <h4>ミュートワード（1行1ワード）</h4>
-            <textarea id="mute_words"></textarea>
-            <h4>セーフワード（ミュートワードに一致しても除外しない/1行1ワード）</h4>
-            <textarea id="exclude_words"></textarea>
-            <label class="checkBox_label"><h4><input type="checkbox" id="reg_exp">ミュート/セーフワードに正規表現を使用する</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="post_check_all">ミュート/セーフワードをポスト全体からチェックする（OFF時はポスト本文のみ、ON時はユーザー名やIDも含んでチェック）</h4></label>
-            <div>※「ポスト全体」にはポスト時間（ユーザー名横の「○時間」）やいいね数・リノート数などの数字も含まれるため特に数字を指定する場合はご注意ください</div>
-            <h4>セーフユーザー（1行1ユーザー）</h4>
-            <div>※非表示にしたくないユーザー名を記載（先頭の@は不要、記載した場合無視されます）</div>
-            <textarea id="safe_user"></textarea>
-            <label class="checkBox_label"><h4><input type="checkbox" id="verified_hidden">認証済みアカウント（青バッジ）のポストを非表示にする</h4></label>
-            ※特定の認証済みアカウントを例外とする場合はセーフユーザーオプションをご利用ください
-            <h4>ハッシュタグが次の数以上使われているポストをミュート（0で無効）</h4>
-            <input type="number" id="hashtag_border" value="0" min="0">
-            <h4>スペースが次の数以上使われているポストをミュート（0で無効）</h4>
-            <input type="number" id="space_border" value="0" min="0"><br>
-            ※トレンドワードをスペースで区切って並べるポスト対策、「ひらがな・カタカナ・漢字」直前のスペースのみカウント
-            <h4>「#」から始まる行が多いポストをミュート（0で無効）</h4>
-            「#」から始まる行が<input type="number" id="short_post_border" value="0" min="0">行以上でミュート<br>
-            ※トレンドワードを1行ずつ並べるポスト用
-            <h4>アカウント名にスペースを次の数以上使用しているユーザーのポストをミュート（0で無効）</h4>
-            アカウント名にスペースが<input type="number" id="accountname_space_border" value="0" min="0">以上でミュート<br>
-            ※トレンドワードをアカウントネームに羅列してインプレッションを稼ぐユーザー用<br>
-            ※「ひらがな・カタカナ・漢字」直前のスペースのみカウント
-            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="search_hit_username_block">検索ワードが本文に含まれていないポストをミュート（ユーザー名の一致のみで検索に載ってしまうポストの非表示）</h4></label>
-            ※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザーネームに何れかのワードが一致する場合非表示となります<br>
-            ※このオプションはターゲットURLの設定に関わらず検索画面でのみ動作します
-            <label class="checkBox_label"><h4 class="small_bottom_margin"><input type="checkbox" id="default_icon_block">デフォルトアイコンユーザーのポストをミュートする</h4></label>
-            <h4 class="small_top_margin">デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
-            <input type="text" id="default_icon_name" value="default_profile_normal.png">
-            <label class="checkBox_label"><h4><input type="checkbox" id="block_count_view">左上にブロックしたポスト数を表示する</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="hira_kata_conv">ひらがなとカタカナの区別をしない</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="case_conv">大文字小文字の区別をしない</h4></label>
-            <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
-            <input type="number" id="interval_time" value="350">ミリ秒<br>
-            <h4>ターゲットURL（1行1URL） <button id="default_set_3">初期値に戻す</button></h4>
-            ※本ツールが動作するページを指定、正規表現で指定（twitter.comとx.com以外を指定しても拡張機能自体が動作しないため注意）<br>
-            ※ポストのリプライも対象にする場合は次の指定を追加してください：twitter.com/.*/status/
-            <textarea id="target_url" class="mini_area">twitter.com/search
-twitter.com/hashtag</textarea>
-            <label class="checkBox_label"><h4><input type="checkbox" id="x_conv">twitter.comとx.comを同一ドメインとして扱う（ターゲットURL確認用）</h4></label>
-            <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
-            ※階層はクラス名の要素から何階層上を非表示にするか<br>
-            ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
-            ※「tweet」と記載した場合のみ特別に「tweet」が付与されたdata属性を参照します
-            <textarea id="post_class_area" class="mini_area">tweet, 3, article
-css-1rynq56 r-8akbws r-krxsd3 r-dnmrzs r-1udh08x r-bcqeeo r-qvutc0 r-37j5jr r-1b43r93 r-14yzgew r-16dba41 r-bnwqim, 9, div
-css-901oao css-cens5h r-18jsvk2 r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
-css-901oao css-cens5h r-vlxjld r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
-css-901oao css-cens5h r-1nao33i r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div</textarea>
-            <br>
-            <label class="checkBox_label"><input type="checkbox" id="insert_default_class" checked>デフォルト設定のクラスを優先的に使用する</label>
-            <hr>    
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis">リンク画像をわかりやすくする</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_url_view">リンクカードのリンク先URLを表示する</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_url_view_oneLine">リンク先が1行に収まらない場合「…」で省略する</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_mismatch_warning">表示されているURLと実際の遷移先が異なる場合赤字で警告する</h4></label>
-            <label class="checkBox_label"><h4><input type="checkbox" id="link_card_emphasis_all">リンク系オプションをターゲットURL以外（ホームなど）にも適用する</h4></label>
+            <div class="option_block">
+                <div class="option-title">ミュートワード設定</div>
+                <div>※競合した場合、「セーフ」系の設定が優先されます</div>
+                    <h4>ミュートワード（1行1ワード）</h4>
+                    <textarea id="mute_words" class="area-input"></textarea>
+                    <h4>セーフワード（除外しないワード/1行1ワード）</h4>
+                    <textarea id="exclude_words" class="area-input"></textarea>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="reg_exp">
+                            <span class="slider"></span>
+                            <span class="switch-label">ミュート/セーフワードに正規表現を使用する</span>
+                        </label>
+                    </div>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="post_check_all">
+                            <span class="slider"></span>
+                            <span class="switch-label">ミュート/セーフワードをポスト全体からチェックする（OFF時はポスト本文のみ、ON時はユーザー名やIDも含んでチェック）</span>
+                        </label>
+                    </div>
+
+                    <h4>セーフユーザー（1行1ユーザー）</h4>
+                    <div>※非表示にしたくないユーザー名を記載（先頭の@は不要、記載した場合無視されます）</div>
+                    <textarea id="safe_user" class="area-input"></textarea>
+            </div>
+
+            <div class="option_block">
+                <div class="option-title">ミュートオプション</div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="verified_hidden">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">認証済みアカウント（青バッジ）のポストを非表示にする</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="hashtag_border_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">ハッシュタグが大量に使われているポストをミュート</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="hashtag_border_subOption">→ ミュートにする数：<input type="number" id="hashtag_border" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="space_border_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">スペースを多用しているポストをミュート</span><br>
+                            <span class="switch_sub_text">※トレンドワードをスペースで区切って並べるポスト対策、「ひらがな・カタカナ・漢字」直前のスペースのみカウント</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="space_border_subOption">→ ミュートにする数：<input type="number" id="space_border" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="short_post_border_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">「#」から始まる行が多いポストをミュート</span><br>
+                            <span class="switch_sub_text">※トレンドワードを1行ずつ並べるポスト用</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="short_post_border_subOption">→ ミュートにする行：<input type="number" id="short_post_border" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="accountname_space_border_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">アカウント名にスペースを多用しているユーザーのポストをミュート</span><br>
+                            <span class="switch_sub_text">※トレンドワードをアカウント名に羅列して検索に引っかけてくるアカウント対策<br>※「ひらがな・カタカナ・漢字」直前のスペースのみカウント</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="accountname_space_border_subOption">→ ミュートにする数：<input type="number" id="accountname_space_border" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_hit_username_block">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">ユーザー名のみで検索にヒットしているポストを非表示</span><br>
+                            <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合非表示となります<br>※このオプションはターゲットURLの設定に関わらず検索画面でのみ動作します</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="default_icon_block">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">デフォルトアイコンユーザーのポストをミュートする</span>
+                        </div>
+                    </label>
+                </div>
+
+                <h4 class="small_top_margin">デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
+                <input type="text" id="default_icon_name" class="text-input" value="default_profile_normal.png">
+            </div>
+
+            <div class="option_block">
+                <div class="option-title">表示設定</div>
+
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="block_count_view">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">左上にブロックしたポスト数を表示する</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="option_block">
+            <div class="option-title">リンクカード設定</div>
+            <div class="switch_box small-bottom-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_card_emphasis">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">リンク画像をわかりやすくする</span>
+                    </div>
+                </label>
+            </div>
+            <div class="switch_box sub-tree zero-top-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_card_emphasis_all">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">リンク系オプションをターゲットURL以外（ホームなど）にも適用する</span>
+                    </div>
+                </label>
+            </div>
+            <div class="switch_box zero-top-margin small-bottom-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_card_url_view">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">リンクカードのリンク先URLを表示する</span>
+                    </div>
+                </label>
+            </div>
+            <div class="switch_box sub-tree zero-top-margin small-bottom-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_card_url_view_oneLine">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">リンク先が1行に収まらない場合「…」で省略する</span>
+                    </div>
+                </label>
+            </div>
+            <div class="switch_box sub-tree zero-top-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_card_mismatch_warning">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">表示されているURLと実際の遷移先が異なる場合赤字で警告する</span>
+                    </div>
+                </label>
+            </div>
             <h4>セーフドメイン（1行1ドメイン）</h4>
             ※ドメイン部のみで判定するため「https://」や「www」を含めると一致しなくなります
-            <textarea id="link_card_url_safe"></textare><br>
+            <textarea id="link_card_url_safe" class="area-input"></textarea><br>
             ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります
-            <hr>
+            </div>
+
+            <div class="option_block">
+                <div class="option-title">ツールシステム設定</div>
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="hira_kata_conv">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">ひらがなとカタカナの区別をしない</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="case_conv">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">大文字・小文字の区別をしない</span>
+                        </div>
+                    </label>
+                </div>
+                <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
+                <input type="number" id="interval_time" class="number-input" value="200">ミリ秒<br>
+                <h4>ターゲットURL（1行1URL） <button id="default_set_3">初期値に戻す</button></h4>
+                ※本ツールが動作するページを指定、正規表現で指定（twitter.comとx.com以外を指定しても拡張機能自体が動作しないため注意）<br>
+                ※ポストのリプライも対象にする場合は次の指定を追加してください：twitter.com/.*/status/
+                <textarea id="target_url" class="area-input area-input-mini">twitter.com/search
+    twitter.com/hashtag</textarea>
+                <div class="switch_box zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="x_conv">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">twitter.comとx.comを同一ドメインとして扱う</span>
+                        </div>
+                    </label>
+                </div>
+                <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
+                ※階層はクラス名の要素から何階層上を非表示にするか<br>
+                ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
+                ※「tweet」と記載した場合のみ特別に「tweet」が付与されたdata属性を参照します
+                <textarea id="post_class_area" class="area-input area-input-mini">tweet, 3, article
+    css-1rynq56 r-8akbws r-krxsd3 r-dnmrzs r-1udh08x r-bcqeeo r-qvutc0 r-37j5jr r-1b43r93 r-14yzgew r-16dba41 r-bnwqim, 9, div
+    css-901oao css-cens5h r-18jsvk2 r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
+    css-901oao css-cens5h r-vlxjld r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
+    css-901oao css-cens5h r-1nao33i r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div</textarea>
+                <div class="switch_box zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="insert_default_class">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">デフォルト設定のクラスを優先的に使用する</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <div style="margin-top:20%;"></div>
         </div>
     </body>
