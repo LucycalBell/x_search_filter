@@ -113,7 +113,7 @@ const TARGET_URL = [
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
-            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
+            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY).filter(item => item !== "");
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -279,33 +279,47 @@ const TARGET_URL = [
     function UrlDomainCheck(cardData){
         chrome.runtime.sendMessage({
             type:"getUrl_tco",
-            url:cardData[2]
+            url: cardData[2]
         },
         function (response) {
-            if(response.status){
-                let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
-                let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
-                let linka_a = getCardDomain(cardData[0]);
-                if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !getDomain(response.url).includes(X_OPTION.LINK_CARD_URL_SAFE) && getDomain(response.url) != getDomain(cardData[1])){
-                    linka_a.innerHTML += "<span style='color:red;font-weight:bold;'>（URL：" + response.url + ")</span>";
-                    if(0 < link_icon.length){
-                        link_icon[0].innerText = "⚠";
-                        link_icon[0].style.backgroundColor = "#eeff00";
-                    }
-                    if(0 < link_text.length){
-                        link_icon[0].style.color = "red";
-                    }
-                } else {
-                    linka_a.innerHTML += "（URL：" + response.url + ")";
+            resultUrl = refreshUrl(response.htmlStr);
+            if(resultUrl == null){ return; }
+            let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
+            let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
+            let linka_a = getCardDomain(cardData[0]);
+            if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl)) && getDomain(resultUrl) != getDomain(cardData[1])){
+                linka_a.innerHTML += "<span style='color:red;font-weight:bold;'>（URL：" + resultUrl + ")</span>";
+                if(0 < link_icon.length){
+                    link_icon[0].innerText = "⚠";
+                    link_icon[0].style.backgroundColor = "#eeff00";
                 }
-                if(X_OPTION.LINK_CARD_URL_VIEW_ONELINE){
-                    linka_a.style.whiteSpace = "nowrap";
-                    linka_a.style.overflow = "hidden";
-                    linka_a.style.textOverflow = "ellipsis";
-                    linka_a.style.display = "inline-block";
+                if(0 < link_text.length){
+                    link_icon[0].style.color = "red";
                 }
+            } else {
+                linka_a.innerHTML += "（URL：" + resultUrl + ")";
+            }
+            if(X_OPTION.LINK_CARD_URL_VIEW_ONELINE){
+                linka_a.style.whiteSpace = "nowrap";
+                linka_a.style.overflow = "hidden";
+                linka_a.style.textOverflow = "ellipsis";
+                linka_a.style.display = "inline-block";
             }
         });
+    }
+
+    function refreshUrl(htmlStr){
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(htmlStr, 'text/html');
+        let metaTag = doc.head ? doc.head.querySelector('meta[http-equiv="refresh"]') : null;
+        if (!metaTag) return null;
+        let content = metaTag.getAttribute("content");
+        if (!content) return null;
+        let match = content.match(/url\s*=\s*(.+)/i);
+        if (match && match[1]) {
+            return match[1].trim();
+        }
+        return null;
     }
 
     function getDomain(url){

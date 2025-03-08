@@ -20,14 +20,9 @@ function ClassDataDownload(sendResponse, url){
         return response.text();
     })
     .then(html => {
-        let match = html.match(/<title>(.*?)<\/title>/i);
-        if (match) {
-          sendResponse({status: true, url: match[1]});
-        }
-        sendResponse({status: false, url: ""});
+        sendResponse({status: true, htmlStr: html, urlStr: url});
     })
     .catch(error => {
-        console.error(error);
-        sendResponse({status: false, url: ""});
+        sendResponse({status: false, htmlStr: "", urlStr: url});
     });
 }
