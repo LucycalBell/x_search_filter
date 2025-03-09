@@ -290,8 +290,9 @@ const TARGET_URL = [
             let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
             let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
             let linka_a = getCardDomain(cardData[0]);
+            cardLink_id_count++;
             if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl)) && getDomain(resultUrl) != getDomain(cardData[1])){
-                linka_a.innerHTML += "<span style='color:red;font-weight:bold;'>（URL：" + resultUrl + ")</span>";
+                linka_a.innerHTML += "<span style='color:red;font-weight:bold;'" + "id='cHXCcZlv_" + cardLink_id_count + "' data-cardLinkUrl='" + resultUrl + "'>（URL：" + resultUrl + ")</span>";
                 if(0 < link_icon.length){
                     link_icon[0].innerText = "⚠";
                     link_icon[0].style.backgroundColor = "#eeff00";
@@ -300,8 +301,21 @@ const TARGET_URL = [
                     link_icon[0].style.color = "red";
                 }
             } else {
-                linka_a.innerHTML += "（URL：" + resultUrl + ")";
+                linka_a.innerHTML += "<span id='cHXCcZlv_" + cardLink_id_count + "' data-cardLinkUrl='" + resultUrl + "'>（URL：" + resultUrl + ")</span>";
             }
+            document.getElementById("cHXCcZlv_" + String(cardLink_id_count)).addEventListener("click", function(ev){
+                ev.stopPropagation()
+                ev.preventDefault();
+                if(window.confirm("【X検索ミュートツール】\n以下URLをコピーしますか？\n" + ev.target.dataset.cardlinkurl)){
+                    navigator.clipboard.writeText(ev.target.dataset.cardlinkurl)
+                    .then(() => {
+                        alert("コピーしました");
+                    })
+                    .catch((error) => {
+                        alert("コピーできませんでした", error);
+                    });
+                }
+            }, false);
             if(X_OPTION.LINK_CARD_URL_VIEW_ONELINE){
                 linka_a.style.whiteSpace = "nowrap";
                 linka_a.style.overflow = "hidden";
