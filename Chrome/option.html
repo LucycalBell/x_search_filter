@@ -272,20 +272,6 @@
             ※設定によってはスパムではない一般のツイートが巻き込まれて非表示になってしまう場合もあります
             <hr>
             <div class="option_block">
-                <div class="option-title">ミュートアカウントリストのインポート</div>
-                インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
-                <div class="div_box">
-                    <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
-                    インポートタイプ：
-                    <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
-                    <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
-                    <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
-                    ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
-                    <br><br>
-                    <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
-                </div>
-            </div>
-            <div class="option_block">
                 <div class="option-title">ミュートワード設定</div>
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
                     <h4>ミュートワード（1行1ワード）</h4>
@@ -523,7 +509,20 @@
                     </label>
                 </div>
             </div>
-
+            <div class="option_block">
+                <div class="option-title">ミュートアカウントリストのインポート</div>
+                インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
+                <div class="div_box">
+                    <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
+                    インポートタイプ：
+                    <label><input type="radio" id="manual_import_type_overwrite" name="manual_import_type" checked>上書き</label>
+                    <label><input type="radio" id="manual_import_type_addition" name="manual_import_type">統合</label><br>
+                    <input type="file" id="manual_spamList" style="margin:0.5em 0;"><br>
+                    ミュートにしたいアカウントのリストをお持ちの場合こちらからインポート出来ます。形式は1行1アカウントです。アカウント名先頭の「@」はなし推奨ですがどちらでも認識します。
+                    <br><br>
+                    <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
+                </div>
+            </div>
             <div style="margin-top:20%;"></div>
         </div>
     </body>
