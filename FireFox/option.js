@@ -6,7 +6,7 @@ window.onload = function(){
     LoadOption();
 };
 
-const INTERVAL_TIME = 350;
+const INTERVAL_TIME = 200;
 const TARGET_URL = [
 "twitter.com/search",
 "twitter.com/hashtag"
@@ -63,6 +63,10 @@ function LoadOption(){
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -86,14 +90,20 @@ function LoadOption(){
             document.getElementById("post_check_all").checked = X_OPTION.POST_CHECK_ALL;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
+            document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
+            document.getElementById("link_card_url_view_oneLine").checked = X_OPTION.LINK_CARD_URL_VIEW_ONELINE;
+            document.getElementById("link_card_mismatch_warning").checked = X_OPTION.LINK_CARD_MISMATCH_WARNING;
+            document.getElementById("link_card_url_safe").value = ArrayObjtoText(X_OPTION.LINK_CARD_URL_SAFE);
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
                     document.getElementById("manual_import_delete").disabled = false;
                 }
             }
+            LoadOption_SwitchUpdate();
             ManualExportSetting();
-
+            LinkOptionChange();
+            BackupExport(X_OPTION);
             if(noDataFlag){
                 OptionSave();
                 return;
@@ -110,6 +120,30 @@ function LoadOption(){
         });
 }
 
+function LoadOption_SwitchUpdate(){
+    if(Number(X_OPTION.TAG_BORDER) != NaN){
+        if(0 < X_OPTION.TAG_BORDER){
+            document.getElementById("hashtag_border_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.SPACE_BORDER) != NaN){
+        if(0 < X_OPTION.SPACE_BORDER){
+            document.getElementById("space_border_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.TAG_START_BORDER) != NaN){
+        if(0 < X_OPTION.TAG_START_BORDER){
+            document.getElementById("short_post_border_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER) != NaN){
+        if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
+            document.getElementById("accountname_space_border_switch").checked = true;
+        }
+    }
+    SubOptionVisibleSwitch();
+}
+
 function OptionSave(){
     LinkOptionChange();
     let SAVE_OBJ = {};
@@ -118,9 +152,22 @@ function OptionSave(){
     SAVE_OBJ.BLOCK_WORDS = document.getElementById("mute_words").value.split(/\n/);
     SAVE_OBJ.EXCLUDE_WORDS = document.getElementById("exclude_words").value.split(/\n/);
     SAVE_OBJ.REG_EXP = document.getElementById("reg_exp").checked;
-    SAVE_OBJ.TAG_BORDER = document.getElementById("hashtag_border").value;
-    SAVE_OBJ.SPACE_BORDER = document.getElementById("space_border").value;
-    SAVE_OBJ.TAG_START_BORDER = document.getElementById("short_post_border").value;
+    if(document.getElementById("hashtag_border_switch").checked){
+        SAVE_OBJ.TAG_BORDER = document.getElementById("hashtag_border").value;
+    } else {
+        SAVE_OBJ.TAG_BORDER = "0";
+    }
+    if(document.getElementById("space_border_switch").checked){
+        SAVE_OBJ.SPACE_BORDER = document.getElementById("space_border").value;
+    } else {
+        SAVE_OBJ.SPACE_BORDER = "0";
+    }
+    if(document.getElementById("short_post_border_switch").checked){
+        SAVE_OBJ.TAG_START_BORDER = document.getElementById("short_post_border").value;
+    } else {
+        SAVE_OBJ.TAG_START_BORDER = "0";
+    }
+    
     SAVE_OBJ.DEFAULT_ICON_BLOCK = document.getElementById("default_icon_block").checked;
     SAVE_OBJ.DEFAULT_ICON_NAME = document.getElementById("default_icon_name").value;
     SAVE_OBJ.BLOCK_COUNT_VIEW = document.getElementById("block_count_view").checked;
@@ -136,15 +183,60 @@ function OptionSave(){
     SAVE_OBJ.VERIFIED_HDN = document.getElementById("verified_hidden").checked;
     SAVE_OBJ.POST_CHECK_ALL = document.getElementById("post_check_all").checked;
     SAVE_OBJ.MANUAL_SPAM_LIST = X_OPTION.MANUAL_SPAM_LIST;
-    SAVE_OBJ.ACCOUNTNAME_SPACE_BORDER = document.getElementById("accountname_space_border").value;
+    if(document.getElementById("accountname_space_border_switch").checked){
+        SAVE_OBJ.ACCOUNTNAME_SPACE_BORDER = document.getElementById("accountname_space_border").value;
+    } else {
+        SAVE_OBJ.ACCOUNTNAME_SPACE_BORDER = "0";
+    }
+    
     SAVE_OBJ.SEARCH_HIT_USERNAME_BLOCK = document.getElementById("search_hit_username_block").checked;
+    SAVE_OBJ.LINK_CARD_URL_VIEW = document.getElementById("link_card_url_view").checked;
+    SAVE_OBJ.LINK_CARD_URL_VIEW_ONELINE = document.getElementById("link_card_url_view_oneLine").checked;
+    SAVE_OBJ.LINK_CARD_MISMATCH_WARNING = document.getElementById("link_card_mismatch_warning").checked;
+    SAVE_OBJ.LINK_CARD_URL_SAFE = document.getElementById("link_card_url_safe").value.split(/\n/);
     browser.storage.local.set({"XFILTER_OPTION": JSON.stringify(SAVE_OBJ)}, function() {
         ;
     });
     browser.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(document.getElementById("safe_user").value.split(/\n/))}, function() {
         ;
     });
+    SubOptionVisibleSwitch();
     ManualExportSetting();
+    BackupExport(SAVE_OBJ);
+}
+
+function SubOptionVisibleSwitch(){
+    if(document.getElementById("hashtag_border_switch").checked){
+        document.getElementById("hashtag_border_subOption").classList.add("suboption_open");
+        document.getElementById("hashtag_border_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("hashtag_border_subOption").classList.add("suboption_close");
+        document.getElementById("hashtag_border_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("space_border_switch").checked){
+        document.getElementById("space_border_subOption").classList.add("suboption_open");
+        document.getElementById("space_border_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("space_border_subOption").classList.add("suboption_close");
+        document.getElementById("space_border_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("short_post_border_switch").checked){
+        document.getElementById("short_post_border_subOption").classList.add("suboption_open");
+        document.getElementById("short_post_border_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("short_post_border_subOption").classList.add("suboption_close");
+        document.getElementById("short_post_border_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("accountname_space_border_switch").checked){
+        document.getElementById("accountname_space_border_subOption").classList.add("suboption_open");
+        document.getElementById("accountname_space_border_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("accountname_space_border_subOption").classList.add("suboption_close");
+        document.getElementById("accountname_space_border_subOption").classList.remove("suboption_open");
+    }
 }
 
 function LinkOptionChange(){
@@ -153,6 +245,16 @@ function LinkOptionChange(){
         document.getElementById("link_card_emphasis_all").disabled = true;
     } else {
         document.getElementById("link_card_emphasis_all").disabled = false;
+    }
+
+    if(!document.getElementById("link_card_url_view").checked){
+        document.getElementById("link_card_url_view_oneLine").disabled = true;
+        document.getElementById("link_card_mismatch_warning").disabled = true;
+        document.getElementById("link_card_url_view_oneLine").checked = false;
+        document.getElementById("link_card_mismatch_warning").checked = false;
+    } else {
+        document.getElementById("link_card_url_view_oneLine").disabled = false;
+        document.getElementById("link_card_mismatch_warning").disabled = false;
     }
 }
 
@@ -204,7 +306,15 @@ function EventSet(){
     document.getElementById("manual_import_delete").addEventListener("click", ManualListDelete, false);
     document.getElementById("accountname_space_border").addEventListener("input", OptionSave, false);
     document.getElementById("search_hit_username_block").addEventListener("click", OptionSave, false);
-    
+    document.getElementById("link_card_url_view").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_url_view_oneLine").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_mismatch_warning").addEventListener("click", OptionSave, false);
+    document.getElementById("link_card_url_safe").addEventListener("input", OptionSave, false);
+    document.getElementById("hashtag_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("space_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("short_post_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("accountname_space_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("backup_import").addEventListener("input", BackupImport, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
@@ -309,5 +419,42 @@ function ManualExportSetting(){
         document.getElementById("manual_export_link").href = "#";
         document.getElementById("manual_export").disabled = true;
         document.getElementById("manual_export_link").removeAttribute("href");
+    }
+}
+
+function BackupExport(option_obj){
+    let content = JSON.stringify(option_obj);
+    let blob = new Blob([ content ], { "type" : "text/plain" });
+    let url = window.URL.createObjectURL(blob);
+    let a = document.getElementById("backup_export_link");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = "XFilter_Backup_" + new Date().getTime() + ".json";
+    window.URL.revokeObjectURL(url);
+}
+
+function BackupImport(){
+    let item = document.getElementById("backup_import").files;
+    let reader = new FileReader();
+    if(window.confirm("バックアップファイルを適用しますか？（現在の設定は上書きされます）")){
+        reader.readAsText(item[0]);
+        reader.onload = function(ev){
+            let rd = reader.result;
+            try{
+                let r = JSON.parse(rd);
+                if(r != void 0 && r != null){
+                    X_OPTION = r;
+                    
+                    browser.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)}, function() {
+                        alert("バックアップファイルを読み込みました。\n画面を再読み込みします。");
+                        LoadOption();
+                        window.scrollTo(0, 0);
+                        window.location.reload();
+                    });
+                }
+            } catch(e){
+                console.error(e);
+                alert("バックアップファイルの読み込みに失敗しました。");
+            }
+        }
     }
 }
