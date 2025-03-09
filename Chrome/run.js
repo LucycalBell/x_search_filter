@@ -37,6 +37,9 @@ const TARGET_URL = [
     let view_url = "";
     let manual_spam_list;
     let safe_user_list = [];
+    let cnt_x;
+    let cnt_y;
+    let cardLink_id_count = 0;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -565,34 +568,80 @@ const TARGET_URL = [
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH";
             addtag.style.position = "fixed";
-            addtag.style.top = "0px";
-            addtag.style.left = "0px";
+            addtag.style.top = "0.5em";
+            addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;user-select: none;'></span>posts</div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
+            CountBtn_MoveAction();
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
         document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
     }
 
-    function btnTemHidden(e){
-        e.stopPropagation();
-        HiddenPostList_Cls();
-        document.getElementById("orADy0y_ar").style.display = "none";
-        document.getElementById("x9uVvQH_ar").style.display = "none";
+    function CountBtn_MouseDown(e) {
+        console.log(e);
+        CountBtnMoveStartTime = new Date();
+        this.classList.add("drag");
+        if(e.type === "mousedown") {
+            var event = e;
+        } else {
+            var event = e.changedTouches[0];
+        }
+        cnt_x = event.pageX - this.offsetLeft;
+        cnt_y = event.pageY - this.offsetTop;
+        document.body.addEventListener("mousemove", CountBtn_MouseMove, false);
+        document.body.addEventListener("touchmove", CountBtn_MouseMove, false);
+    }
+
+    function CountBtn_MouseMove(e) {
+        var drag = document.getElementsByClassName("drag")[0];
+        if(e.type === "mousemove") {
+            var event = e;
+        } else {
+            var event = e.changedTouches[0];
+        }
+        e.preventDefault();
+
+        drag.style.top = event.pageY - cnt_y + "px";
+        drag.style.left = event.pageX - cnt_x + "px";
+
+        drag.addEventListener("mouseup", CountBtn_MoveEnd, false);
+        document.body.addEventListener("mouseleave", CountBtn_MoveEnd, false);
+        drag.addEventListener("touchend", CountBtn_MoveEnd, false);
+        document.body.addEventListener("touchleave", CountBtn_MoveEnd, false);
+    }
+
+    function CountBtn_MoveEnd(e) {
+        var drag = document.getElementsByClassName("drag")[0];
+        try {
+            document.body.removeEventListener("mousemove", CountBtn_MouseMove, false);
+            drag.removeEventListener("mouseup", CountBtn_MoveEnd, false);
+            document.body.removeEventListener("touchmove", CountBtn_MouseMove, false);
+            drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
+            drag.classList.remove("drag");
+        } catch(err){;}
+    }
+
+    let CountBtnMoveStartTime;
+    function CountBtn_MoveAction(e){
+        var elements = document.getElementById("x9uVvQH");
+        elements.addEventListener("mousedown", CountBtn_MouseDown, false);
+        elements.addEventListener("touchstart", CountBtn_MouseDown, false);
     }
 
     function HiddenPostList(){
+        CountBtn_MoveEnd();
+        if(200 < new Date().getTime() - CountBtnMoveStartTime.getTime()){ return; }
         if(document.getElementById("x9uVvQH_lst_base") == null){
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH_lst_base";
             addtag.setAttribute("style", "position:fixed;width:100%;height:100%;top:0;left:0;background-color:rgba(255,255,255,0.5);");
-            addtag.innerHTML = "<div style='background-color:rgba(205,205,205,0.95);position:fixed;height:90%;width:90%;top:5%;left:5%;border:solid 2px #000;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y: scroll;width:100%;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.3rem;background-color:#f5bd4d;color:#fff;border-top:solid 1px #000;' id='x9uVvQH_cls'>閉じる</div></div><div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;text-align:center;width:4em;display:none;position:fixed;top:0;left:0;'id='orADy0y_ar'>一時<br>非表示<br></div>";
+            addtag.innerHTML = "<div style='background-color:rgba(205,205,205,0.95);position:fixed;height:90%;width:90%;top:5%;left:5%;border:solid 2px #000;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y: scroll;width:100%;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.3rem;background-color:#f5bd4d;color:#fff;border-top:solid 1px #000;' id='x9uVvQH_cls'>閉じる</div></div>";
             document.body.appendChild(addtag);
             document.getElementById("x9uVvQH_cls").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst_base").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst").addEventListener("click", function(e){e.stopPropagation();}, false);
-            document.getElementById("orADy0y_ar").addEventListener("click", btnTemHidden, false);
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
@@ -646,7 +695,6 @@ const TARGET_URL = [
         addtxt += "</div></div>";
         document.getElementById("x9uVvQH_lst").innerHTML = addtxt;
         document.getElementById("x9uVvQH_ar").style.display = "none";
-        document.getElementById("orADy0y_ar").style.display = "block";
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
                 if(document.getElementById("hl_" + i) && document.getElementById("hl_" + i).dataset.huserid != void 0){
