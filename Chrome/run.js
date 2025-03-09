@@ -273,7 +273,7 @@ const TARGET_URL = [
     function getCardDomain(card){
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
-            if(item.ariaLabel == void 0 && item.href.startsWith("https://t.co/")){
+            if(item.ariaLabel == void 0 && item.href.startsWith("http")){
                 return item;
             }
         }
@@ -285,8 +285,13 @@ const TARGET_URL = [
             url: cardData[2]
         },
         function (response) {
-            resultUrl = refreshUrl(response.htmlStr);
-            if(resultUrl == null){ return; }
+            if(response.statusCode == 0){
+                resultUrl = refreshUrl(response.htmlStr);
+            } else if(response.statusCode == 10){
+                resultUrl = response.urlStr;
+            } else {
+                return;
+            }
             let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
             let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
             let linka_a = getCardDomain(cardData[0]);

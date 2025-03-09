@@ -2,6 +2,10 @@ chrome.runtime.onMessage.addListener(
   function (request, sender, sendResponse) {
     switch (request.type) {
     case "getUrl_tco":
+      if(!request.url.startsWith("https://t.co")){
+        sendResponse({statusCode: 10, htmlStr: "", urlStr: request.url, });
+        return true;
+      }
     	ClassDataDownload(sendResponse, request.url);
 	  return true;
     default:
@@ -20,9 +24,9 @@ function ClassDataDownload(sendResponse, url){
         return response.text();
     })
     .then(html => {
-        sendResponse({status: true, htmlStr: html, urlStr: url});
+        sendResponse({statusCode: 0, htmlStr: html, urlStr: url});
     })
     .catch(error => {
-        sendResponse({status: false, htmlStr: "", urlStr: url});
+        sendResponse({statusCode: -1, htmlStr: "", urlStr: url});
     });
 }
