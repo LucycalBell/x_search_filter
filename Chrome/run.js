@@ -590,7 +590,7 @@ const TARGET_URL = [
             addtag.style.top = "0.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;user-select: none;'></span>posts</div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span>posts</div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
             CountBtn_MoveAction();
         }
@@ -599,7 +599,6 @@ const TARGET_URL = [
     }
 
     function CountBtn_MouseDown(e) {
-        console.log(e);
         CountBtnMoveStartTime = new Date();
         this.classList.add("drag");
         if(e.type === "mousedown") {
@@ -611,6 +610,7 @@ const TARGET_URL = [
         cnt_y = event.pageY - this.offsetTop;
         document.body.addEventListener("mousemove", CountBtn_MouseMove, false);
         document.body.addEventListener("touchmove", CountBtn_MouseMove, false);
+        document.body.style.overflow = "hidden";
     }
 
     function CountBtn_MouseMove(e) {
@@ -620,7 +620,6 @@ const TARGET_URL = [
         } else {
             var event = e.changedTouches[0];
         }
-        e.preventDefault();
 
         drag.style.top = event.pageY - cnt_y + "px";
         drag.style.left = event.pageX - cnt_x + "px";
@@ -640,6 +639,7 @@ const TARGET_URL = [
             drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
             drag.classList.remove("drag");
         } catch(err){;}
+        document.body.style.overflow = "";
     }
 
     let CountBtnMoveStartTime;
