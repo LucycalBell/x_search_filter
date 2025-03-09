@@ -103,6 +103,7 @@ function LoadOption(){
             LoadOption_SwitchUpdate();
             ManualExportSetting();
             LinkOptionChange();
+            BackupExport(X_OPTION);
             if(noDataFlag){
                 OptionSave();
                 return;
@@ -201,6 +202,7 @@ function OptionSave(){
     });
     SubOptionVisibleSwitch();
     ManualExportSetting();
+    BackupExport(SAVE_OBJ);
 }
 
 function SubOptionVisibleSwitch(){
@@ -312,6 +314,7 @@ function EventSet(){
     document.getElementById("space_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("short_post_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("accountname_space_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("backup_import").addEventListener("input", BackupImport, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
@@ -416,5 +419,42 @@ function ManualExportSetting(){
         document.getElementById("manual_export_link").href = "#";
         document.getElementById("manual_export").disabled = true;
         document.getElementById("manual_export_link").removeAttribute("href");
+    }
+}
+
+function BackupExport(option_obj){
+    let content = JSON.stringify(option_obj);
+    let blob = new Blob([ content ], { "type" : "text/plain" });
+    let url = window.URL.createObjectURL(blob);
+    let a = document.getElementById("backup_export_link");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = "XFilter_Backup_" + new Date().getTime() + ".json";
+    window.URL.revokeObjectURL(url);
+}
+
+function BackupImport(){
+    let item = document.getElementById("backup_import").files;
+    let reader = new FileReader();
+    if(window.confirm("バックアップファイルを適用しますか？（現在の設定は上書きされます）")){
+        reader.readAsText(item[0]);
+        reader.onload = function(ev){
+            let rd = reader.result;
+            try{
+                let r = JSON.parse(rd);
+                if(r != void 0 && r != null){
+                    X_OPTION = r;
+                    
+                    chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)}, function() {
+                        alert("バックアップファイルを読み込みました。\n画面を再読み込みします。");
+                        LoadOption();
+                        window.scrollTo(0, 0);
+                        window.location.reload();
+                    });
+                }
+            } catch(e){
+                console.error(e);
+                alert("バックアップファイルの読み込みに失敗しました。");
+            }
+        }
     }
 }

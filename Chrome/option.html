@@ -509,6 +509,7 @@
                     </label>
                 </div>
             </div>
+
             <div class="option_block">
                 <div class="option-title">ミュートアカウントリストのインポート</div>
                 インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
@@ -523,6 +524,22 @@
                     <button id="manual_export"><a id="manual_export_link" href="" download="mute_list.txt">エクスポート</a></button>
                 </div>
             </div>
+
+            <div class="option_block">
+                <div class="option-title">設定のバックアップと復元</div>
+                <div style="color:red">※「ミュートアカウントリスト」はバックアップ対象外です。「ミュートアカウントリストのインポート」項目の「エクスポート」から別途保管してください</div>
+                    <div style="margin-bottom:2em;">
+                        <h2 style="margin-bottom:0.2em;">【バックアップ】</h2>
+                        <button id="backup_export"><a id="backup_export_link" href="" download="mute_list.txt">バックアップ</a></button>
+                    </div>
+                    <div>
+                        <h2 style="margin-bottom:0.2em;">【復元（バックアップファイルの読み込み）】</h2>
+                        <input type="file" id="backup_import" style="margin:0.5em 0;"><br>
+                        ※現在の設定は破棄され、バックアップファイルの設定が適用されます<br>
+                    </div>
+                </div>
+            </div>
+
             <div style="margin-top:20%;"></div>
         </div>
     </body>
