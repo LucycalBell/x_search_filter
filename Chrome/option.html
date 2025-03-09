@@ -438,7 +438,8 @@
                     <input type="checkbox" id="link_card_url_view">
                     <span class="slider"></span>
                     <div class="switch-text">
-                        <span class="switch-label">リンクカードのリンク先URLを表示する</span>
+                        <span class="switch-label">リンクカードのリンク先URLを表示する</span><br>
+                        <span class="switch_sub_text">※リンク先確認のためカード表示時「t.co」（XのURL短縮サービス）へ一度アクセスを行います</span>
                     </div>
                 </label>
             </div>
@@ -461,9 +462,10 @@
                 </label>
             </div>
             <h4>セーフドメイン（1行1ドメイン）</h4>
-            ※ドメイン部のみで判定するため「https://」や「www」を含めると一致しなくなります
+            ■ リンク先でリダイレクト（別URLへの転送）が発生する場合も警告表示となってしまいます（主にトラッキングのためのページを挟んでいる場合やリンク先が短縮リンクの場合に発生）。信用できる場合は（URL：・・・）表示のドメインをセーフドメインとして登録することで警告が表示されなくなります。
             <textarea id="link_card_url_safe" class="area-input"></textarea><br>
-            ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります
+            ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります<br>
+            ※ドメイン部のみで判定するため「https://」や「www」、末尾の「/」は除外してください
             </div>
 
             <div class="option_block">
