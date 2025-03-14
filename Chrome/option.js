@@ -67,6 +67,8 @@ function LoadOption(){
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
+            X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
+            X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -94,6 +96,9 @@ function LoadOption(){
             document.getElementById("link_card_url_view_oneLine").checked = X_OPTION.LINK_CARD_URL_VIEW_ONELINE;
             document.getElementById("link_card_mismatch_warning").checked = X_OPTION.LINK_CARD_MISMATCH_WARNING;
             document.getElementById("link_card_url_safe").value = ArrayObjtoText(X_OPTION.LINK_CARD_URL_SAFE);
+            document.getElementById("trend_word_border_text").value = X_OPTION.TREND_WORD_BORDER_TEXT;
+            document.getElementById("trend_word_border_name").value = X_OPTION.TREND_WORD_BORDER_NAME;
+
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
@@ -139,6 +144,16 @@ function LoadOption_SwitchUpdate(){
     if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER) != NaN){
         if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
             document.getElementById("accountname_space_border_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.TREND_WORD_BORDER_TEXT) != NaN){
+        if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
+            document.getElementById("trend_word_border_text_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.TREND_WORD_BORDER_NAME) != NaN){
+        if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
+            document.getElementById("trend_word_border_name_switch").checked = true;
         }
     }
     SubOptionVisibleSwitch();
@@ -194,6 +209,16 @@ function OptionSave(){
     SAVE_OBJ.LINK_CARD_URL_VIEW_ONELINE = document.getElementById("link_card_url_view_oneLine").checked;
     SAVE_OBJ.LINK_CARD_MISMATCH_WARNING = document.getElementById("link_card_mismatch_warning").checked;
     SAVE_OBJ.LINK_CARD_URL_SAFE = document.getElementById("link_card_url_safe").value.split(/\n/);
+    if(document.getElementById("trend_word_border_text_switch").checked){
+        SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
+    } else {
+        SAVE_OBJ.TREND_WORD_BORDER_TEXT = "0";
+    }
+    if(document.getElementById("trend_word_border_name_switch").checked){
+        SAVE_OBJ.TREND_WORD_BORDER_NAME = document.getElementById("trend_word_border_name").value;
+    } else {
+        SAVE_OBJ.TREND_WORD_BORDER_NAME = "0";
+    }
     chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(SAVE_OBJ)}, function() {
         ;
     });
@@ -236,6 +261,22 @@ function SubOptionVisibleSwitch(){
     } else {
         document.getElementById("accountname_space_border_subOption").classList.add("suboption_close");
         document.getElementById("accountname_space_border_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("trend_word_border_text_switch").checked){
+        document.getElementById("trend_word_border_text_subOption").classList.add("suboption_open");
+        document.getElementById("trend_word_border_text_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("trend_word_border_text_subOption").classList.add("suboption_close");
+        document.getElementById("trend_word_border_text_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("trend_word_border_name_switch").checked){
+        document.getElementById("trend_word_border_name_subOption").classList.add("suboption_open");
+        document.getElementById("trend_word_border_name_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("trend_word_border_name_subOption").classList.add("suboption_close");
+        document.getElementById("trend_word_border_name_subOption").classList.remove("suboption_open");
     }
 }
 
@@ -315,6 +356,10 @@ function EventSet(){
     document.getElementById("short_post_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("accountname_space_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("backup_import").addEventListener("input", BackupImport, false);
+    document.getElementById("trend_word_border_text").addEventListener("input", OptionSave, false);
+    document.getElementById("trend_word_border_text_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("trend_word_border_name").addEventListener("input", OptionSave, false);
+    document.getElementById("trend_word_border_name_switch").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

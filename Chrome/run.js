@@ -24,10 +24,13 @@ const TARGET_URL = [
         6:"オンラインスパムリスト一致",
         7:"インポートスパムリスト一致",
         8:"アカウント名スペース数超過",
-        9:"ユーザー名のみ一致"
+        9:"ユーザー名のみ一致",
+        10:"トレンドワード数超過(ポスト)",
+        11:"トレンドワード数超過(ユーザー名)"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
+    const TREND_URL = "https://x.com/explore/tabs/trending";
     
     let postBlockViewNumber = 0;
     let hidden_posts = [];
@@ -40,6 +43,10 @@ const TARGET_URL = [
     let cnt_x;
     let cnt_y;
     let cardLink_id_count = 0;
+    let trend_save_flag = false;
+    let trend_save_datetime = -1;
+    let trend_word_list = [];
+    let trend_data_enable = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -70,6 +77,29 @@ const TARGET_URL = [
             if(cb != null){
                 cb();
             }
+        });
+    }
+
+    function TrendDataLoad(){
+        chrome.storage.local.get(["XFILTER_OPTION_TREND_SAVE"]).then((result) => {
+            let r;
+            try{
+                r = JSON.parse(result.XFILTER_OPTION_TREND_SAVE);
+            } catch(e){
+                r = [];
+            }
+            if(r == void 0 || r == null){ r = []; }
+            trend_word_list = r;
+            chrome.storage.local.get(["XFILTER_OPTION_TREND_SAVE_DATETIME"]).then((result) => {
+                let r;
+                try{
+                    r = JSON.parse(result.XFILTER_OPTION_TREND_SAVE_DATETIME);
+                } catch(e){
+                    r = 0;
+                }
+                if(r == void 0 || r == null){ r = 0; }
+                trend_save_datetime = r;
+            });
         });
     }
 
@@ -117,6 +147,11 @@ const TARGET_URL = [
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY).filter(item => item !== "");
+            X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
+            X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
+
+            TrendDataLoad();
+
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -171,11 +206,27 @@ const TARGET_URL = [
         let postList;
         activeUrl = FilterActiveCheck();
 
+        if(0 < X_OPTION.TREND_WORD_BORDER_TEXT || 0 < X_OPTION.TREND_WORD_BORDER_NAME || true){
+            if((trend_word_list.length < 30 || !trend_save_flag || 1000 * 60 * 60 < (new Date().getTime() - trend_save_datetime)) && trend_save_datetime != -1){
+                if(isTrendPage()){
+                    if(isTrendPageLoadingEnd()){
+                        SaveTrend(getTrend());
+                    }
+                }
+            }
+        }
+
+        if((new Date().getTime() - trend_save_datetime) < 1000 * 60 * 60 && 0 < trend_word_list.length){
+            trend_data_enable = true;
+        } else {
+            trend_data_enable = false;
+        }
+
         if(view_url != location.href){
             postBlockViewNumber = 0;
             hidden_posts = [];
-            BlockCount();
         }
+        BlockCount();
 
         if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
             postClass_Hierarchy = getPostClass();
@@ -491,6 +542,19 @@ const TARGET_URL = [
                 }
             }
         }
+        if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
+            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
+                block_type = 10;
+                return true;
+            }
+        }
+
+        if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
+            if(X_OPTION.TREND_WORD_BORDER_NAME <= getTrendWordCount(getPostAccountName(post).toUpperCase())){
+                block_type = 11;
+                return true;
+            }
+        }
         return false;
     }
     
@@ -575,6 +639,44 @@ const TARGET_URL = [
         }
         return false;
     }
+
+    function getTrend(){
+        let trend = new Array();
+        let doc = document.getElementsByTagName("div");
+        for(let i=0;i<doc.length;i++){
+            if(doc[i].dataset.testid == "trend"){
+                try{
+                    if(doc[i].children[0].children[1].innerText.trim() != ""){
+                        trend.push(doc[i].children[0].children[1].innerText.replace("#", "").toUpperCase());
+                    }
+                } catch(e){;}
+            }
+        }
+        return trend;
+    }
+
+    function isTrendPageLoadingEnd(){
+        let doc = document.getElementsByTagName("div");
+        for(let i=0;i<doc.length;i++){
+            if(doc[i].dataset.testid == "trend"){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isTrendPage(){
+        return location.href == TREND_URL;
+    }
+
+    function SaveTrend(trend){
+        if(trend.length == 0){ return; }
+        chrome.storage.local.set({"XFILTER_OPTION_TREND_SAVE": JSON.stringify(trend)});
+        chrome.storage.local.set({"XFILTER_OPTION_TREND_SAVE_DATETIME": new Date().getTime()});
+        trend_word_list = trend;
+        trend_save_datetime = new Date().getTime();
+        trend_save_flag = true;
+    }
     
     function BlockCount(){
         if(!X_OPTION.BLOCK_COUNT_VIEW){
@@ -590,9 +692,14 @@ const TARGET_URL = [
             addtag.style.top = "0.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span>posts</div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em 1em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='YgE1WQLD'></span><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span></div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
             CountBtn_MoveAction();
+        }
+        if((0 < X_OPTION.TREND_WORD_BORDER_NAME || 0 < X_OPTION.TREND_WORD_BORDER_TEXT) && trend_data_enable){
+            document.getElementById("YgE1WQLD").innerText = "💾";
+        } else {
+            document.getElementById("YgE1WQLD").innerText = "";
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
         document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
@@ -758,6 +865,16 @@ const TARGET_URL = [
             }
         }
         return document.createElement("div");
+    }
+
+    function getTrendWordCount(text){
+        let cnt = 0;
+        for(const item of trend_word_list){
+            if(text.includes(item)){
+                cnt++;
+            }
+        }
+        return cnt;
     }
     
     function getLUrl(){

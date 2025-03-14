@@ -362,6 +362,32 @@
 
                 <div class="switch_box">
                     <label class="switch-container">
+                        <input type="checkbox" id="trend_word_border_text_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">トレンドワードを多数含むポストをミュート（ポスト本文）</span><br>
+                            <span class="switch_sub_text">※トレンドはトレンド一覧を表示した際に取得されます。取得したトレンドは1時間で無効になります</span><br>
+                            <span class="switch_sub_text">※トレンド一覧未取得または最後の取得から1時間経過している場合本機能は一時的に無効となります</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="trend_word_border_text_subOption">→ ミュートにする数：<input type="number" id="trend_word_border_text" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="trend_word_border_name_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">トレンドワードを多数含むポストをミュート（ユーザー名）</span><br>
+                            <span class="switch_sub_text">※トレンドはトレンド一覧を表示した際に取得されます。取得したトレンドは1時間で無効になります</span><br>
+                            <span class="switch_sub_text">※トレンド一覧未取得または最後の取得から1時間経過している場合本機能は一時的に無効となります</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="trend_word_border_name_subOption">→ ミュートにする数：<input type="number" id="trend_word_border_name" class="number-input" value="0" min="0"></div>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
                         <input type="checkbox" id="search_hit_username_block">
                         <span class="slider"></span>
                         <div class="switch-text">
