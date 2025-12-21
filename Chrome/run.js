@@ -47,6 +47,7 @@ const TARGET_URL = [
     let trend_save_datetime = -1;
     let trend_word_list = [];
     let trend_data_enable = false;
+    let lollowingTabClick = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -142,13 +143,14 @@ const TARGET_URL = [
             X_OPTION.ONLINE_SPAM_LIST = false;
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
-            X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY).filter(item => item !== "");
+            X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE = getOptionPram(r.LINK_CARD_URL_VIEW_VIDEO_DISABLE, true, TYPE_BOOL);
             X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -179,6 +181,7 @@ const TARGET_URL = [
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
                 MainLoopX();
             });
+            FollowTabCheck();
         });
     }
 
@@ -205,6 +208,8 @@ const TARGET_URL = [
     function MainLoopX(){
         let postList;
         activeUrl = FilterActiveCheck();
+
+        FollowTabCheck();
 
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT || 0 < X_OPTION.TREND_WORD_BORDER_NAME || true){
             if((trend_word_list.length < 30 || !trend_save_flag || 1000 * 60 * 60 < (new Date().getTime() - trend_save_datetime)) && trend_save_datetime != -1){
@@ -530,18 +535,7 @@ const TARGET_URL = [
                 return true;
             }
         }
-        if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-            if(isSearchPage()){
-                if(0 < getSearchWordList().length){
-                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
-                        if((getSearchWordList().some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
-                            block_type = 9;
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
+
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
             if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
                 block_type = 10;
@@ -797,9 +791,6 @@ const TARGET_URL = [
             if(X_OPTION.VERIFIED_HDN){
                 addtxt += "<li>認証済みアカウントのポストを非表示</li>";
             }
-            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
-            }
             addtxt += "</ul>";
         }
         addtxt += "<hr><div style='margin:0 0.2rem;'>";
@@ -994,6 +985,47 @@ const TARGET_URL = [
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
         return false;
+    }
+
+    function FollowingTabClick(retryCount = 0) {
+        if(lollowingTabClick) { return; }
+        let tabList, tabs;
+        try {
+            tabList = document.querySelector('[role="tablist"]');
+            if (!tabList) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+                } else {
+                    return false;
+                }
+            }
+            tabs = tabList.querySelectorAll('[role="tab"]');
+            const followingTab = tabs[1];
+            if (!followingTab) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+                } else {
+                    return false;
+                }
+            }
+            followingTab.click();
+            lollowingTabClick = true;
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+            } else {
+                return false;
+            }
+        }
+    }
+    
+    function FollowTabCheck() {
+        if(X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB && location.href.startsWith("https://x.com/home")) {
+            setTimeout(FollowingTabClick, 100);
+        }
     }
 
     TwitterSearchBlockMain();
