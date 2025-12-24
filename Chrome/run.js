@@ -707,8 +707,9 @@ const TARGET_URL = [
         } else {
             var event = e.changedTouches[0];
         }
-        cnt_x = event.pageX - this.offsetLeft;
-        cnt_y = event.pageY - this.offsetTop;
+        var rect = this.getBoundingClientRect();
+        cnt_x = event.clientX - rect.left;
+        cnt_y = event.clientY - rect.top;
         document.body.addEventListener("mousemove", CountBtn_MouseMove, false);
         document.body.addEventListener("touchmove", CountBtn_MouseMove, false);
         document.body.style.overflow = "hidden";
@@ -722,8 +723,18 @@ const TARGET_URL = [
             var event = e.changedTouches[0];
         }
 
-        drag.style.top = event.pageY - cnt_y + "px";
-        drag.style.left = event.pageX - cnt_x + "px";
+        var newLeft = event.clientX - cnt_x;
+        var newTop = event.clientY - cnt_y;
+        
+        var rect = drag.getBoundingClientRect();
+        var maxLeft = window.innerWidth - rect.width;
+        var maxTop = window.innerHeight - rect.height;
+        
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+        
+        drag.style.left = newLeft + "px";
+        drag.style.top = newTop + "px";
 
         drag.addEventListener("mouseup", CountBtn_MoveEnd, false);
         document.body.addEventListener("mouseleave", CountBtn_MoveEnd, false);
