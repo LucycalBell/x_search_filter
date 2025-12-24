@@ -386,6 +386,18 @@
                     <div class="switch_sub_option" id="trend_word_border_name_subOption">→ ミュートにするトレンド数：<input type="number" id="trend_word_border_name" class="number-input" value="0" min="0"></div>
                 </div>
 
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_hit_username_block">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">ユーザー名のみで検索にヒットしているポストを非表示</span><br>
+                            <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合非表示となります<br>※このオプションはターゲットURLの設定に関わらず検索画面でのみ動作します</span>
+                            <span class="switch_sub_text">※Xのアップデートでアカウント名が検索にヒットしなくなりましたがユーザー名（@から始まる文字列）は引き続き検索対象となっているため本機能残しています</span>
+                        </div>
+                    </label>
+                </div>
+
                 <div class="switch_box zero-bottom-margin">
                     <label class="switch-container">
                         <input type="checkbox" id="default_icon_block">

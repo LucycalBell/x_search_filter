@@ -143,6 +143,7 @@ const TARGET_URL = [
             X_OPTION.ONLINE_SPAM_LIST = false;
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
@@ -535,7 +536,18 @@ const TARGET_URL = [
                 return true;
             }
         }
-
+        if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+            if(isSearchPage()){
+                if(0 < getSearchWordList().length){
+                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList().some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
+                            block_type = 9;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
             if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
                 block_type = 10;
@@ -712,7 +724,6 @@ const TARGET_URL = [
         cnt_y = event.clientY - rect.top;
         document.body.addEventListener("mousemove", CountBtn_MouseMove, false);
         document.body.addEventListener("touchmove", CountBtn_MouseMove, false);
-        document.body.style.overflow = "hidden";
     }
 
     function CountBtn_MouseMove(e) {
@@ -751,7 +762,6 @@ const TARGET_URL = [
             drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
             drag.classList.remove("drag");
         } catch(err){;}
-        document.body.style.overflow = "";
     }
 
     let CountBtnMoveStartTime;
@@ -801,6 +811,9 @@ const TARGET_URL = [
             if(X_OPTION.VERIFIED_HDN){
                 addtxt += "<li>認証済みアカウントのポストを非表示</li>";
             }
+            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
+                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
+            }
             addtxt += "</ul>";
         }
         addtxt += "<hr><div style='margin:0 0.2rem;'>";
@@ -836,7 +849,9 @@ const TARGET_URL = [
         if(confirm("ID「" + idName + "」をセーフリストに追加しますか？（設定の「セーフユーザー」に追加されます）")){
             SafeListLoad(function(){
                 safe_user_list.push(idName.replace("@", ""));
-                SafeListSave();
+                SafeListSave(function(){
+                    alert("セーフリストに追加しました。");
+                });
                 ev.target.disabled = true;
                 HiddenPostList();
             });
