@@ -827,7 +827,11 @@ const TARGET_URL = [
                 if(hidden_posts[i][3] != null){
                     addtxt += "[ <a href='" + hidden_posts[i][3] + "' target='_blank' style='color:blue;text-decoration: underline;'>表示</a> ]";
                 }
-                addtxt += "【" + hidden_posts[i][4] + " (" + hidden_posts[i][2] + ")" + "】" + hidden_posts[i][5];
+                if(X_OPTION.POST_CHECK_ALL) {
+                    addtxt += hidden_posts[i][0];
+                } else {
+                    addtxt += "【" + hidden_posts[i][4] + " (" + hidden_posts[i][2] + ")" + "】" + hidden_posts[i][5];
+                }
                 addtxt += "<span style='font-weight:bold;'>（非表示理由：" + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + "）</span>";
                 addtxt += "<hr>";
             }
