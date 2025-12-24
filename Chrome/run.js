@@ -686,7 +686,7 @@ const TARGET_URL = [
             addtag.style.top = "0.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em 1em;font-size:small;border-radius:15px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='YgE1WQLD'></span><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span></div>");
+            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em 1em;font-size:small;border-radius:10px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='YgE1WQLD'></span><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span></div>");
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
             CountBtn_MoveAction();
         }
