@@ -555,7 +555,7 @@ const TARGET_URL = [
     function PostBlock(post){
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post)]);
+            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostTextTag(post).innerText]);
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
             postBlockViewNumber++;
@@ -767,8 +767,8 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") == null){
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH_lst_base";
-            addtag.setAttribute("style", "position:fixed;width:100%;height:100%;top:0;left:0;background-color:rgba(255,255,255,0.5);");
-            addtag.innerHTML = "<div style='background-color:rgba(205,205,205,0.95);position:fixed;height:90%;width:90%;top:5%;left:5%;border:solid 2px #000;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y: scroll;width:100%;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.3rem;background-color:#f5bd4d;color:#fff;border-top:solid 1px #000;' id='x9uVvQH_cls'>閉じる</div></div>";
+            addtag.setAttribute("style", "position:fixed;width:100%;height:100%;top:0;left:0;background-color:rgba(0,0,0,0.4);backdrop-filter:blur(2px);z-index:9999;");
+            addtag.innerHTML = "<div style='background-color:rgba(207, 207, 207, 0.9);position:fixed;height:90%;width:95%;top:5%;left:50%;transform:translateX(-50%);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y:auto;width:100%;padding:1rem;box-sizing:border-box;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.1rem;background:linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%);color:#fff;border-top:none;cursor:pointer;transition:opacity 0.2s;' id='x9uVvQH_cls' onmouseover='this.style.opacity=\"0.9\"' onmouseout='this.style.opacity=\"1\"'>閉じる</div></div>";
             document.body.appendChild(addtag);
             document.getElementById("x9uVvQH_cls").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst_base").addEventListener("click", HiddenPostList_Cls, false);
@@ -776,7 +776,6 @@ const TARGET_URL = [
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
-
         let addtxt = "";
         addtxt += "<div style='text-align:center;font-size:large;color:#000;margin-top:10px;'>【非表示にしたポスト】</div><div style='color:#000;'>";
 
@@ -808,14 +807,14 @@ const TARGET_URL = [
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
                 if(!(safe_user_list != void 0 && safe_user_list.includes(hidden_posts[i][2].replace("@", "")))){
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
+                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.4em; padding:0em 0.4em; background-color:#4CAF50; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.8em;'>Safe</button>";
                 } else {
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
+                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.4em; padding:0em 0.4em; background-color:#cccccc; color:#666; border:none; border-radius:4px; cursor:not-allowed; font-size:0.8em;'>Safe</button>";
                 }
                 if(hidden_posts[i][3] != null){
                     addtxt += "[ <a href='" + hidden_posts[i][3] + "' target='_blank' style='color:blue;text-decoration: underline;'>表示</a> ]";
                 }
-                addtxt += hidden_posts[i][0];
+                addtxt += "【" + hidden_posts[i][4] + " (" + hidden_posts[i][2] + ")" + "】" + hidden_posts[i][5];
                 addtxt += "<span style='font-weight:bold;'>（非表示理由：" + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + "）</span>";
                 addtxt += "<hr>";
             }
@@ -834,7 +833,7 @@ const TARGET_URL = [
 
     function AddSafe(ev){
         let idName = ev.target.dataset.huserid;
-        if(confirm("ID「" + idName + "」をセーフリストに追加しますか？（次回からこのアカウントのポストが表示されるようになります）")){
+        if(confirm("ID「" + idName + "」をセーフリストに追加しますか？（設定の「セーフユーザー」に追加されます）")){
             SafeListLoad(function(){
                 safe_user_list.push(idName.replace("@", ""));
                 SafeListSave();
