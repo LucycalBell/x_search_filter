@@ -145,9 +145,9 @@ const TARGET_URL = [
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
-            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, true, TYPE_BOOL);
-            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, true, TYPE_BOOL);
-            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, true, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY).filter(item => item !== "");
             X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE = getOptionPram(r.LINK_CARD_URL_VIEW_VIDEO_DISABLE, true, TYPE_BOOL);
             X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
@@ -272,7 +272,7 @@ const TARGET_URL = [
             }
         }
 
-        if((activeUrl && X_OPTION.LINK_EMPHASIS) || X_OPTION.LINK_EMPHASIS_ALL){
+        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
             CardLinkEmphasis();
         }
 
@@ -280,7 +280,9 @@ const TARGET_URL = [
             if(activeUrl && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
             } else {
-                AddLinkClickListener(postList[i]);
+                if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
+                    AddLinkClickListener(postList[i]);
+                }
             }
         }
         setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
@@ -324,10 +326,12 @@ const TARGET_URL = [
                 }
                 if (!X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE || !videoCheck) {
                     let createNode = document.createElement("div");
-                    createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
-                    createNode.setAttribute("class", "XGarIO3t")
-                    createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
-                    cardList[i][0].appendChild(createNode);
+                    if(X_OPTION.LINK_EMPHASIS) {
+                        createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
+                        createNode.setAttribute("class", "XGarIO3t")
+                        createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
+                        cardList[i][0].appendChild(createNode);
+                    }
                     if(X_OPTION.LINK_CARD_URL_VIEW){
                         UrlDomainCheck(cardList[i]);
                     }

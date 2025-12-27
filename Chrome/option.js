@@ -291,12 +291,9 @@ function SubOptionVisibleSwitch(){
 
 function LinkOptionChange(){
     if(!document.getElementById("link_card_emphasis").checked){
-        document.getElementById("link_card_emphasis_all").checked = false;
-        document.getElementById("link_card_emphasis_all").disabled = true;
         document.getElementById("link_card_url_view_video_disable").checked = false;
         document.getElementById("link_card_url_view_video_disable").disabled = true;
     } else {
-        document.getElementById("link_card_emphasis_all").disabled = false;
         document.getElementById("link_card_url_view_video_disable").disabled = false;
     }
 
