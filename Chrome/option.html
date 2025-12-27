@@ -255,8 +255,18 @@
     top:-0.5em;
 }
 
-.sub-tree{
-    margin-left:3em;
+.sub-tree {
+    margin-left: 2.5em;
+    padding-left: 0.8em;
+    position: relative;
+}
+
+.sub-tree::before {
+    content: "└ ";
+    color: #2f96ff;
+    font-weight: bold;
+    margin-right: 0.3em;
+    font-size: 1.3em;
 }
 
 .switch_box-inline{
