@@ -313,16 +313,22 @@ const TARGET_URL = [
                     break;
                 }
             }
-            if(cardList[i][0].getElementsByClassName("XGarIO3t").length == 0){
-                let createNode = document.createElement("div");
-                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
-                createNode.setAttribute("class", "XGarIO3t")
-                createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
-                cardList[i][0].appendChild(createNode);
-                if(X_OPTION.LINK_CARD_URL_VIEW){
-                    UrlDomainCheck(cardList[i]);
+            if(cardList[i][0].getElementsByClassName("XGarIO3t").length == 0) {
+                const videoCheck = isVideoCard(cardList[i][0]);
+                if (videoCheck === null) {
+                    continue;
                 }
-                break;
+                if (!X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE || !videoCheck) {
+                    let createNode = document.createElement("div");
+                    createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
+                    createNode.setAttribute("class", "XGarIO3t")
+                    createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
+                    cardList[i][0].appendChild(createNode);
+                    if(X_OPTION.LINK_CARD_URL_VIEW){
+                        UrlDomainCheck(cardList[i]);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -385,6 +391,49 @@ const TARGET_URL = [
                 linka_a.style.display = "inline-block";
             }
         });
+    }
+
+    function LinkClickCheck(linkElement, event){
+        let href = linkElement.href;
+        if(!href || !href.startsWith("http")){
+            return true;
+        }
+        
+        if(!href.includes("t.co")){
+            return true;
+        }
+        
+        event.preventDefault();
+        chrome.runtime.sendMessage({
+            type:"getUrl_tco",
+            url: href
+        },
+        function (response) {
+            let resultUrl = href;
+            if(response.statusCode == 0){
+                resultUrl = refreshUrl(response.htmlStr);
+            } else if(response.statusCode == 10){
+                resultUrl = response.urlStr;
+            }
+            
+            let displayUrl = resultUrl || href;
+            let isWarning = false;
+            
+            if(X_OPTION.LINK_CARD_URL_SAFE && X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(displayUrl))){
+                isWarning = false;
+            } else if(getDomain(displayUrl) != getDomain(href)){
+                isWarning = true;
+            }
+            
+            if(isWarning){
+                if(window.confirm("【X検索ミュートツール】\n警告: 表示されているURLと遷移先が異なります。\n\n表示URL: " + href + "\n遷移先: " + displayUrl + "\n\n遷移しますか？")){
+                    window.open(displayUrl, '_blank');
+                }
+            } else {
+                window.open(displayUrl, '_blank');
+            }
+        });
+        return false;
     }
 
     function refreshUrl(htmlStr){
@@ -673,6 +722,31 @@ const TARGET_URL = [
 
     function isTrendPage(){
         return location.href == TREND_URL;
+    }
+
+    function isVideoCard(card) {
+        try {
+            if (card == null) { return null; }
+            if (card.dataset == null) { return null; }
+            if (card.dataset.xsfSeenAt == void 0) {
+                card.dataset.xsfSeenAt = String(Date.now());
+                return null;
+            }
+            if ((Date.now() - Number(card.dataset.xsfSeenAt)) < 800) {
+                return null;
+            }
+            const container = card.closest('article') || (card.parentElement && card.parentElement.parentElement) || card;
+            if (!container) { return null; }
+            if (container.querySelector('[data-testid="videoComponent"]')) {
+                return true;
+            }
+            if (container.querySelector('video')) {
+                return true;
+            }
+            return false;
+        } catch(e) {
+            return null;
+        }
     }
 
     function SaveTrend(trend){
