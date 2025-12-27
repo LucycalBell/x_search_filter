@@ -2,6 +2,7 @@
 let X_OPTION;
 let X_OPTION_SAFE_USER;
 window.onload = function(){
+    document.getElementById("version").innerText = chrome.runtime.getManifest().version;
     EventSet();
     LoadOption();
 };
