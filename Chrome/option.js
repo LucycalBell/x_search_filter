@@ -128,6 +128,7 @@ function LoadOption(){
                 X_OPTION_SAFE_USER = {};
             }
             document.getElementById("safe_user").value = ArrayObjtoText(X_OPTION_SAFE_USER);
+            BackupExport(X_OPTION);
         });
 }
 
@@ -480,7 +481,9 @@ function ManualExportSetting(){
 }
 
 function BackupExport(option_obj){
-    let content = JSON.stringify(option_obj);
+    let exportObj = option_obj;
+    exportObj.SAFE_USER = (document.getElementById("safe_user").value).split(/\n/);
+    let content = JSON.stringify(exportObj);
     let blob = new Blob([ content ], { "type" : "text/plain" });
     let url = window.URL.createObjectURL(blob);
     let a = document.getElementById("backup_export_link");
@@ -499,13 +502,16 @@ function BackupImport(){
             try{
                 let r = JSON.parse(rd);
                 if(r != void 0 && r != null){
+                    let safeUser = r.SAFE_USER || [];
+                    delete r.SAFE_USER;
                     X_OPTION = r;
-                    
                     chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)}, function() {
-                        alert("バックアップファイルを読み込みました。\n画面を再読み込みします。");
-                        LoadOption();
-                        window.scrollTo(0, 0);
-                        window.location.reload();
+                        chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(safeUser)}, function() {
+                            alert("バックアップファイルを読み込みました。\n画面を再読み込みします。");
+                            LoadOption();
+                            window.scrollTo(0, 0);
+                            window.location.reload();
+                        });
                     });
                 }
             } catch(e){
