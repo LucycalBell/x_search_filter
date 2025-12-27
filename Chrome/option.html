@@ -259,6 +259,8 @@
     margin-left: 2.5em;
     padding-left: 0.8em;
     position: relative;
+    display: flex;
+    align-items: flex-start;
 }
 
 .sub-tree::before {
@@ -267,6 +269,8 @@
     font-weight: bold;
     margin-right: 0.3em;
     font-size: 1.3em;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .switch_box-inline{
@@ -376,7 +380,7 @@
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">トレンドワードを多数含むポストをミュート（ポスト本文）</span><br>
-                            <span class="switch_sub_text">※トレンドが自動取得できないためトレンド一覧を開いた直後のみこの機能は有効になります</span><br>
+                            <span class="switch_sub_text">※トレンドが自動取得できないためトレンド一覧を開いた直後のみこの機能は有効になります（トレンド取得できているとブロックポスト件数の横に💾アイコンが表示されます）</span><br>
                             <span class="switch_sub_text">※トレンド（初期表示のおすすめタブはNG）表示時に自動でトレンド一覧を取得します</span>
                         </div>
                     </label>
@@ -389,7 +393,7 @@
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">トレンドワードを多数含むポストをミュート（ユーザー名）</span><br>
-                            <span class="switch_sub_text">※トレンドが自動取得できないためトレンド一覧を開いた直後のみこの機能は有効になります</span><br>
+                            <span class="switch_sub_text">※トレンドが自動取得できないためトレンド一覧を開いた直後のみこの機能は有効になります（トレンド取得できているとブロックポスト件数の横に💾アイコンが表示されます）</span><br>
                             <span class="switch_sub_text">※トレンド（初期表示のおすすめタブはNG）表示時に自動でトレンド一覧を取得します</span>
                         </div>
                     </label>
@@ -447,7 +451,7 @@
             </div>
 
             <div class="option_block">
-            <div class="option-title">リンクカード設定</div>
+            <div class="option-title">リンク設定</div>
             <div class="switch_box small-bottom-margin">
                 <label class="switch-container">
                     <input type="checkbox" id="link_card_emphasis">
@@ -476,13 +480,25 @@
                 </label>
             </div>
 
+            <div class="switch_box small-bottom-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="link_click_url_check">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">リンククリック時、表示URLとリンク先が異なる場合注意ダイアログを表示する</span><br>
+                        <span class="switch_sub_text">※クリックした時のみリンク先確認をするため下の「リンクカードのリンク先URLを表示する」より通信回数は少なくなります</span><br>
+                        <span class="switch_sub_text">※クリック直後に一度確認のための通信を挟むため通信環境によってはリンクが開くまでワンテンポ遅くなります</span><br>
+                    </div>
+                </label>
+            </div>
+
             <div class="switch_box zero-top-margin small-bottom-margin">
                 <label class="switch-container">
                     <input type="checkbox" id="link_card_url_view">
                     <span class="slider"></span>
                     <div class="switch-text">
                         <span class="switch-label">リンクカードのリンク先URLを表示する</span><br>
-                        <span class="switch_sub_text">※リンク先確認のためカード表示時「t.co」（XのURL短縮サービス）へ一度アクセスを行います。</span><br>
+                        <span class="switch_sub_text">※リンク先確認のためカード表示時「t.co」（XのURL短縮サービス）へ一度アクセスを行います</span><br>
                         <span class="switch_sub_text">※確認のためとは言えリンクを全て裏で開いて回るような動作となり、Xに過剰アクセス判定される可能性もあるのためご注意ください（アクセスするのはt.coまででその先の実際のページへのアクセスは行いません）</span>
                     </div>
                 </label>

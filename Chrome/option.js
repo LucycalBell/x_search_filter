@@ -71,6 +71,7 @@ function LoadOption(){
             X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
+            X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -102,6 +103,7 @@ function LoadOption(){
             document.getElementById("trend_word_border_text").value = X_OPTION.TREND_WORD_BORDER_TEXT;
             document.getElementById("trend_word_border_name").value = X_OPTION.TREND_WORD_BORDER_NAME;
             document.getElementById("default_selected_follow_tab").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB;
+            document.getElementById("link_click_url_check").checked = X_OPTION.LINK_CLICK_URL_CHECK;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -215,6 +217,7 @@ function OptionSave(){
     SAVE_OBJ.LINK_CARD_URL_SAFE = document.getElementById("link_card_url_safe").value.split(/\n/);
     SAVE_OBJ.LINK_CARD_URL_VIEW_VIDEO_DISABLE = document.getElementById("link_card_url_view_video_disable").checked;
     SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB = document.getElementById("default_selected_follow_tab").checked;
+    SAVE_OBJ.LINK_CLICK_URL_CHECK = document.getElementById("link_click_url_check").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -371,6 +374,7 @@ function EventSet(){
     document.getElementById("trend_word_border_name").addEventListener("input", OptionSave, false);
     document.getElementById("trend_word_border_name_switch").addEventListener("change", OptionSave, false);
     document.getElementById("default_selected_follow_tab").addEventListener("change", OptionSave, false);
+    document.getElementById("link_click_url_check").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

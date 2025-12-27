@@ -10,6 +10,7 @@ const TARGET_URL = [
     const TWEET_DATA = "tweet";
     const TWEET_TEXT = "tweetText";
     const LINK_IMG_STR = "card.layoutLarge.media";
+    const LINK_NO_IMG_STR = "card.wrapper";
     const TYPE_ARRAY = 0;
     const TYPE_INTEGER = 1;
     const TYPE_BOOL = 2;
@@ -152,6 +153,7 @@ const TARGET_URL = [
             X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
+            X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -277,6 +279,8 @@ const TARGET_URL = [
         for(let i=0;i<postList.length;i++){
             if(activeUrl && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
+            } else {
+                AddLinkClickListener(postList[i]);
             }
         }
         setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
@@ -333,13 +337,34 @@ const TARGET_URL = [
         }
     }
 
-    function getCardDomain(card){
+    function getCardDomain(post) {
+        let aList = post.getElementsByTagName("div");
+        for (const item of aList) {
+            if(item.dataset.testid !== void 0 && item.dataset.testid !== LINK_IMG_STR){
+                return item;
+            }
+        }
+        return null;
+    }
+
+    function getCardDomainUrl(card) {
+        let aList = card.parentElement.parentElement.getElementsByTagName("a");
+        for(const item of aList){
+            if(item.ariaLabel !== void 0 && item.ariaLabel.includes(".")){
+                return item.ariaLabel.split(" ")[0];
+            }
+        }
+        return null;
+    }
+
+    function getCardLink(card) {
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
             if(item.ariaLabel == void 0 && item.href.startsWith("http")){
                 return item;
             }
         }
+        return null;
     }
 
     function UrlDomainCheck(cardData){
@@ -357,7 +382,7 @@ const TARGET_URL = [
             }
             let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
             let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
-            let linka_a = getCardDomain(cardData[0]);
+            let linka_a = getCardLink(cardData[0]);
             cardLink_id_count++;
             if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl)) && getDomain(resultUrl) != getDomain(cardData[1])){
                 linka_a.innerHTML += "<span style='color:red;font-weight:bold;'" + "id='cHXCcZlv_" + cardLink_id_count + "' data-cardLinkUrl='" + resultUrl + "'>（URL：" + resultUrl + ")</span>";
@@ -403,37 +428,235 @@ const TARGET_URL = [
             return true;
         }
         
+        let displayText = getDisplayDomain(linkElement);
+        
         event.preventDefault();
+        
+        let responseReceived = false;
+        let userChoice = null;
+        let loadingDialogId = 'ndRmlbG_ld_' + Date.now();
+        
+        // 1秒後にローディングダイアログを表示
+        let timeoutTimer = setTimeout(function(){
+            if(!responseReceived){
+                showLoadingDialog(href, loadingDialogId, function(choice){
+                    userChoice = choice;
+                    if(choice === 'proceed'){
+                        // ユーザーが「このまま遷移」を選択
+                        window.open(href, '_blank');
+                    }
+                    // キャンセルの場合は何もしない
+                });
+            }
+        }, 1000);
+        
         chrome.runtime.sendMessage({
             type:"getUrl_tco",
             url: href
         },
         function (response) {
+            responseReceived = true;
+            clearTimeout(timeoutTimer);
+            
+            // ローディングダイアログが表示されている場合は閉じる
+            let loadingDialog = document.getElementById(loadingDialogId);
+            if(loadingDialog){
+                loadingDialog.remove();
+            }
+            
+            // ユーザーが既に選択していた場合は処理しない
+            if(userChoice !== null){
+                return;
+            }
+            
             let resultUrl = href;
             if(response.statusCode == 0){
                 resultUrl = refreshUrl(response.htmlStr);
             } else if(response.statusCode == 10){
                 resultUrl = response.urlStr;
+            } else {
+                resultUrl = null;
             }
             
-            let displayUrl = resultUrl || href;
             let isWarning = false;
             
-            if(X_OPTION.LINK_CARD_URL_SAFE && X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(displayUrl))){
+            // 表示テキストのドメインと実際の遷移先のドメインを比較
+            if(X_OPTION.LINK_CARD_URL_SAFE && X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl))){
                 isWarning = false;
-            } else if(getDomain(displayUrl) != getDomain(href)){
+            } else if(displayText && getDomain(resultUrl) != getDomain(displayText)){
                 isWarning = true;
             }
             
             if(isWarning){
-                if(window.confirm("【X検索ミュートツール】\n警告: 表示されているURLと遷移先が異なります。\n\n表示URL: " + href + "\n遷移先: " + displayUrl + "\n\n遷移しますか？")){
-                    window.open(displayUrl, '_blank');
-                }
+                showCustomConfirmDialog(displayText, resultUrl, function(isConfirmed, addToSafelist){
+                    if(isConfirmed){
+                        if(addToSafelist){
+                            addDomainToSafelist(getDomain(resultUrl));
+                        }
+                        if(resultUrl !== null) {
+                            window.open(resultUrl, '_blank');
+                        }
+                    }
+                });
             } else {
-                window.open(displayUrl, '_blank');
+                if(resultUrl !== null) {
+                    window.open(resultUrl, '_blank');
+                }
             }
         });
         return false;
+    }
+
+    function showLoadingDialog(href, dialogId, callback){
+        let existingDialog = document.getElementById(dialogId);
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = dialogId;
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #ffffff;
+            border: 2px solid #1d9bf0;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.textContent = 'リンク先を確認しています...';
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #536471;
+            line-height: 1.5;
+        `;
+
+        let loadingEl = document.createElement('div');
+        loadingEl.style.cssText = `
+            text-align: center;
+            margin: 16px 0;
+            font-size: 24px;
+        `;
+        loadingEl.textContent = '⏳';
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+            word-break: break-all;
+        `;
+        urlInfoEl.innerHTML = `<strong>URL:</strong><br><span style="color: #536471;">${escapeHtml(href)}</span>`;
+
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback('cancel');
+        };
+
+        let proceedBtn = document.createElement('button');
+        proceedBtn.textContent = 'このまま遷移';
+        proceedBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #1d9bf0;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        proceedBtn.onmouseover = function(){
+            this.style.background = '#1a8cd8';
+        };
+        proceedBtn.onmouseout = function(){
+            this.style.background = '#1d9bf0';
+        };
+        proceedBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback('proceed');
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(proceedBtn);
+
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(loadingEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(buttonContainer);
+
+        dialogOverlay.appendChild(dialogBox);
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                let dialog = document.getElementById(dialogId);
+                if(dialog){
+                    dialog.remove();
+                    callback('cancel');
+                }
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
     }
 
     function refreshUrl(htmlStr){
@@ -451,7 +674,28 @@ const TARGET_URL = [
     }
 
     function getDomain(url){
-        return url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i)[1];
+        if(!url){ return null; }
+        const match = url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i);
+        return (match && match[1]) ? match[1] : null;
+    }
+    function getDisplayDomain(linkElement){
+        let text = "";
+        if(linkElement.ariaLabel){
+            text = linkElement.ariaLabel.split(" ")[0].trim();
+        } else if(linkElement.textContent){
+            text = linkElement.textContent.trim();
+        }
+
+        if(!text){
+            return null;
+        }
+
+        const domainMatch = text.match(/\b((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,})\b/);
+        if(domainMatch && domainMatch[1]){
+            return domainMatch[1];
+        }
+
+        return text.split(/\s+/)[0];
     }
     
     function getPostClass(){
@@ -622,6 +866,23 @@ const TARGET_URL = [
             postBlockViewNumber++;
             if(X_OPTION.BLOCK_COUNT_VIEW){
                 BlockCount();
+            }
+        }
+    }
+
+    function AddLinkClickListener(post){
+        if(!X_OPTION.LINK_CLICK_URL_CHECK){
+            return;
+        }
+        
+        let links = post.getElementsByTagName("a");
+        for(let i=0;i<links.length;i++){
+            let link = links[i];
+            if(link.href && link.href.startsWith("http") && !link.hasAttribute("data-link-check-added")){
+                link.setAttribute("data-link-check-added", "true");
+                link.addEventListener("click", function(event){
+                    LinkClickCheck(this, event);
+                }, false);
             }
         }
     }
@@ -1128,6 +1389,226 @@ const TARGET_URL = [
     function FollowTabCheck() {
         if(X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB && location.href.startsWith("https://x.com/home")) {
             setTimeout(FollowingTabClick, 100);
+        }
+    }
+
+    function showCustomConfirmDialog(displayText, resultUrl, callback){
+        let existingDialog = document.getElementById('ndRmlbG_cd');
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = 'ndRmlbG_cd';
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #fffaf3;
+            border: 2px solid #f6c97f;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.textContent = '注意: 表示されているURLと遷移先が異なります。';
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #b45309;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        messageEl.prepend('⚠️');
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+        `;
+
+        let displayUrlEl = document.createElement('div');
+        displayUrlEl.style.cssText = 'margin-bottom: 8px;';
+        displayUrlEl.innerHTML = `<strong>表示URL:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(displayText)}</span>`;
+
+        let resultUrlEl = document.createElement('div');
+        resultUrlEl.innerHTML = `<strong>遷移先:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(resultUrl)}</span>`;
+
+        urlInfoEl.appendChild(displayUrlEl);
+        urlInfoEl.appendChild(resultUrlEl);
+
+        // セーフリストチェックボックス
+        let checkboxContainer = document.createElement('label');
+        checkboxContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            margin: 0 0 20px 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: #1b2025ff;
+        `;
+
+        let checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.style.cssText = `
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        `;
+
+        let checkboxLabel = document.createElement('span');
+        checkboxLabel.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない';
+
+        checkboxContainer.appendChild(checkbox);
+        checkboxContainer.appendChild(checkboxLabel);
+
+        // ボタンコンテナ
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        // キャンセルボタン
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(false, false);
+        };
+
+        // 遷移ボタン
+        let confirmBtn = document.createElement('button');
+        confirmBtn.textContent = '遷移する';
+        confirmBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #1d9bf0;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        confirmBtn.onmouseover = function(){
+            this.style.background = '#1a8cd8';
+        };
+        confirmBtn.onmouseout = function(){
+            this.style.background = '#1d9bf0';
+        };
+        confirmBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(true, checkbox.checked);
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(confirmBtn);
+
+        // ダイアログの構成
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(checkboxContainer);
+        dialogBox.appendChild(buttonContainer);
+
+        // オーバーレイに追加
+        dialogOverlay.appendChild(dialogBox);
+
+        // ページに追加
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.remove();
+                callback(false, false);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // オーバーレイクリックでキャンセル
+        dialogOverlay.addEventListener('click', function(e){
+            if(e.target === dialogOverlay){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.remove();
+                callback(false, false);
+            }
+        });
+    }
+
+    function escapeHtml(text){
+        if(!text){ return ""; }
+        let map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m){
+            return map[m];
+        });
+    }
+
+    function addDomainToSafelist(domain){
+        if(X_OPTION.LINK_CARD_URL_SAFE){
+            if(!X_OPTION.LINK_CARD_URL_SAFE.includes(domain)){
+                X_OPTION.LINK_CARD_URL_SAFE.push(domain);
+                chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
+            }
         }
     }
 
