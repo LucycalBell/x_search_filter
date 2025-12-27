@@ -615,7 +615,7 @@ const TARGET_URL = [
         };
 
         let proceedBtn = document.createElement('button');
-        proceedBtn.textContent = 'このまま遷移';
+        proceedBtn.textContent = 'このまま移動';
         proceedBtn.style.cssText = `
             padding: 10px 20px;
             border: none;
@@ -1442,7 +1442,7 @@ const TARGET_URL = [
         `;
 
         let messageEl = document.createElement('p');
-        messageEl.textContent = '注意: 表示されているURLと遷移先が異なります。';
+        messageEl.textContent = '注意: 表示されているURLと移動先が異なります。';
         messageEl.style.cssText = `
             margin: 0 0 16px 0;
             font-size: 14px;
@@ -1469,7 +1469,7 @@ const TARGET_URL = [
         displayUrlEl.innerHTML = `<strong>表示URL:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(displayText)}</span>`;
 
         let resultUrlEl = document.createElement('div');
-        resultUrlEl.innerHTML = `<strong>遷移先:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(resultUrl)}</span>`;
+        resultUrlEl.innerHTML = `<strong>移動先:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(resultUrl)}</span>`;
 
         urlInfoEl.appendChild(displayUrlEl);
         urlInfoEl.appendChild(resultUrlEl);
@@ -1495,7 +1495,7 @@ const TARGET_URL = [
         `;
 
         let checkboxLabel = document.createElement('span');
-        checkboxLabel.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない';
+        checkboxLabel.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない（設定のセーフリストに追加）';
 
         checkboxContainer.appendChild(checkbox);
         checkboxContainer.appendChild(checkboxLabel);
@@ -1533,9 +1533,9 @@ const TARGET_URL = [
             callback(false, false);
         };
 
-        // 遷移ボタン
+        // 移動ボタン
         let confirmBtn = document.createElement('button');
-        confirmBtn.textContent = '遷移する';
+        confirmBtn.textContent = '移動する';
         confirmBtn.style.cssText = `
             padding: 10px 20px;
             border: none;
