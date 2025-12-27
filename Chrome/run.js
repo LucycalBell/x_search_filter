@@ -48,7 +48,7 @@ const TARGET_URL = [
     let trend_save_datetime = -1;
     let trend_word_list = [];
     let trend_data_enable = false;
-    let lollowingTabClick = false;
+    let followingTabClick = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -107,7 +107,7 @@ const TARGET_URL = [
 
     function checkEmpty(el) {
         return el !== undefined && el !== 0 && el !== null && el.trim() != "";
-      }
+    }
 
     function OptionLoad_run(){
         SafeListLoad();
@@ -371,12 +371,13 @@ const TARGET_URL = [
         return null;
     }
 
-    function UrlDomainCheck(cardData){
+    function UrlDomainCheck(cardData) {
         chrome.runtime.sendMessage({
             type:"getUrl_tco",
             url: cardData[2]
         },
         function (response) {
+            let resultUrl;
             if(response.statusCode == 0){
                 resultUrl = refreshUrl(response.htmlStr);
             } else if(response.statusCode == 10){
@@ -1356,7 +1357,7 @@ const TARGET_URL = [
     }
 
     function FollowingTabClick(retryCount = 0) {
-        if(lollowingTabClick) { return; }
+        if(followingTabClick) { return; }
         let tabList, tabs;
         try {
             tabList = document.querySelector('[role="tablist"]');
@@ -1379,7 +1380,7 @@ const TARGET_URL = [
                 }
             }
             followingTab.click();
-            lollowingTabClick = true;
+            followingTabClick = true;
         } catch (e) {
             if (retryCount < 10) {
                 retryCount++;
