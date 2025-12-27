@@ -215,12 +215,10 @@
   height:4em;
 }
 
-/* ホバー時のエフェクト */
 .number-input:hover {
   border-color: #999;
 }
 
-/* フォーカス時のエフェクト */
 .number-input:focus {
   border-color: #66afe9;
   box-shadow: 0 0 5px rgba(102,175,233,0.5);
@@ -275,6 +273,84 @@
 
 .switch_box-inline{
     display:inline-block;
+}
+
+.image-button {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 0.2em 0.6em;
+  font-size: 0.8rem;
+  background-color: #2f96ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.image-button:hover {
+  background-color: #1e7fd8;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0);
+  transition: background-color 0.3s ease;
+}
+
+.modal.show {
+  background-color: rgba(0,0,0,0.8);
+}
+
+.modal-content {
+  position: relative;
+  margin: 2% auto;
+  padding: 0;
+  max-width: 90%;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  z-index: 10001;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  color: #bbb;
 }
   
         </style>
@@ -435,6 +511,7 @@
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">左上にブロックしたポスト数を表示する</span>
+                            <button class="image-button" data-image="/images/img_04.webp">イメージ</button><br>
                         </div>
                     </label>
                 </div>
@@ -458,6 +535,7 @@
                     <span class="slider"></span>
                     <div class="switch-text">
                         <span class="switch-label">リンク画像をわかりやすくする</span>
+                        <button class="image-button" data-image="/images/img_01.webp">イメージ</button><br>
                     </div>
                 </label>
             </div>
@@ -486,7 +564,8 @@
                     <input type="checkbox" id="link_click_url_check">
                     <span class="slider"></span>
                     <div class="switch-text">
-                        <span class="switch-label">リンククリック時、表示URLとリンク先が異なる場合注意ダイアログを表示する</span><br>
+                        <span class="switch-label">リンククリック時、表示URLとリンク先が異なる場合注意ダイアログを表示する</span>
+                        <button class="image-button" data-image="/images/img_03.webp">イメージ</button><br>
                         <span class="switch_sub_text">※クリックした時のみリンク先確認をするため下の「リンクカードのリンク先URLを表示する」より通信回数は少なくなります</span><br>
                         <span class="switch_sub_text">※クリック直後に一度確認のための通信を挟むため通信環境によってはリンクが開くまでワンテンポ遅くなります</span><br>
                     </div>
@@ -498,7 +577,8 @@
                     <input type="checkbox" id="link_card_url_view">
                     <span class="slider"></span>
                     <div class="switch-text">
-                        <span class="switch-label">リンクカードのリンク先URLを表示する</span><br>
+                        <span class="switch-label">リンクカードのリンク先URLを表示する</span>
+                        <button class="image-button" data-image="/images/img_02.webp">イメージ</button><br>
                         <span class="switch_sub_text">※リンク先確認のためカード表示時「t.co」（XのURL短縮サービス）へ一度アクセスを行います</span><br>
                         <span class="switch_sub_text">※確認のためとは言えリンクを全て裏で開いて回るような動作となり、Xに過剰アクセス判定される可能性もあるのためご注意ください（アクセスするのはt.coまででその先の実際のページへのアクセスは行いません）</span>
                     </div>
@@ -617,6 +697,14 @@
             </div>
 
             <div style="margin-top:20%;"></div>
+        </div>
+
+        <!-- 画像表示用モーダル -->
+        <div id="imageModal" class="modal">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <div class="modal-content">
+                <img class="modal-image" id="modalImage" src="" alt="オプション説明画像">
+            </div>
         </div>
     </body>
 </html>
