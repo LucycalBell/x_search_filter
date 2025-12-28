@@ -10,6 +10,7 @@ const TARGET_URL = [
     const TWEET_DATA = "tweet";
     const TWEET_TEXT = "tweetText";
     const LINK_IMG_STR = "card.layoutLarge.media";
+    const LINK_NO_IMG_STR = "card.wrapper";
     const TYPE_ARRAY = 0;
     const TYPE_INTEGER = 1;
     const TYPE_BOOL = 2;
@@ -22,10 +23,15 @@ const TARGET_URL = [
         4:"デフォルトアイコン",
         5:"認証済みアカウント",
         6:"オンラインスパムリスト一致",
-        7:"インポートスパムリスト一致",
+        7:"インポートミュートリスト一致",
         8:"アカウント名スペース数超過",
-        9:"ユーザー名のみ一致"
+        9:"ユーザー名のみ一致",
+        10:"トレンドワード数超過(ポスト)",
+        11:"トレンドワード数超過(ユーザー名)"
     };
+    const CLASS_LINK_ICON = "gX5c7aMKHJte";
+    const CLASS_LINK_TEXT = "38vLw0IMLBxf";
+    const TREND_URL = "https://x.com/explore/tabs/trending";
     
     let postBlockViewNumber = 0;
     let hidden_posts = [];
@@ -35,6 +41,14 @@ const TARGET_URL = [
     let view_url = "";
     let manual_spam_list;
     let safe_user_list = [];
+    let cnt_x;
+    let cnt_y;
+    let cardLink_id_count = 0;
+    let trend_save_flag = false;
+    let trend_save_datetime = -1;
+    let trend_word_list = [];
+    let trend_data_enable = false;
+    let followingTabClick = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -68,9 +82,32 @@ const TARGET_URL = [
         });
     }
 
+    function TrendDataLoad(){
+        chrome.storage.local.get(["XFILTER_OPTION_TREND_SAVE"]).then((result) => {
+            let r;
+            try{
+                r = JSON.parse(result.XFILTER_OPTION_TREND_SAVE);
+            } catch(e){
+                r = [];
+            }
+            if(r == void 0 || r == null){ r = []; }
+            trend_word_list = r;
+            chrome.storage.local.get(["XFILTER_OPTION_TREND_SAVE_DATETIME"]).then((result) => {
+                let r;
+                try{
+                    r = JSON.parse(result.XFILTER_OPTION_TREND_SAVE_DATETIME);
+                } catch(e){
+                    r = 0;
+                }
+                if(r == void 0 || r == null){ r = 0; }
+                trend_save_datetime = r;
+            });
+        });
+    }
+
     function checkEmpty(el) {
         return el !== undefined && el !== 0 && el !== null && el.trim() != "";
-      }
+    }
 
     function OptionLoad_run(){
         SafeListLoad();
@@ -108,6 +145,18 @@ const TARGET_URL = [
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
+            X_OPTION.LINK_CARD_URL_SAFE = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY).filter(item => item !== "");
+            X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE = getOptionPram(r.LINK_CARD_URL_VIEW_VIDEO_DISABLE, true, TYPE_BOOL);
+            X_OPTION.TREND_WORD_BORDER_TEXT = getOptionPram(r.TREND_WORD_BORDER_TEXT, 0, TYPE_INTEGER);
+            X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
+            X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
+
+            TrendDataLoad();
+
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
                 X_OPTION.MANUAL_SPAM_LIST = [];
                 manual_spam_list = [];
@@ -135,6 +184,7 @@ const TARGET_URL = [
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
                 MainLoopX();
             });
+            FollowTabCheck();
         });
     }
 
@@ -162,11 +212,29 @@ const TARGET_URL = [
         let postList;
         activeUrl = FilterActiveCheck();
 
+        FollowTabCheck();
+
+        if(0 < X_OPTION.TREND_WORD_BORDER_TEXT || 0 < X_OPTION.TREND_WORD_BORDER_NAME || true){
+            if((trend_word_list.length < 30 || !trend_save_flag || 1000 * 60 * 60 < (new Date().getTime() - trend_save_datetime)) && trend_save_datetime != -1){
+                if(isTrendPage()){
+                    if(isTrendPageLoadingEnd()){
+                        SaveTrend(getTrend());
+                    }
+                }
+            }
+        }
+
+        if((new Date().getTime() - trend_save_datetime) < 1000 * 60 * 60 && 0 < trend_word_list.length){
+            trend_data_enable = true;
+        } else {
+            trend_data_enable = false;
+        }
+
         if(view_url != location.href){
             postBlockViewNumber = 0;
             hidden_posts = [];
-            BlockCount();
         }
+        BlockCount();
 
         if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
             postClass_Hierarchy = getPostClass();
@@ -204,13 +272,17 @@ const TARGET_URL = [
             }
         }
 
-        if((activeUrl && X_OPTION.LINK_EMPHASIS) || X_OPTION.LINK_EMPHASIS_ALL){
+        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
             CardLinkEmphasis();
         }
 
         for(let i=0;i<postList.length;i++){
             if(activeUrl && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
+            } else {
+                if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
+                    AddLinkClickListener(postList[i]);
+                }
             }
         }
         setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
@@ -221,33 +293,628 @@ const TARGET_URL = [
         let cardList = [];
         let b;
         let labeltxt = "";
+        let linkDomain = "";
+        let viewDomain = "";
         b = document.getElementsByTagName("div");
 
         a = document.getElementsByTagName("div");
         for(let i=0;i<a.length;i++){
             if(a[i].dataset.testid != void 0 && a[i].dataset.testid == LINK_IMG_STR){
-                cardList.push(a[i]);
+                linkDomain = "";
+                viewDomain = "";
+                if(0 < a[i].getElementsByTagName("a").length && a[i].getElementsByTagName("a")[0].ariaLabel != null){
+                    linkDomain = a[i].getElementsByTagName("a")[0].href;
+                    viewDomain = a[i].getElementsByTagName("a")[0].ariaLabel.split(" ")[0];
+                }
+                cardList.push([a[i], viewDomain, linkDomain]);
             }
         }
 
         for(let i=0;i<cardList.length;i++){
             labeltxt = "";
-            b = cardList[i].getElementsByTagName("a");
+            b = cardList[i][0].getElementsByTagName("a");
             for(let q=0;q<b.length;q++){
                 if(b[q] != void 0 && b[q].ariaLabel != null && b[q].ariaLabel.includes(".")){
                     labeltxt = b[q].ariaLabel.trim();
                     break;
                 }
             }
-            if(cardList[i].getElementsByClassName("XGarIO3t").length == 0){
-                let createNode = document.createElement("div");
-                createNode.innerHTML = "<span style='font-size:2rem;width:3rem;'>🔗</span>" + "<span style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding-right:0.2rem;padding-bottom:0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
-                createNode.setAttribute("class", "XGarIO3t")
-                createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
-                cardList[i].appendChild(createNode);
-                break;
+            if(cardList[i][0].getElementsByClassName("XGarIO3t").length == 0) {
+                const videoCheck = isVideoCard(cardList[i][0]);
+                if (videoCheck === null) {
+                    continue;
+                }
+                if (!X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE || !videoCheck) {
+                    let createNode = document.createElement("div");
+                    if(X_OPTION.LINK_EMPHASIS) {
+                        createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
+                        createNode.setAttribute("class", "XGarIO3t")
+                        createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
+                        cardList[i][0].appendChild(createNode);
+                    }
+                    if(X_OPTION.LINK_CARD_URL_VIEW){
+                        UrlDomainCheck(cardList[i]);
+                    }
+                    break;
+                }
             }
         }
+    }
+
+    function getCardDomain(post) {
+        let aList = post.getElementsByTagName("div");
+        for (const item of aList) {
+            if(item.dataset.testid !== void 0 && item.dataset.testid !== LINK_IMG_STR){
+                return item;
+            }
+        }
+        return null;
+    }
+
+    function getCardDomainUrl(card) {
+        let aList = card.parentElement.parentElement.getElementsByTagName("a");
+        for(const item of aList){
+            if(item.ariaLabel !== void 0 && item.ariaLabel.includes(".")){
+                return item.ariaLabel.split(" ")[0];
+            }
+        }
+        return null;
+    }
+
+    function getCardLink(card) {
+        let aList = card.parentElement.parentElement.getElementsByTagName("a");
+        for(const item of aList){
+            if(item.ariaLabel == void 0 && item.href.startsWith("http")){
+                return item;
+            }
+        }
+        return null;
+    }
+
+    function UrlDomainCheck(cardData) {
+        if(cardData[0].dataset.urlWkxChecked === "true"){
+            return;
+        }
+        cardData[0].dataset.urlWkxChecked = "true";
+
+        chrome.runtime.sendMessage({
+            type:"getUrl_tco",
+            url: cardData[2]
+        },
+        function (response) {
+            let resultUrl;
+            if(response.statusCode == 0){
+                resultUrl = refreshUrl(response.htmlStr);
+            } else if(response.statusCode == 10){
+                resultUrl = response.urlStr;
+            } else {
+                return;
+            }
+            let link_icon = cardData[0].getElementsByClassName(CLASS_LINK_ICON);
+            let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
+            let linka_a = getCardLink(cardData[0]);
+            cardLink_id_count++;
+            
+            let urlSpan = document.createElement('span');
+            urlSpan.id = 'cHXCcZlv_' + cardLink_id_count;
+            urlSpan.setAttribute('data-cardLinkUrl', resultUrl);
+            urlSpan.textContent = '（URL：' + resultUrl + '）';
+            
+            if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl)) && getDomain(resultUrl) != getDomain(cardData[1])){
+                urlSpan.style.color = 'red';
+                urlSpan.style.fontWeight = 'bold';
+                linka_a.appendChild(urlSpan);
+                if(0 < link_icon.length){
+                    link_icon[0].textContent = "⚠";
+                    link_icon[0].style.backgroundColor = "#eeff00";
+                }
+                if(0 < link_text.length){
+                    link_icon[0].style.color = "red";
+                }
+            } else {
+                linka_a.appendChild(urlSpan);
+            }
+            document.getElementById("cHXCcZlv_" + String(cardLink_id_count)).addEventListener("click", function(ev){
+                ev.stopPropagation()
+                ev.preventDefault();
+                if(window.confirm("【X検索ミュートツール】\n以下URLをコピーしますか？\n" + ev.target.dataset.cardlinkurl)){
+                    navigator.clipboard.writeText(ev.target.dataset.cardlinkurl)
+                    .then(() => {
+                        alert("コピーしました");
+                    })
+                    .catch((error) => {
+                        alert("コピーできませんでした", error);
+                    });
+                }
+            }, false);
+            if(X_OPTION.LINK_CARD_URL_VIEW_ONELINE){
+                linka_a.style.whiteSpace = "nowrap";
+                linka_a.style.overflow = "hidden";
+                linka_a.style.textOverflow = "ellipsis";
+                linka_a.style.display = "inline-block";
+            }
+        });
+    }
+
+    function LinkClickCheck(linkElement, event){
+        let href = linkElement.href;
+        if(!href || !href.startsWith("http")){
+            return true;
+        }
+        
+        if(!href.includes("t.co")){
+            return true;
+        }
+
+        let displayText = getDisplayDomain(linkElement);
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        
+        let responseReceived = false;
+        let userChoice = null;
+        let loadingDialogId = 'ndRmlbG_ld_' + Date.now();
+        
+        // 1秒後にローディングダイアログを表示
+        let timeoutTimer = setTimeout(function(){
+            if(!responseReceived){
+                showLoadingDialog(href, loadingDialogId, function(choice){
+                    userChoice = choice;
+                    if(choice === 'proceed'){
+                        // ユーザーが「このまま遷移」を選択
+                        window.open(href, '_blank');
+                    }
+                    // キャンセルの場合は何もしない
+                });
+            }
+        }, 1000);
+        
+        chrome.runtime.sendMessage({
+            type:"getUrl_tco",
+            url: href
+        },
+        function (response) {
+            responseReceived = true;
+            clearTimeout(timeoutTimer);
+            
+            // ローディングダイアログが表示されている場合は閉じる
+            let loadingDialog = document.getElementById(loadingDialogId);
+            if(loadingDialog){
+                loadingDialog.remove();
+            }
+            
+            // ユーザーが既に選択していた場合は処理しない
+            if(userChoice !== null){
+                return;
+            }
+
+            if(!response || chrome.runtime.lastError || (response.statusCode !== 0 && response.statusCode !== 10)){
+                showErrorDialog(href, function(shouldProceed){
+                    if(shouldProceed){
+                        window.open(href, '_blank');
+                    }
+                });
+                return;
+            }
+            
+            let resultUrl = href;
+            if(response.statusCode == 0){
+                resultUrl = refreshUrl(response.htmlStr);
+            } else if(response.statusCode == 10){
+                resultUrl = response.urlStr;
+            } else {
+                resultUrl = null;
+            }
+            
+            let isWarning = false;
+            
+            // 表示テキストのドメインと実際の遷移先のドメインを比較
+            if(X_OPTION.LINK_CARD_URL_SAFE && X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl))){
+                isWarning = false;
+            } else if(displayText && getDomain(resultUrl) != getDomain(displayText)){
+                isWarning = true;
+            }
+            
+            if(isWarning){
+                showCustomConfirmDialog(displayText, resultUrl, function(isConfirmed, addToSafelist){
+                    if(isConfirmed){
+                        if(addToSafelist){
+                            addDomainToSafelist(getDomain(resultUrl));
+                        }
+                        if(resultUrl !== null) {
+                            window.open(resultUrl, '_blank');
+                        }
+                    }
+                });
+            } else {
+                if(resultUrl !== null) {
+                    window.open(resultUrl, '_blank');
+                }
+            }
+        });
+        return false;
+    }
+
+    function showErrorDialog(href, callback){
+        let existingDialog = document.getElementById('ndRmlbG_ed');
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = 'ndRmlbG_ed';
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #fffaf3;
+            border: 2px solid #f6c97f;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #b45309;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        let errorIcon = document.createElement('span');
+        errorIcon.textContent = '⚠️';
+        errorIcon.style.fontSize = '20px';
+        let errorText = document.createElement('span');
+        errorText.textContent = 'リンク先の確認に失敗しました。';
+        messageEl.appendChild(errorIcon);
+        messageEl.appendChild(errorText);
+
+        let detailEl = document.createElement('p');
+        detailEl.textContent = 'オフラインまたは通信エラーのため、移動先URLを確認できませんでした。';
+        detailEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #536471;
+            line-height: 1.5;
+        `;
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+            word-break: break-all;
+        `;
+        let urlTitle = document.createElement('strong');
+        urlTitle.textContent = '移動先:';
+        let urlBr = document.createElement('br');
+        let urlSpan = document.createElement('span');
+        urlSpan.style.color = '#536471';
+        urlSpan.textContent = href;
+        urlInfoEl.appendChild(urlTitle);
+        urlInfoEl.appendChild(urlBr);
+        urlInfoEl.appendChild(urlSpan);
+
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(false);
+        };
+
+        let proceedBtn = document.createElement('button');
+        proceedBtn.textContent = 'このまま移動';
+        proceedBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        proceedBtn.onmouseover = function(){
+            this.style.background = '#dc2626';
+        };
+        proceedBtn.onmouseout = function(){
+            this.style.background = '#ef4444';
+        };
+        proceedBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(true);
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(proceedBtn);
+
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(detailEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(buttonContainer);
+
+        dialogOverlay.appendChild(dialogBox);
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.removeEventListener('click', overlayClickHandler);
+                let dialog = document.getElementById('ndRmlbG_ed');
+                if(dialog){
+                    dialog.remove();
+                    callback(false);
+                }
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // オーバーレイクリックでキャンセル
+        let overlayClickHandler = function(e){
+            if(e.target === dialogOverlay){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.removeEventListener('click', overlayClickHandler);
+                dialogOverlay.remove();
+                callback(false);
+            }
+        };
+        dialogOverlay.addEventListener('click', overlayClickHandler);
+    }
+
+    function showLoadingDialog(href, dialogId, callback){
+        let existingDialog = document.getElementById(dialogId);
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = dialogId;
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #ffffff;
+            border: 2px solid #1d9bf0;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.textContent = 'リンク先を確認しています...';
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #536471;
+            line-height: 1.5;
+        `;
+
+        let loadingEl = document.createElement('div');
+        loadingEl.style.cssText = `
+            text-align: center;
+            margin: 16px 0;
+            font-size: 24px;
+        `;
+        loadingEl.textContent = '⏳';
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+            word-break: break-all;
+        `;
+        let urlTitle = document.createElement('strong');
+        urlTitle.textContent = 'URL:';
+        let urlBr = document.createElement('br');
+        let urlSpan = document.createElement('span');
+        urlSpan.style.color = '#536471';
+        urlSpan.textContent = href;
+        urlInfoEl.appendChild(urlTitle);
+        urlInfoEl.appendChild(urlBr);
+        urlInfoEl.appendChild(urlSpan);
+
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback('cancel');
+        };
+
+        let proceedBtn = document.createElement('button');
+        proceedBtn.textContent = 'このまま移動';
+        proceedBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #1d9bf0;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        proceedBtn.onmouseover = function(){
+            this.style.background = '#1a8cd8';
+        };
+        proceedBtn.onmouseout = function(){
+            this.style.background = '#1d9bf0';
+        };
+        proceedBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback('proceed');
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(proceedBtn);
+
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(loadingEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(buttonContainer);
+
+        dialogOverlay.appendChild(dialogBox);
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                let dialog = document.getElementById(dialogId);
+                if(dialog){
+                    dialog.remove();
+                    callback('cancel');
+                }
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+    }
+
+    function refreshUrl(htmlStr){
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(htmlStr, 'text/html');
+        let metaTag = doc.head ? doc.head.querySelector('meta[http-equiv="refresh"]') : null;
+        if (!metaTag) return null;
+        let content = metaTag.getAttribute("content");
+        if (!content) return null;
+        let match = content.match(/url\s*=\s*(.+)/i);
+        if (match && match[1]) {
+            return match[1].trim();
+        }
+        return null;
+    }
+
+    function getDomain(url){
+        if(!url){ return null; }
+        const match = url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i);
+        return (match && match[1]) ? match[1] : null;
+    }
+    function getDisplayDomain(linkElement){
+        let text = "";
+        if(linkElement.ariaLabel){
+            text = linkElement.ariaLabel.split(" ")[0].trim();
+        } else if(linkElement.textContent){
+            text = linkElement.textContent.trim();
+        }
+
+        if(!text){
+            return null;
+        }
+
+        const domainMatch = text.match(/\b((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,})\b/);
+        if(domainMatch && domainMatch[1]){
+            return domainMatch[1];
+        }
+
+        return text.split(/\s+/)[0];
     }
     
     function getPostClass(){
@@ -385,12 +1052,25 @@ const TARGET_URL = [
             if(isSearchPage()){
                 if(0 < getSearchWordList().length){
                     if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
-                        if((getSearchWordList().some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList().some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
                             block_type = 9;
                             return true;
                         }
                     }
                 }
+            }
+        }
+        if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
+            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
+                block_type = 10;
+                return true;
+            }
+        }
+
+        if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
+            if(X_OPTION.TREND_WORD_BORDER_NAME <= getTrendWordCount(getPostAccountName(post).toUpperCase())){
+                block_type = 11;
+                return true;
             }
         }
         return false;
@@ -399,12 +1079,29 @@ const TARGET_URL = [
     function PostBlock(post){
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post)]);
+            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostTextTag(post).innerText]);
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
             postBlockViewNumber++;
             if(X_OPTION.BLOCK_COUNT_VIEW){
                 BlockCount();
+            }
+        }
+    }
+
+    function AddLinkClickListener(post){
+        if(!X_OPTION.LINK_CLICK_URL_CHECK){
+            return;
+        }
+        
+        let links = post.getElementsByTagName("a");
+        for(let i=0;i<links.length;i++){
+            let link = links[i];
+            if(link.href && link.href.startsWith("http") && !link.hasAttribute("data-link-check-added")){
+                link.setAttribute("data-link-check-added", "true");
+                link.addEventListener("click", function(event){
+                    LinkClickCheck(this, event);
+                }, false);
             }
         }
     }
@@ -477,6 +1174,69 @@ const TARGET_URL = [
         }
         return false;
     }
+
+    function getTrend(){
+        let trend = new Array();
+        let doc = document.getElementsByTagName("div");
+        for(let i=0;i<doc.length;i++){
+            if(doc[i].dataset.testid == "trend"){
+                try{
+                    if(doc[i].children[0].children[1].innerText.trim() != ""){
+                        trend.push(doc[i].children[0].children[1].innerText.replace("#", "").toUpperCase());
+                    }
+                } catch(e){;}
+            }
+        }
+        return trend;
+    }
+
+    function isTrendPageLoadingEnd(){
+        let doc = document.getElementsByTagName("div");
+        for(let i=0;i<doc.length;i++){
+            if(doc[i].dataset.testid == "trend"){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isTrendPage(){
+        return location.href == TREND_URL;
+    }
+
+    function isVideoCard(card) {
+        try {
+            if (card == null) { return null; }
+            if (card.dataset == null) { return null; }
+            if (card.dataset.xsfSeenAt == void 0) {
+                card.dataset.xsfSeenAt = String(Date.now());
+                return null;
+            }
+            if ((Date.now() - Number(card.dataset.xsfSeenAt)) < 800) {
+                return null;
+            }
+            const container = card.closest('article') || (card.parentElement && card.parentElement.parentElement) || card;
+            if (!container) { return null; }
+            if (container.querySelector('[data-testid="videoComponent"]')) {
+                return true;
+            }
+            if (container.querySelector('video')) {
+                return true;
+            }
+            return false;
+        } catch(e) {
+            return null;
+        }
+    }
+
+    function SaveTrend(trend){
+        if(trend.length == 0){ return; }
+        chrome.storage.local.set({"XFILTER_OPTION_TREND_SAVE": JSON.stringify(trend)});
+        chrome.storage.local.set({"XFILTER_OPTION_TREND_SAVE_DATETIME": new Date().getTime()});
+        trend_word_list = trend;
+        trend_save_datetime = new Date().getTime();
+        trend_save_flag = true;
+    }
     
     function BlockCount(){
         if(!X_OPTION.BLOCK_COUNT_VIEW){
@@ -489,88 +1249,311 @@ const TARGET_URL = [
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH";
             addtag.style.position = "fixed";
-            addtag.style.top = "0px";
-            addtag.style.left = "0px";
+            addtag.style.top = "0.5em";
+            addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;'id='x9uVvQH_ar'><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;'></span>posts</div>");
+            
+            let buttonDiv = document.createElement("div");
+            buttonDiv.id = "x9uVvQH_ar";
+            buttonDiv.style.border = "solid 1px #cdcdcd";
+            buttonDiv.style.backgroundColor = "#1DA1F2";
+            buttonDiv.style.color = "#FFF";
+            buttonDiv.style.cursor = "pointer";
+            buttonDiv.style.padding = "0.3em 1em";
+            buttonDiv.style.fontSize = "small";
+            buttonDiv.style.borderRadius = "10px";
+            buttonDiv.style.userSelect = "none";
+            
+            let iconSpan = document.createElement("span");
+            iconSpan.id = "YgE1WQLD";
+            
+            let numSpan = document.createElement("span");
+            numSpan.id = "x9uVvQH_num";
+            numSpan.style.textAlign = "center";
+            numSpan.style.marginRight = "0.2em";
+            numSpan.style.marginLeft = "0.1em";
+            numSpan.style.userSelect = "none";
+            
+            buttonDiv.appendChild(iconSpan);
+            buttonDiv.appendChild(numSpan);
+            addtag.appendChild(buttonDiv);
+            
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
+            CountBtn_MoveAction();
+        }
+        if((0 < X_OPTION.TREND_WORD_BORDER_NAME || 0 < X_OPTION.TREND_WORD_BORDER_TEXT) && trend_data_enable){
+            document.getElementById("YgE1WQLD").innerText = "💾";
+        } else {
+            document.getElementById("YgE1WQLD").innerText = "";
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
         document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
     }
 
-    function btnTemHidden(e){
-        e.stopPropagation();
-        HiddenPostList_Cls();
-        document.getElementById("orADy0y_ar").style.display = "none";
-        document.getElementById("x9uVvQH_ar").style.display = "none";
+    function CountBtn_MouseDown(e) {
+        CountBtnMoveStartTime = new Date();
+        this.classList.add("drag");
+        if(e.type === "mousedown") {
+            var event = e;
+        } else {
+            var event = e.changedTouches[0];
+        }
+        var rect = this.getBoundingClientRect();
+        cnt_x = event.clientX - rect.left;
+        cnt_y = event.clientY - rect.top;
+        document.body.addEventListener("mousemove", CountBtn_MouseMove, false);
+        document.body.addEventListener("touchmove", CountBtn_MouseMove, false);
+    }
+
+    function CountBtn_MouseMove(e) {
+        var drag = document.getElementsByClassName("drag")[0];
+        if(e.type === "mousemove") {
+            var event = e;
+        } else {
+            var event = e.changedTouches[0];
+        }
+
+        var newLeft = event.clientX - cnt_x;
+        var newTop = event.clientY - cnt_y;
+        
+        var rect = drag.getBoundingClientRect();
+        var maxLeft = window.innerWidth - rect.width;
+        var maxTop = window.innerHeight - rect.height;
+        
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+        
+        drag.style.left = newLeft + "px";
+        drag.style.top = newTop + "px";
+
+        drag.addEventListener("mouseup", CountBtn_MoveEnd, false);
+        document.body.addEventListener("mouseleave", CountBtn_MoveEnd, false);
+        drag.addEventListener("touchend", CountBtn_MoveEnd, false);
+        document.body.addEventListener("touchleave", CountBtn_MoveEnd, false);
+    }
+
+    function CountBtn_MoveEnd(e) {
+        var drag = document.getElementsByClassName("drag")[0];
+        try {
+            document.body.removeEventListener("mousemove", CountBtn_MouseMove, false);
+            drag.removeEventListener("mouseup", CountBtn_MoveEnd, false);
+            document.body.removeEventListener("touchmove", CountBtn_MouseMove, false);
+            drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
+            drag.classList.remove("drag");
+        } catch(err){;}
+    }
+
+    let CountBtnMoveStartTime;
+    function CountBtn_MoveAction(e){
+        var elements = document.getElementById("x9uVvQH");
+        elements.addEventListener("mousedown", CountBtn_MouseDown, false);
+        elements.addEventListener("touchstart", CountBtn_MouseDown, false);
     }
 
     function HiddenPostList(){
+        CountBtn_MoveEnd();
+        if(200 < new Date().getTime() - CountBtnMoveStartTime.getTime()){ return; }
         if(document.getElementById("x9uVvQH_lst_base") == null){
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH_lst_base";
-            addtag.setAttribute("style", "position:fixed;width:100%;height:100%;top:0;left:0;background-color:rgba(255,255,255,0.5);");
-            addtag.innerHTML = "<div style='background-color:rgba(205,205,205,0.95);position:fixed;height:90%;width:90%;top:5%;left:5%;border:solid 2px #000;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y: scroll;width:100%;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.3rem;background-color:#f5bd4d;color:#fff;border-top:solid 1px #000;' id='x9uVvQH_cls'>閉じる</div></div><div style='border:solid 1px #cdcdcd;background-color:#FFF;color:#000;cursor:pointer;padding:0.3em;font-size:small;text-align:center;width:4em;display:none;position:fixed;top:0;left:0;'id='orADy0y_ar'>一時<br>非表示<br></div>";
+            addtag.style.position = "fixed";
+            addtag.style.width = "100%";
+            addtag.style.height = "100%";
+            addtag.style.top = "0";
+            addtag.style.left = "0";
+            addtag.style.backgroundColor = "rgba(0,0,0,0.4)";
+            addtag.style.backdropFilter = "blur(2px)";
+            addtag.style.zIndex = "9999";
+            
+            let lstArea = document.createElement("div");
+            lstArea.id = "x9uVvQH_lst_area";
+            lstArea.style.backgroundColor = "rgba(207, 207, 207, 0.9)";
+            lstArea.style.position = "fixed";
+            lstArea.style.height = "90%";
+            lstArea.style.width = "95%";
+            lstArea.style.top = "5%";
+            lstArea.style.left = "50%";
+            lstArea.style.transform = "translateX(-50%)";
+            lstArea.style.borderRadius = "12px";
+            lstArea.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+            lstArea.style.overflow = "hidden";
+            
+            let lstDiv = document.createElement("div");
+            lstDiv.id = "x9uVvQH_lst";
+            lstDiv.style.position = "absolute";
+            lstDiv.style.top = "0";
+            lstDiv.style.left = "0";
+            lstDiv.style.height = "calc(100% - 3rem)";
+            lstDiv.style.overflowY = "auto";
+            lstDiv.style.width = "100%";
+            lstDiv.style.padding = "1rem";
+            lstDiv.style.boxSizing = "border-box";
+            
+            let closeBtn = document.createElement("div");
+            closeBtn.id = "x9uVvQH_cls";
+            closeBtn.textContent = "閉じる";
+            closeBtn.style.position = "absolute";
+            closeBtn.style.bottom = "0";
+            closeBtn.style.height = "3rem";
+            closeBtn.style.lineHeight = "3rem";
+            closeBtn.style.width = "100%";
+            closeBtn.style.textAlign = "center";
+            closeBtn.style.fontWeight = "bold";
+            closeBtn.style.fontSize = "1.1rem";
+            closeBtn.style.background = "linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%)";
+            closeBtn.style.color = "#fff";
+            closeBtn.style.borderTop = "none";
+            closeBtn.style.cursor = "pointer";
+            closeBtn.style.transition = "opacity 0.2s";
+            closeBtn.onmouseover = function(){ this.style.opacity = "0.9"; };
+            closeBtn.onmouseout = function(){ this.style.opacity = "1"; };
+            
+            lstArea.appendChild(lstDiv);
+            lstArea.appendChild(closeBtn);
+            addtag.appendChild(lstArea);
+            
             document.body.appendChild(addtag);
             document.getElementById("x9uVvQH_cls").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst_base").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst").addEventListener("click", function(e){e.stopPropagation();}, false);
-            document.getElementById("orADy0y_ar").addEventListener("click", btnTemHidden, false);
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
-
-        let addtxt = "";
-        addtxt += "<div style='text-align:center;font-size:large;color:#000;margin-top:10px;'>【非表示にしたポスト】</div><div style='color:#000;'>";
+        
+        let listFragment = document.createDocumentFragment();
+        
+        let titleDiv = document.createElement('div');
+        titleDiv.textContent = '【非表示にしたポスト】';
+        titleDiv.style.textAlign = 'center';
+        titleDiv.style.fontSize = 'large';
+        titleDiv.style.color = '#000';
+        titleDiv.style.marginTop = '10px';
+        listFragment.appendChild(titleDiv);
+        
+        let mainDiv = document.createElement('div');
+        mainDiv.style.color = '#000';
+        listFragment.appendChild(mainDiv);
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
-            addtxt += "<hr><p>※以下のオプションが設定されています</p>";
-            addtxt += "<ul>";
-        
+            let hr1 = document.createElement('hr');
+            mainDiv.appendChild(hr1);
+            
+            let optionTitle = document.createElement('p');
+            optionTitle.textContent = '※以下のオプションが設定されています';
+            mainDiv.appendChild(optionTitle);
+            
+            let ul = document.createElement('ul');
+            
             if(0 < X_OPTION.TAG_BORDER){
-                addtxt += "<li>ハッシュタグが" + X_OPTION.TAG_BORDER + "以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ハッシュタグが' + X_OPTION.TAG_BORDER + '以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.TAG_START_BORDER){
-                addtxt += "<li>ハッシュタグから始まる行が" + X_OPTION.TAG_START_BORDER + "行以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ハッシュタグから始まる行が' + X_OPTION.TAG_START_BORDER + '行以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
-                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.ACCOUNTNAME_SPACE_BORDER + "以上あるアカウント名のポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.ACCOUNTNAME_SPACE_BORDER + '以上あるアカウント名のポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.DEFAULT_ICON_BLOCK){
-                addtxt += "<li>プロフィールアイコン未設定アカウントからのポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'プロフィールアイコン未設定アカウントからのポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.SPACE_BORDER){
-                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.SPACE_BORDER + "以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.SPACE_BORDER + '以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.VERIFIED_HDN){
-                addtxt += "<li>認証済みアカウントのポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = '認証済みアカウントのポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = '検索ワードがアカウント名にしか存在しないポストを非表示';
+                ul.appendChild(li);
             }
-            addtxt += "</ul>";
+            
+            mainDiv.appendChild(ul);
         }
-        addtxt += "<hr><div style='margin:0 0.2rem;'>";
+        
+        let hr2 = document.createElement('hr');
+        mainDiv.appendChild(hr2);
+        
+        let postsContainer = document.createElement('div');
+        postsContainer.style.margin = '0 0.2rem';
+        
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
+                let btn = document.createElement('button');
+                btn.id = 'hl_' + i;
+                btn.setAttribute('data-huserid', hidden_posts[i][2]);
+                btn.textContent = 'Safe';
+                btn.style.marginRight = '0.4em';
+                btn.style.padding = '0em 0.4em';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '4px';
+                btn.style.cursor = 'pointer';
+                btn.style.fontWeight = 'bold';
+                btn.style.fontSize = '0.8em';
+                
                 if(!(safe_user_list != void 0 && safe_user_list.includes(hidden_posts[i][2].replace("@", "")))){
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
+                    btn.style.backgroundColor = '#4CAF50';
+                    btn.style.color = '#fff';
                 } else {
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.5em; background-color:#cdcdcd;'>Safe</button>";
+                    btn.style.backgroundColor = '#cccccc';
+                    btn.style.color = '#666';
+                    btn.disabled = true;
+                    btn.style.cursor = 'not-allowed';
                 }
+                postsContainer.appendChild(btn);
+                
                 if(hidden_posts[i][3] != null){
-                    addtxt += "[ <a href='" + hidden_posts[i][3] + "' target='_blank' style='color:blue;text-decoration: underline;'>表示</a> ]";
+                    let bracket1 = document.createElement('span');
+                    bracket1.textContent = '[ ';
+                    postsContainer.appendChild(bracket1);
+                    
+                    let link = document.createElement('a');
+                    link.href = hidden_posts[i][3];
+                    link.target = '_blank';
+                    link.textContent = '表示';
+                    link.style.color = 'blue';
+                    link.style.textDecoration = 'underline';
+                    postsContainer.appendChild(link);
+                    
+                    let bracket2 = document.createElement('span');
+                    bracket2.textContent = ' ]';
+                    postsContainer.appendChild(bracket2);
                 }
-                addtxt += hidden_posts[i][0];
-                addtxt += "<span style='font-weight:bold;'>（非表示理由：" + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + "）</span>";
-                addtxt += "<hr>";
+                
+                let contentSpan = document.createElement('span');
+                if(X_OPTION.POST_CHECK_ALL) {
+                    contentSpan.textContent = hidden_posts[i][0];
+                } else {
+                    contentSpan.textContent = '【' + hidden_posts[i][4] + ' (' + hidden_posts[i][2] + ')' + '】' + hidden_posts[i][5];
+                }
+                postsContainer.appendChild(contentSpan);
+                
+                let reasonSpan = document.createElement('span');
+                reasonSpan.textContent = '（非表示理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
+                reasonSpan.style.fontWeight = 'bold';
+                postsContainer.appendChild(reasonSpan);
+                
+                let hr = document.createElement('hr');
+                postsContainer.appendChild(hr);
             }
         }
-        addtxt += "</div></div>";
-        document.getElementById("x9uVvQH_lst").innerHTML = addtxt;
+        
+        mainDiv.appendChild(postsContainer);
+        document.getElementById("x9uVvQH_lst").innerHTML = '';
+        document.getElementById("x9uVvQH_lst").appendChild(listFragment);
         document.getElementById("x9uVvQH_ar").style.display = "none";
-        document.getElementById("orADy0y_ar").style.display = "block";
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
                 if(document.getElementById("hl_" + i) && document.getElementById("hl_" + i).dataset.huserid != void 0){
@@ -582,10 +1565,12 @@ const TARGET_URL = [
 
     function AddSafe(ev){
         let idName = ev.target.dataset.huserid;
-        if(confirm("ID「" + idName + "」をセーフリストに追加しますか？（次回からこのアカウントのポストが表示されるようになります）")){
+        if(confirm("ID「" + idName + "」をセーフリストに追加しますか？（設定の「セーフユーザー」に追加されます）")){
             SafeListLoad(function(){
                 safe_user_list.push(idName.replace("@", ""));
-                SafeListSave();
+                SafeListSave(function(){
+                    alert("セーフリストに追加しました。");
+                });
                 ev.target.disabled = true;
                 HiddenPostList();
             });
@@ -615,6 +1600,16 @@ const TARGET_URL = [
             }
         }
         return document.createElement("div");
+    }
+
+    function getTrendWordCount(text){
+        let cnt = 0;
+        for(const item of trend_word_list){
+            if(text.includes(item)){
+                cnt++;
+            }
+        }
+        return cnt;
     }
     
     function getLUrl(){
@@ -734,6 +1729,290 @@ const TARGET_URL = [
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
         return false;
+    }
+
+    function FollowingTabClick(retryCount = 0) {
+        if(followingTabClick) { return; }
+        let tabList, tabs;
+        try {
+            tabList = document.querySelector('[role="tablist"]');
+            if (!tabList) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+                } else {
+                    return false;
+                }
+            }
+            tabs = tabList.querySelectorAll('[role="tab"]');
+            const followingTab = tabs[1];
+            if (!followingTab) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+                } else {
+                    return false;
+                }
+            }
+            followingTab.click();
+            followingTabClick = true;
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { FollowingTabClick(retryCount); }, 100);
+            } else {
+                return false;
+            }
+        }
+    }
+    
+    function FollowTabCheck() {
+        if(X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB && location.href.startsWith("https://x.com/home")) {
+            setTimeout(FollowingTabClick, 100);
+        }
+    }
+
+    function showCustomConfirmDialog(displayText, resultUrl, callback){
+        let existingDialog = document.getElementById('ndRmlbG_cd');
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = 'ndRmlbG_cd';
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #fffaf3;
+            border: 2px solid #f6c97f;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.textContent = '注意: 表示されているURLと移動先が異なります。';
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #b45309;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        messageEl.prepend('⚠️');
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+        `;
+
+        let displayUrlEl = document.createElement('div');
+        displayUrlEl.style.cssText = 'margin-bottom: 8px;';
+        let displayTitle = document.createElement('strong');
+        displayTitle.textContent = '表示URL:';
+        let displayBr = document.createElement('br');
+        let displaySpan = document.createElement('span');
+        displaySpan.style.cssText = 'word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;';
+        displaySpan.textContent = displayText;
+        displayUrlEl.appendChild(displayTitle);
+        displayUrlEl.appendChild(displayBr);
+        displayUrlEl.appendChild(displaySpan);
+
+        let resultUrlEl = document.createElement('div');
+        let resultTitle = document.createElement('strong');
+        resultTitle.textContent = '移動先:';
+        let resultBr = document.createElement('br');
+        let resultSpan = document.createElement('span');
+        resultSpan.style.cssText = 'word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;';
+        resultSpan.textContent = resultUrl;
+        resultUrlEl.appendChild(resultTitle);
+        resultUrlEl.appendChild(resultBr);
+        resultUrlEl.appendChild(resultSpan);
+
+        urlInfoEl.appendChild(displayUrlEl);
+        urlInfoEl.appendChild(resultUrlEl);
+
+        // セーフリストチェックボックス
+        let checkboxContainer = document.createElement('label');
+        checkboxContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            margin: 0 0 20px 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: #1b2025ff;
+        `;
+
+        let checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.style.cssText = `
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        `;
+
+        let checkboxLabel = document.createElement('span');
+        let labelText = document.createElement('span');
+        labelText.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない';
+        let labelBr = document.createElement('br');
+        let labelSubText = document.createElement('span');
+        labelSubText.textContent = '（設定のセーフリストに追加）';
+        checkboxLabel.appendChild(labelText);
+        checkboxLabel.appendChild(labelBr);
+        checkboxLabel.appendChild(labelSubText);
+
+        checkboxContainer.appendChild(checkbox);
+        checkboxContainer.appendChild(checkboxLabel);
+
+        // ボタンコンテナ
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        // キャンセルボタン
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(false, false);
+        };
+
+        // 移動ボタン
+        let confirmBtn = document.createElement('button');
+        confirmBtn.textContent = '移動する';
+        confirmBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #1d9bf0;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        confirmBtn.onmouseover = function(){
+            this.style.background = '#1a8cd8';
+        };
+        confirmBtn.onmouseout = function(){
+            this.style.background = '#1d9bf0';
+        };
+        confirmBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(true, checkbox.checked);
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(confirmBtn);
+
+        // ダイアログの構成
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(checkboxContainer);
+        dialogBox.appendChild(buttonContainer);
+
+        // オーバーレイに追加
+        dialogOverlay.appendChild(dialogBox);
+
+        // ページに追加
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.remove();
+                callback(false, false);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // オーバーレイクリックでキャンセル
+        dialogOverlay.addEventListener('click', function(e){
+            if(e.target === dialogOverlay){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.remove();
+                callback(false, false);
+            }
+        });
+    }
+
+    function escapeHtml(text){
+        if(!text){ return ""; }
+        let map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m){
+            return map[m];
+        });
+    }
+
+    function addDomainToSafelist(domain){
+        if(X_OPTION.LINK_CARD_URL_SAFE){
+            if(!X_OPTION.LINK_CARD_URL_SAFE.includes(domain)){
+                X_OPTION.LINK_CARD_URL_SAFE.push(domain);
+                chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
+            }
+        }
     }
 
     TwitterSearchBlockMain();

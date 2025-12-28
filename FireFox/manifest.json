@@ -1,6 +1,6 @@
 {
   "name": "X検索ミュートツール",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "manifest_version": 3,
   "description": "Xの検索結果にミュートワードを設定出来るようにします",
   "icons": {
@@ -21,11 +21,19 @@
   "permissions": [
     "storage"
   ],
+  "action": {
+    "default_icon": {
+      "128": "icons/icon128.png",
+      "48": "icons/icon48.png",
+      "32": "icons/icon32.png"
+    },
+    "default_title": "X検索ミュートツール"
+  },
   "options_ui": {
     "page": "option.html",
     "open_in_tab": true
   },
-  "action": { "default_popup": "popup.html" },
+  "background": { "scripts": ["background.js"] },
   "browser_specific_settings": {
     "gecko": {
       "id": "{34990865-8c54-b443-eb92-25e74b1b1824}"
