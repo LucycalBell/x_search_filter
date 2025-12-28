@@ -441,6 +441,8 @@ const TARGET_URL = [
         let displayText = getDisplayDomain(linkElement);
         
         event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
         
         let responseReceived = false;
         let userChoice = null;
@@ -476,6 +478,15 @@ const TARGET_URL = [
             
             // ユーザーが既に選択していた場合は処理しない
             if(userChoice !== null){
+                return;
+            }
+
+            if(!response || chrome.runtime.lastError || (response.statusCode !== 0 && response.statusCode !== 10)){
+                showErrorDialog(href, function(shouldProceed){
+                    if(shouldProceed){
+                        window.open(href, '_blank');
+                    }
+                });
                 return;
             }
             
@@ -515,6 +526,180 @@ const TARGET_URL = [
             }
         });
         return false;
+    }
+
+    function showErrorDialog(href, callback){
+        let existingDialog = document.getElementById('ndRmlbG_ed');
+        if(existingDialog){
+            existingDialog.remove();
+        }
+
+        let dialogOverlay = document.createElement('div');
+        dialogOverlay.id = 'ndRmlbG_ed';
+        dialogOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+
+        let dialogBox = document.createElement('div');
+        dialogBox.style.cssText = `
+            background: #fffaf3;
+            border: 2px solid #f6c97f;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+            max-width: 500px;
+            width: 90%;
+            padding: 24px;
+        `;
+
+        let titleEl = document.createElement('h2');
+        titleEl.textContent = '【X検索ミュートツール】';
+        titleEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f1419;
+        `;
+
+        let messageEl = document.createElement('p');
+        messageEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 14px;
+            color: #b45309;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        let errorIcon = document.createElement('span');
+        errorIcon.textContent = '⚠️';
+        errorIcon.style.fontSize = '20px';
+        let errorText = document.createElement('span');
+        errorText.textContent = 'リンク先の確認に失敗しました。';
+        messageEl.appendChild(errorIcon);
+        messageEl.appendChild(errorText);
+
+        let detailEl = document.createElement('p');
+        detailEl.textContent = 'オフラインまたは通信エラーのため、移動先URLを確認できませんでした。';
+        detailEl.style.cssText = `
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #536471;
+            line-height: 1.5;
+        `;
+
+        let urlInfoEl = document.createElement('div');
+        urlInfoEl.style.cssText = `
+            background: #f7f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: #0f1419;
+            word-break: break-all;
+        `;
+        urlInfoEl.innerHTML = `<strong>移動先:</strong><br><span style="color: #536471;">${escapeHtml(href)}</span>`;
+
+        let buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        `;
+
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'キャンセル';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            border: 1px solid #cfd9de;
+            background: white;
+            color: #0f1419;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        cancelBtn.onmouseover = function(){
+            this.style.background = '#f7f9fa';
+        };
+        cancelBtn.onmouseout = function(){
+            this.style.background = 'white';
+        };
+        cancelBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(false);
+        };
+
+        let proceedBtn = document.createElement('button');
+        proceedBtn.textContent = 'このまま移動';
+        proceedBtn.style.cssText = `
+            padding: 10px 20px;
+            border: none;
+            background: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        proceedBtn.onmouseover = function(){
+            this.style.background = '#dc2626';
+        };
+        proceedBtn.onmouseout = function(){
+            this.style.background = '#ef4444';
+        };
+        proceedBtn.onclick = function(){
+            dialogOverlay.remove();
+            callback(true);
+        };
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(proceedBtn);
+
+        dialogBox.appendChild(titleEl);
+        dialogBox.appendChild(messageEl);
+        dialogBox.appendChild(detailEl);
+        dialogBox.appendChild(urlInfoEl);
+        dialogBox.appendChild(buttonContainer);
+
+        dialogOverlay.appendChild(dialogBox);
+        document.body.appendChild(dialogOverlay);
+
+        // Escキーでキャンセル
+        let escapeHandler = function(e){
+            if(e.key === 'Escape'){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.removeEventListener('click', overlayClickHandler);
+                let dialog = document.getElementById('ndRmlbG_ed');
+                if(dialog){
+                    dialog.remove();
+                    callback(false);
+                }
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // オーバーレイクリックでキャンセル
+        let overlayClickHandler = function(e){
+            if(e.target === dialogOverlay){
+                document.removeEventListener('keydown', escapeHandler);
+                dialogOverlay.removeEventListener('click', overlayClickHandler);
+                dialogOverlay.remove();
+                callback(false);
+            }
+        };
+        dialogOverlay.addEventListener('click', overlayClickHandler);
     }
 
     function showLoadingDialog(href, dialogId, callback){
