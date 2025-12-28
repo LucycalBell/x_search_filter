@@ -394,17 +394,25 @@ const TARGET_URL = [
             let link_text = cardData[0].getElementsByClassName(CLASS_LINK_TEXT);
             let linka_a = getCardLink(cardData[0]);
             cardLink_id_count++;
+            
+            let urlSpan = document.createElement('span');
+            urlSpan.id = 'cHXCcZlv_' + cardLink_id_count;
+            urlSpan.setAttribute('data-cardLinkUrl', resultUrl);
+            urlSpan.textContent = '（URL：' + resultUrl + '）';
+            
             if(X_OPTION.LINK_CARD_MISMATCH_WARNING && !X_OPTION.LINK_CARD_URL_SAFE.includes(getDomain(resultUrl)) && getDomain(resultUrl) != getDomain(cardData[1])){
-                linka_a.innerHTML += "<span style='color:red;font-weight:bold;'" + "id='cHXCcZlv_" + cardLink_id_count + "' data-cardLinkUrl='" + resultUrl + "'>（URL：" + resultUrl + ")</span>";
+                urlSpan.style.color = 'red';
+                urlSpan.style.fontWeight = 'bold';
+                linka_a.appendChild(urlSpan);
                 if(0 < link_icon.length){
-                    link_icon[0].innerText = "⚠";
+                    link_icon[0].textContent = "⚠";
                     link_icon[0].style.backgroundColor = "#eeff00";
                 }
                 if(0 < link_text.length){
                     link_icon[0].style.color = "red";
                 }
             } else {
-                linka_a.innerHTML += "<span id='cHXCcZlv_" + cardLink_id_count + "' data-cardLinkUrl='" + resultUrl + "'>（URL：" + resultUrl + ")</span>";
+                linka_a.appendChild(urlSpan);
             }
             document.getElementById("cHXCcZlv_" + String(cardLink_id_count)).addEventListener("click", function(ev){
                 ev.stopPropagation()
@@ -607,7 +615,15 @@ const TARGET_URL = [
             color: #0f1419;
             word-break: break-all;
         `;
-        urlInfoEl.innerHTML = `<strong>移動先:</strong><br><span style="color: #536471;">${escapeHtml(href)}</span>`;
+        let urlTitle = document.createElement('strong');
+        urlTitle.textContent = '移動先:';
+        let urlBr = document.createElement('br');
+        let urlSpan = document.createElement('span');
+        urlSpan.style.color = '#536471';
+        urlSpan.textContent = href;
+        urlInfoEl.appendChild(urlTitle);
+        urlInfoEl.appendChild(urlBr);
+        urlInfoEl.appendChild(urlSpan);
 
         let buttonContainer = document.createElement('div');
         buttonContainer.style.cssText = `
@@ -771,7 +787,15 @@ const TARGET_URL = [
             color: #0f1419;
             word-break: break-all;
         `;
-        urlInfoEl.innerHTML = `<strong>URL:</strong><br><span style="color: #536471;">${escapeHtml(href)}</span>`;
+        let urlTitle = document.createElement('strong');
+        urlTitle.textContent = 'URL:';
+        let urlBr = document.createElement('br');
+        let urlSpan = document.createElement('span');
+        urlSpan.style.color = '#536471';
+        urlSpan.textContent = href;
+        urlInfoEl.appendChild(urlTitle);
+        urlInfoEl.appendChild(urlBr);
+        urlInfoEl.appendChild(urlSpan);
 
         let buttonContainer = document.createElement('div');
         buttonContainer.style.cssText = `
@@ -1228,7 +1252,32 @@ const TARGET_URL = [
             addtag.style.top = "0.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
-            document.getElementById("x9uVvQH").insertAdjacentHTML("afterbegin", "<div style='border:solid 1px #cdcdcd;background-color:#1DA1F2;color:#FFF;cursor:pointer;padding:0.3em 1em;font-size:small;border-radius:10px;border:1px solid #1DA1F2; user-select: none;' id='x9uVvQH_ar'><span id='YgE1WQLD'></span><span id='x9uVvQH_num' style='text-align:center;margin-right:0.2em;margin-left:0.1em;user-select: none;'></span></div>");
+            
+            let buttonDiv = document.createElement("div");
+            buttonDiv.id = "x9uVvQH_ar";
+            buttonDiv.style.border = "solid 1px #cdcdcd";
+            buttonDiv.style.backgroundColor = "#1DA1F2";
+            buttonDiv.style.color = "#FFF";
+            buttonDiv.style.cursor = "pointer";
+            buttonDiv.style.padding = "0.3em 1em";
+            buttonDiv.style.fontSize = "small";
+            buttonDiv.style.borderRadius = "10px";
+            buttonDiv.style.userSelect = "none";
+            
+            let iconSpan = document.createElement("span");
+            iconSpan.id = "YgE1WQLD";
+            
+            let numSpan = document.createElement("span");
+            numSpan.id = "x9uVvQH_num";
+            numSpan.style.textAlign = "center";
+            numSpan.style.marginRight = "0.2em";
+            numSpan.style.marginLeft = "0.1em";
+            numSpan.style.userSelect = "none";
+            
+            buttonDiv.appendChild(iconSpan);
+            buttonDiv.appendChild(numSpan);
+            addtag.appendChild(buttonDiv);
+            
             document.getElementById("x9uVvQH_ar").addEventListener("click", HiddenPostList, false);
             CountBtn_MoveAction();
         }
@@ -1307,8 +1356,62 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") == null){
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH_lst_base";
-            addtag.setAttribute("style", "position:fixed;width:100%;height:100%;top:0;left:0;background-color:rgba(0,0,0,0.4);backdrop-filter:blur(2px);z-index:9999;");
-            addtag.innerHTML = "<div style='background-color:rgba(207, 207, 207, 0.9);position:fixed;height:90%;width:95%;top:5%;left:50%;transform:translateX(-50%);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;' id='x9uVvQH_lst_area'><div id='x9uVvQH_lst' style='position:absolute;top:0;left:0;height:calc(100% - 3rem);overflow-y:auto;width:100%;padding:1rem;box-sizing:border-box;'></div><div style='position:absolute;bottom:0;height:3rem;line-height:3rem;width:100%;text-align:center;font-weight:bold;font-size:1.1rem;background:linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%);color:#fff;border-top:none;cursor:pointer;transition:opacity 0.2s;' id='x9uVvQH_cls' onmouseover='this.style.opacity=\"0.9\"' onmouseout='this.style.opacity=\"1\"'>閉じる</div></div>";
+            addtag.style.position = "fixed";
+            addtag.style.width = "100%";
+            addtag.style.height = "100%";
+            addtag.style.top = "0";
+            addtag.style.left = "0";
+            addtag.style.backgroundColor = "rgba(0,0,0,0.4)";
+            addtag.style.backdropFilter = "blur(2px)";
+            addtag.style.zIndex = "9999";
+            
+            let lstArea = document.createElement("div");
+            lstArea.id = "x9uVvQH_lst_area";
+            lstArea.style.backgroundColor = "rgba(207, 207, 207, 0.9)";
+            lstArea.style.position = "fixed";
+            lstArea.style.height = "90%";
+            lstArea.style.width = "95%";
+            lstArea.style.top = "5%";
+            lstArea.style.left = "50%";
+            lstArea.style.transform = "translateX(-50%)";
+            lstArea.style.borderRadius = "12px";
+            lstArea.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+            lstArea.style.overflow = "hidden";
+            
+            let lstDiv = document.createElement("div");
+            lstDiv.id = "x9uVvQH_lst";
+            lstDiv.style.position = "absolute";
+            lstDiv.style.top = "0";
+            lstDiv.style.left = "0";
+            lstDiv.style.height = "calc(100% - 3rem)";
+            lstDiv.style.overflowY = "auto";
+            lstDiv.style.width = "100%";
+            lstDiv.style.padding = "1rem";
+            lstDiv.style.boxSizing = "border-box";
+            
+            let closeBtn = document.createElement("div");
+            closeBtn.id = "x9uVvQH_cls";
+            closeBtn.textContent = "閉じる";
+            closeBtn.style.position = "absolute";
+            closeBtn.style.bottom = "0";
+            closeBtn.style.height = "3rem";
+            closeBtn.style.lineHeight = "3rem";
+            closeBtn.style.width = "100%";
+            closeBtn.style.textAlign = "center";
+            closeBtn.style.fontWeight = "bold";
+            closeBtn.style.fontSize = "1.1rem";
+            closeBtn.style.background = "linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%)";
+            closeBtn.style.color = "#fff";
+            closeBtn.style.borderTop = "none";
+            closeBtn.style.cursor = "pointer";
+            closeBtn.style.transition = "opacity 0.2s";
+            closeBtn.onmouseover = function(){ this.style.opacity = "0.9"; };
+            closeBtn.onmouseout = function(){ this.style.opacity = "1"; };
+            
+            lstArea.appendChild(lstDiv);
+            lstArea.appendChild(closeBtn);
+            addtag.appendChild(lstArea);
+            
             document.body.appendChild(addtag);
             document.getElementById("x9uVvQH_cls").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst_base").addEventListener("click", HiddenPostList_Cls, false);
@@ -1316,58 +1419,140 @@ const TARGET_URL = [
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
-        let addtxt = "";
-        addtxt += "<div style='text-align:center;font-size:large;color:#000;margin-top:10px;'>【非表示にしたポスト】</div><div style='color:#000;'>";
+        
+        let listFragment = document.createDocumentFragment();
+        
+        let titleDiv = document.createElement('div');
+        titleDiv.textContent = '【非表示にしたポスト】';
+        titleDiv.style.textAlign = 'center';
+        titleDiv.style.fontSize = 'large';
+        titleDiv.style.color = '#000';
+        titleDiv.style.marginTop = '10px';
+        listFragment.appendChild(titleDiv);
+        
+        let mainDiv = document.createElement('div');
+        mainDiv.style.color = '#000';
+        listFragment.appendChild(mainDiv);
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
-            addtxt += "<hr><p>※以下のオプションが設定されています</p>";
-            addtxt += "<ul>";
-        
+            let hr1 = document.createElement('hr');
+            mainDiv.appendChild(hr1);
+            
+            let optionTitle = document.createElement('p');
+            optionTitle.textContent = '※以下のオプションが設定されています';
+            mainDiv.appendChild(optionTitle);
+            
+            let ul = document.createElement('ul');
+            
             if(0 < X_OPTION.TAG_BORDER){
-                addtxt += "<li>ハッシュタグが" + X_OPTION.TAG_BORDER + "以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ハッシュタグが' + X_OPTION.TAG_BORDER + '以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.TAG_START_BORDER){
-                addtxt += "<li>ハッシュタグから始まる行が" + X_OPTION.TAG_START_BORDER + "行以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ハッシュタグから始まる行が' + X_OPTION.TAG_START_BORDER + '行以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
-                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.ACCOUNTNAME_SPACE_BORDER + "以上あるアカウント名のポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.ACCOUNTNAME_SPACE_BORDER + '以上あるアカウント名のポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.DEFAULT_ICON_BLOCK){
-                addtxt += "<li>プロフィールアイコン未設定アカウントからのポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'プロフィールアイコン未設定アカウントからのポストを非表示';
+                ul.appendChild(li);
             }
             if(0 < X_OPTION.SPACE_BORDER){
-                addtxt += "<li>ひらがなカタカナ漢字の直前にスペースが" + X_OPTION.SPACE_BORDER + "以上あるポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.SPACE_BORDER + '以上あるポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.VERIFIED_HDN){
-                addtxt += "<li>認証済みアカウントのポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = '認証済みアカウントのポストを非表示';
+                ul.appendChild(li);
             }
             if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-                addtxt += "<li>検索ワードがアカウント名にしか存在しないポストを非表示</li>";
+                let li = document.createElement('li');
+                li.textContent = '検索ワードがアカウント名にしか存在しないポストを非表示';
+                ul.appendChild(li);
             }
-            addtxt += "</ul>";
+            
+            mainDiv.appendChild(ul);
         }
-        addtxt += "<hr><div style='margin:0 0.2rem;'>";
+        
+        let hr2 = document.createElement('hr');
+        mainDiv.appendChild(hr2);
+        
+        let postsContainer = document.createElement('div');
+        postsContainer.style.margin = '0 0.2rem';
+        
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
+                let btn = document.createElement('button');
+                btn.id = 'hl_' + i;
+                btn.setAttribute('data-huserid', hidden_posts[i][2]);
+                btn.textContent = 'Safe';
+                btn.style.marginRight = '0.4em';
+                btn.style.padding = '0em 0.4em';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '4px';
+                btn.style.cursor = 'pointer';
+                btn.style.fontWeight = 'bold';
+                btn.style.fontSize = '0.8em';
+                
                 if(!(safe_user_list != void 0 && safe_user_list.includes(hidden_posts[i][2].replace("@", "")))){
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' style='margin-right:0.4em; padding:0em 0.4em; background-color:#4CAF50; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.8em;'>Safe</button>";
+                    btn.style.backgroundColor = '#4CAF50';
+                    btn.style.color = '#fff';
                 } else {
-                    addtxt += "<button id='hl_" + i + "' data-huserid=\"" + hidden_posts[i][2] + "\"' disabled style='margin-right:0.4em; padding:0em 0.4em; background-color:#cccccc; color:#666; border:none; border-radius:4px; cursor:not-allowed; font-size:0.8em;'>Safe</button>";
+                    btn.style.backgroundColor = '#cccccc';
+                    btn.style.color = '#666';
+                    btn.disabled = true;
+                    btn.style.cursor = 'not-allowed';
                 }
+                postsContainer.appendChild(btn);
+                
                 if(hidden_posts[i][3] != null){
-                    addtxt += "[ <a href='" + hidden_posts[i][3] + "' target='_blank' style='color:blue;text-decoration: underline;'>表示</a> ]";
+                    let bracket1 = document.createElement('span');
+                    bracket1.textContent = '[ ';
+                    postsContainer.appendChild(bracket1);
+                    
+                    let link = document.createElement('a');
+                    link.href = hidden_posts[i][3];
+                    link.target = '_blank';
+                    link.textContent = '表示';
+                    link.style.color = 'blue';
+                    link.style.textDecoration = 'underline';
+                    postsContainer.appendChild(link);
+                    
+                    let bracket2 = document.createElement('span');
+                    bracket2.textContent = ' ]';
+                    postsContainer.appendChild(bracket2);
                 }
+                
+                let contentSpan = document.createElement('span');
                 if(X_OPTION.POST_CHECK_ALL) {
-                    addtxt += hidden_posts[i][0];
+                    contentSpan.textContent = hidden_posts[i][0];
                 } else {
-                    addtxt += "【" + hidden_posts[i][4] + " (" + hidden_posts[i][2] + ")" + "】" + hidden_posts[i][5];
+                    contentSpan.textContent = '【' + hidden_posts[i][4] + ' (' + hidden_posts[i][2] + ')' + '】' + hidden_posts[i][5];
                 }
-                addtxt += "<span style='font-weight:bold;'>（非表示理由：" + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + "）</span>";
-                addtxt += "<hr>";
+                postsContainer.appendChild(contentSpan);
+                
+                let reasonSpan = document.createElement('span');
+                reasonSpan.textContent = '（非表示理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
+                reasonSpan.style.fontWeight = 'bold';
+                postsContainer.appendChild(reasonSpan);
+                
+                let hr = document.createElement('hr');
+                postsContainer.appendChild(hr);
             }
         }
-        addtxt += "</div></div>";
-        document.getElementById("x9uVvQH_lst").innerHTML = addtxt;
+        
+        mainDiv.appendChild(postsContainer);
+        document.getElementById("x9uVvQH_lst").innerHTML = '';
+        document.getElementById("x9uVvQH_lst").appendChild(listFragment);
         document.getElementById("x9uVvQH_ar").style.display = "none";
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
@@ -1656,10 +1841,26 @@ const TARGET_URL = [
 
         let displayUrlEl = document.createElement('div');
         displayUrlEl.style.cssText = 'margin-bottom: 8px;';
-        displayUrlEl.innerHTML = `<strong>表示URL:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(displayText)}</span>`;
+        let displayTitle = document.createElement('strong');
+        displayTitle.textContent = '表示URL:';
+        let displayBr = document.createElement('br');
+        let displaySpan = document.createElement('span');
+        displaySpan.style.cssText = 'word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;';
+        displaySpan.textContent = displayText;
+        displayUrlEl.appendChild(displayTitle);
+        displayUrlEl.appendChild(displayBr);
+        displayUrlEl.appendChild(displaySpan);
 
         let resultUrlEl = document.createElement('div');
-        resultUrlEl.innerHTML = `<strong>移動先:</strong><br><span style="word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;">${escapeHtml(resultUrl)}</span>`;
+        let resultTitle = document.createElement('strong');
+        resultTitle.textContent = '移動先:';
+        let resultBr = document.createElement('br');
+        let resultSpan = document.createElement('span');
+        resultSpan.style.cssText = 'word-break: break-all; color: #9a3412; padding: 6px 8px; border-radius: 8px; display: inline-block; font-weight: 600;';
+        resultSpan.textContent = resultUrl;
+        resultUrlEl.appendChild(resultTitle);
+        resultUrlEl.appendChild(resultBr);
+        resultUrlEl.appendChild(resultSpan);
 
         urlInfoEl.appendChild(displayUrlEl);
         urlInfoEl.appendChild(resultUrlEl);
@@ -1685,7 +1886,14 @@ const TARGET_URL = [
         `;
 
         let checkboxLabel = document.createElement('span');
-        checkboxLabel.innerHTML = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない<br>（設定のセーフリストに追加）';
+        let labelText = document.createElement('span');
+        labelText.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない';
+        let labelBr = document.createElement('br');
+        let labelSubText = document.createElement('span');
+        labelSubText.textContent = '（設定のセーフリストに追加）';
+        checkboxLabel.appendChild(labelText);
+        checkboxLabel.appendChild(labelBr);
+        checkboxLabel.appendChild(labelSubText);
 
         checkboxContainer.appendChild(checkbox);
         checkboxContainer.appendChild(checkboxLabel);
