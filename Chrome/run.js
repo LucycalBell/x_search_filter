@@ -372,6 +372,11 @@ const TARGET_URL = [
     }
 
     function UrlDomainCheck(cardData) {
+        if(cardData[0].dataset.urlWkxChecked === "true"){
+            return;
+        }
+        cardData[0].dataset.urlWkxChecked = "true";
+
         chrome.runtime.sendMessage({
             type:"getUrl_tco",
             url: cardData[2]
