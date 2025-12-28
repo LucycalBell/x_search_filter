@@ -437,9 +437,9 @@ const TARGET_URL = [
         if(!href.includes("t.co")){
             return true;
         }
-        
+
         let displayText = getDisplayDomain(linkElement);
-        
+
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -1685,7 +1685,7 @@ const TARGET_URL = [
         `;
 
         let checkboxLabel = document.createElement('span');
-        checkboxLabel.textContent = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない（設定のセーフリストに追加）';
+        checkboxLabel.innerHTML = '【' + getDomain(resultUrl) + '】では今後ダイアログを表示しない<br>（設定のセーフリストに追加）';
 
         checkboxContainer.appendChild(checkbox);
         checkboxContainer.appendChild(checkboxLabel);

@@ -1,3 +1,3 @@
 window.onload = function(){
-    browser.runtime.openOptionsPage();
+    window.open("./option.html");
 };

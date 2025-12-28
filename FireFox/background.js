@@ -1,4 +1,4 @@
-chrome.runtime.onMessage.addListener(
+browser.runtime.onMessage.addListener(
   function (request, sender, sendResponse) {
     switch (request.type) {
     case "getUrl_tco":
@@ -30,3 +30,7 @@ function ClassDataDownload(sendResponse, url){
         sendResponse({statusCode: -1, htmlStr: "", urlStr: url});
     });
 }
+
+browser.action.onClicked.addListener(() => {
+  browser.runtime.openOptionsPage();
+});
