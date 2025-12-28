@@ -327,9 +327,42 @@ const TARGET_URL = [
                 if (!X_OPTION.LINK_CARD_URL_VIEW_VIDEO_DISABLE || !videoCheck) {
                     let createNode = document.createElement("div");
                     if(X_OPTION.LINK_EMPHASIS) {
-                        createNode.innerHTML = "<span style='font-size:2rem;width:3rem;text-align:center;' class='" + CLASS_LINK_ICON + "'>🔗</span>" + "<span class='" + CLASS_LINK_TEXT + "' style='position:absolute;top:50%;transform:translateY(-50%);left:3rem;padding:0 0.2rem 0.2rem 0.2rem;font-size:0.85rem;font-weight:bold;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;'>" + labeltxt + "</span>";
-                        createNode.setAttribute("class", "XGarIO3t")
-                        createNode.setAttribute("style", "background-color:rgba(245,245,245,0.9);position:absolute;height:3rem;width:100%;top:0;left:0;text-align:left;display:flex;pointer-events:none;");
+                        const iconSpan = document.createElement("span");
+                        iconSpan.className = CLASS_LINK_ICON;
+                        iconSpan.textContent = "🔗";
+                        iconSpan.style.fontSize = "2rem";
+                        iconSpan.style.width = "3rem";
+                        iconSpan.style.textAlign = "center";
+
+                        const textSpan = document.createElement("span");
+                        textSpan.className = CLASS_LINK_TEXT;
+                        textSpan.textContent = labeltxt;
+                        textSpan.style.position = "absolute";
+                        textSpan.style.top = "50%";
+                        textSpan.style.transform = "translateY(-50%)";
+                        textSpan.style.left = "3rem";
+                        textSpan.style.padding = "0 0.2rem 0.2rem 0.2rem";
+                        textSpan.style.fontSize = "0.85rem";
+                        textSpan.style.fontWeight = "bold";
+                        textSpan.style.display = "-webkit-box";
+                        textSpan.style.setProperty("-webkit-box-orient", "vertical");
+                        textSpan.style.setProperty("-webkit-line-clamp", "2");
+                        textSpan.style.overflow = "hidden";
+                        textSpan.style.color = "#000";
+
+                        createNode.className = "XGarIO3t";
+                        createNode.style.backgroundColor = "rgba(245,245,245,0.9)";
+                        createNode.style.position = "absolute";
+                        createNode.style.height = "3rem";
+                        createNode.style.width = "100%";
+                        createNode.style.top = "0";
+                        createNode.style.left = "0";
+                        createNode.style.textAlign = "left";
+                        createNode.style.display = "flex";
+                        createNode.style.pointerEvents = "none";
+
+                        createNode.appendChild(iconSpan);
+                        createNode.appendChild(textSpan);
                         cardList[i][0].appendChild(createNode);
                     }
                     if(X_OPTION.LINK_CARD_URL_VIEW){
