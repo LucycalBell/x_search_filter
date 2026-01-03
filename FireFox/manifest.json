@@ -36,7 +36,10 @@
   "background": { "scripts": ["background.js"] },
   "browser_specific_settings": {
     "gecko": {
-      "id": "{34990865-8c54-b443-eb92-25e74b1b1824}"
+      "id": "{34990865-8c54-b443-eb92-25e74b1b1824}",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
