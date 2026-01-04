@@ -8,6 +8,9 @@ chrome.runtime.onMessage.addListener(
       }
     	ClassDataDownload(sendResponse, request.url);
 	  return true;
+    case "openOptions":
+      chrome.runtime.openOptionsPage();
+      return true;
     default:
       console.log("Error: Unkown request.");
 	  return;
