@@ -404,6 +404,19 @@ const TARGET_URL = [
         return null;
     }
 
+    function getNodeText(node) {
+        if (!node) {
+            return "";
+        }
+        let text = "";
+        for (let i = 0; i < node.childNodes.length; i++) {
+            if (node.childNodes[i].nodeType === Node.TEXT_NODE) {
+                text += node.childNodes[i].nodeValue;
+            }
+        }
+        return text;
+    }
+
     function UrlDomainCheck(cardData) {
         if(cardData[0].dataset.urlWkxChecked === "true"){
             return;
@@ -930,12 +943,20 @@ const TARGET_URL = [
         const match = url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i);
         return (match && match[1]) ? match[1] : null;
     }
+
     function getDisplayDomain(linkElement){
         let text = "";
         if(linkElement.ariaLabel){
             text = linkElement.ariaLabel.split(" ")[0].trim();
         } else if(linkElement.textContent){
-            text = linkElement.textContent.trim();
+            let spanLst = linkElement.getElementsByTagName("span");
+            for(const span of spanLst) {
+                const nodeText = getNodeText(span);
+                if(isDomainText(nodeText)) {
+                    text = nodeText;
+                    break;
+                }
+            }
         }
 
         if(!text){
@@ -948,6 +969,32 @@ const TARGET_URL = [
         }
 
         return text.split(/\s+/)[0];
+    }
+
+    function isDomainText(text) {
+        if (!text || typeof text !== 'string') {
+            return false;
+        }
+        
+        text = text.trim();
+        
+        if (/\s/.test(text)) {
+            return false;
+        }
+        
+        const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        
+        if (!domainPattern.test(text)) {
+            return false;
+        }
+        
+        const parts = text.split('.');
+        const tld = parts[parts.length - 1];
+        if (tld.length < 2) {
+            return false;
+        }
+        
+        return true;
     }
     
     function getPostClass(){
