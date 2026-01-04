@@ -11,6 +11,7 @@ const TARGET_URL = [
     const TWEET_TEXT = "tweetText";
     const LINK_IMG_STR = "card.layoutLarge.media";
     const LINK_NO_IMG_STR = "card.wrapper";
+    const DATA_XFILTER_HIDDEN = "data-xfilter-hidden";
     const TYPE_ARRAY = 0;
     const TYPE_INTEGER = 1;
     const TYPE_BOOL = 2;
@@ -49,6 +50,8 @@ const TARGET_URL = [
     let trend_word_list = [];
     let trend_data_enable = false;
     let followingTabClick = false;
+    let postHiddenStop = false;
+    let fromSearchStop = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -154,6 +157,7 @@ const TARGET_URL = [
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
+            X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -236,24 +240,7 @@ const TARGET_URL = [
         }
         BlockCount();
 
-        if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
-            postClass_Hierarchy = getPostClass();
-        }
-        if(postClass_Hierarchy == void 0){
-            setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
-            return;
-        }
-        if(postClass_Hierarchy[0] == TWEET_DATA){
-            postList = [];
-            let allDiv = document.getElementsByTagName("article");
-            for(let i=0;i<allDiv.length;i++){
-                if(allDiv[i].dataset.testid == TWEET_DATA){
-                    postList.push(allDiv[i]);
-                }
-            }
-        } else {
-            postList = document.getElementsByClassName(postClass_Hierarchy[0]);
-        }
+        postList = getPostList();
 
         view_url = location.href;
 
@@ -286,6 +273,28 @@ const TARGET_URL = [
             }
         }
         setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
+    }
+
+    function getPostList() {
+        let postList = [];
+        if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
+            postClass_Hierarchy = getPostClass();
+        }
+        if(postClass_Hierarchy == void 0){
+            return postList;
+        }
+        if(postClass_Hierarchy[0] == TWEET_DATA){
+            postList = [];
+            let allDiv = document.getElementsByTagName("article");
+            for(let i=0;i<allDiv.length;i++){
+                if(allDiv[i].dataset.testid == TWEET_DATA){
+                    postList.push(allDiv[i]);
+                }
+            }
+        } else {
+            postList = document.getElementsByClassName(postClass_Hierarchy[0]);
+        }
+        return postList;
     }
 
     function CardLinkEmphasis(){
@@ -1036,6 +1045,15 @@ const TARGET_URL = [
         block_type = -1;
         let postl;
 
+        if(X_OPTION.FROM_SEARCH_HIDDEN_STOP) {
+            if(isSearchPage() && isFromSearch()) {
+                fromSearchStop = true;
+                return false;
+            } else {
+                fromSearchStop = false;
+            }
+        }
+
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
         }
@@ -1157,16 +1175,40 @@ const TARGET_URL = [
     }
     
     function PostBlock(post){
+        if(postHiddenStop){
+            return;
+        }
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
             hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostTextTag(post).innerText]);
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
+            post_parent.setAttribute(DATA_XFILTER_HIDDEN, "true");
             postBlockViewNumber++;
             if(X_OPTION.BLOCK_COUNT_VIEW){
                 BlockCount();
             }
         }
+    }
+
+    function PostBlockRelease() {
+        let postList = getPostList();
+        for(const post of postList){
+            let post_parent = getPostParent(post, postClass_Hierarchy[1]);
+            if(post_parent.getAttribute(DATA_XFILTER_HIDDEN) == "true"){
+                post_parent.style.visibility = "visible";
+                post_parent.style.height = "";
+                post_parent.removeAttribute(DATA_XFILTER_HIDDEN);
+            }
+        }
+        postBlockViewNumber = 0;
+        if(X_OPTION.BLOCK_COUNT_VIEW){
+            BlockCount();
+        }
+    }
+
+    function PostBlockRestart() {
+        hidden_posts = [];
     }
 
     function AddLinkClickListener(post){
@@ -1367,7 +1409,11 @@ const TARGET_URL = [
             document.getElementById("YgE1WQLD").innerText = "";
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
-        document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
+        if(postHiddenStop || fromSearchStop) {
+            document.getElementById("x9uVvQH_num").innerText = "⏸";
+        } else {
+            document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
+        }
     }
 
     function CountBtn_MouseDown(e) {
@@ -1461,13 +1507,51 @@ const TARGET_URL = [
             let lstDiv = document.createElement("div");
             lstDiv.id = "x9uVvQH_lst";
             lstDiv.style.position = "absolute";
-            lstDiv.style.top = "0";
+            lstDiv.style.top = "2.5rem";
             lstDiv.style.left = "0";
-            lstDiv.style.height = "calc(100% - 3rem)";
+            lstDiv.style.height = "calc(100% - 5.5rem)";
             lstDiv.style.overflowY = "auto";
             lstDiv.style.width = "100%";
             lstDiv.style.padding = "1rem";
             lstDiv.style.boxSizing = "border-box";
+            
+            let toggleBtn = document.createElement("div");
+            toggleBtn.id = "x9uVvQH_toggle";
+            toggleBtn.textContent = postHiddenStop ? "一時停止中⏸" : "実行中▶";
+            toggleBtn.style.position = "absolute";
+            toggleBtn.style.top = "0";
+            toggleBtn.style.left = "0";
+            toggleBtn.style.height = "2.5rem";
+            toggleBtn.style.lineHeight = "2.5rem";
+            toggleBtn.style.padding = "0 1rem";
+            toggleBtn.style.backgroundColor = postHiddenStop ? "#ff9800" : "#4CAF50";
+            toggleBtn.style.color = "#fff";
+            toggleBtn.style.fontWeight = "bold";
+            toggleBtn.style.cursor = "pointer";
+            toggleBtn.style.transition = "background-color 0.2s";
+            toggleBtn.style.borderRadius = "8px 0 0 0";
+            toggleBtn.style.zIndex = "10000";
+            toggleBtn.onmouseover = function(){
+                this.style.opacity = "0.8";
+            };
+            toggleBtn.onmouseout = function(){
+                this.style.opacity = "1";
+            };
+            toggleBtn.addEventListener("click", function(e){
+                e.stopPropagation();
+                if(postHiddenStop){
+                    PostBlockRestart();
+                    postHiddenStop = false;
+                    toggleBtn.textContent = "実行中▶";
+                    toggleBtn.style.backgroundColor = "#4CAF50";
+                } else {
+                    PostBlockRelease();
+                    postHiddenStop = true;
+                    toggleBtn.textContent = "一時停止中⏸";
+                    toggleBtn.style.backgroundColor = "#ff9800";
+                }
+            }, false);
+            lstArea.appendChild(toggleBtn);
             
             let closeBtn = document.createElement("div");
             closeBtn.id = "x9uVvQH_cls";
@@ -1785,17 +1869,20 @@ const TARGET_URL = [
         return "";
     }
 
-    function getSearchWordList(){
-        if(document.getElementById("typeaheadDropdown-3") != null){ return [];}
+    function getSearchWord() {
+        if(document.getElementById("typeaheadDropdown-3") != null){ return "";}
         let input_lst = document.getElementsByTagName("input");
-        let wordLst;
-        let res = [];
         for(const item of input_lst){
             if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
-                wordLst = item.value.replaceAll("　", " ").split(" ");
-                break;
+                return item.value.trim();
             }
         }
+        return "";
+    }
+
+    function getSearchWordList(){
+        let res = [];
+        let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
         if(0 < wordLst.length){
             for(const item of wordLst){
                 if(item.trim() != "" && /.+:.+/.test(item) == false){
@@ -1805,6 +1892,12 @@ const TARGET_URL = [
         }
         return res;
     }
+
+    function isFromSearch() {
+        let input = getSearchWord();
+        return /^from:|[\s\u3000]+from:/i.test(input);
+    }
+
     function isSearchPage(){
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
