@@ -158,6 +158,7 @@ const TARGET_URL = [
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
             X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
+            X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, true, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -244,7 +245,7 @@ const TARGET_URL = [
 
         view_url = location.href;
 
-        if(activeUrl && X_OPTION.BLOCK_COUNT_VIEW){
+        if((activeUrl || isPostPageOptionActive()) && X_OPTION.BLOCK_COUNT_VIEW){
             if(document.getElementById("x9uVvQH") != null){
                 if(document.getElementById("x9uVvQH").style.display == "none"){
                     postBlockViewNumber = 0;
@@ -264,7 +265,7 @@ const TARGET_URL = [
         }
 
         for(let i=0;i<postList.length;i++){
-            if(activeUrl && PostBlockCheck(postList[i])){
+            if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
@@ -1054,6 +1055,7 @@ const TARGET_URL = [
             }
         }
 
+        /* 表示中ユーザーの投稿は除外 */
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
         }
@@ -1063,6 +1065,26 @@ const TARGET_URL = [
         }
 
         if(safe_user_list.includes(getPostUserName(post, true))){
+            return false;
+        }
+
+        /* ポストページの場合ツリーポスト（表示中ポストとそれより上）は除外 */
+        if(isPostPage() && isTree(post)){
+            return false;
+        }
+
+        /* ポストページに関するオプション処理 */
+        if(isPostPageOptionActive()) {
+            if(X_OPTION.REPLY_VERIFIED_HDN) {
+                if(isVerified(post)){
+                    block_type = 5;
+                    return true;
+                }
+            }
+        }
+
+        /* アクティブURLでない場合、ミュート系処理は実行しない */
+        if(!activeUrl) {
             return false;
         }
 
@@ -1324,6 +1346,15 @@ const TARGET_URL = [
 
     function isTrendPage(){
         return location.href == TREND_URL;
+    }
+
+    function isPostPageOptionActive() {
+        return (X_OPTION.REPLY_VERIFIED_HDN) && isPostPage();
+    }
+
+    function isPostPage() {
+        const postPagePattern = /^https:\/\/(x|twitter)\.com\/[^\/]+\/status\/\d+/;
+        return postPagePattern.test(getLUrl());
     }
 
     function isVideoCard(card) {
@@ -2214,6 +2245,22 @@ const TARGET_URL = [
                 chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
             }
         }
+    }
+
+    /* ツイートがツリー構造の一部かどうかを判定する関数 */
+    function isTree(tweetArticle) {
+        const divs = tweetArticle.getElementsByTagName('div');
+        
+        for (let i = 0; i < divs.length; i++) {
+            const div = divs[i];
+            if (div.children.length === 0) {
+                const style = window.getComputedStyle(div);
+                if (style.width === '2px' && style.position === 'absolute') {
+                    return true; 
+                }
+            }
+        }
+        return false;
     }
 
     TwitterSearchBlockMain();

@@ -359,6 +359,12 @@ input[type="number"]{
 .version_view{
     font-size: 0.9rem;
 }
+.font_red {
+    color: red;
+}
+.font_bold {
+    font-weight: bold;
+}
   
         </style>
     </head>
@@ -527,6 +533,20 @@ input[type="number"]{
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">「from:」検索を実行している場合ミュート機能を一時停止する</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="option_block">
+                <div class="option-title">リプライ設定</div>
+                <div class="font_red">※本カテゴリはターゲットURLの設定に関わらずポストページでのみ機能します（それ以外の画面では機能しません）</div>
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="reply_verified_hdn">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">認証済みアカウント（青バッジ）のポストを非表示にする</span>
                         </div>
                     </label>
                 </div>
