@@ -1553,6 +1553,34 @@ const TARGET_URL = [
             }, false);
             lstArea.appendChild(toggleBtn);
             
+            let optionsBtn = document.createElement("div");
+            optionsBtn.id = "x9uVvQH_options";
+            optionsBtn.textContent = "⚙設定";
+            optionsBtn.style.position = "absolute";
+            optionsBtn.style.top = "0";
+            optionsBtn.style.right = "0";
+            optionsBtn.style.height = "2.5rem";
+            optionsBtn.style.lineHeight = "2.5rem";
+            optionsBtn.style.padding = "0 1rem";
+            optionsBtn.style.backgroundColor = "#2196F3";
+            optionsBtn.style.color = "#fff";
+            optionsBtn.style.fontWeight = "bold";
+            optionsBtn.style.cursor = "pointer";
+            optionsBtn.style.transition = "background-color 0.2s";
+            optionsBtn.style.borderRadius = "0 8px 0 0";
+            optionsBtn.style.zIndex = "10000";
+            optionsBtn.onmouseover = function(){
+                this.style.opacity = "0.8";
+            };
+            optionsBtn.onmouseout = function(){
+                this.style.opacity = "1";
+            };
+            optionsBtn.addEventListener("click", function(e){
+                e.stopPropagation();
+                chrome.runtime.sendMessage({type: "openOptions"});
+            }, false);
+            lstArea.appendChild(optionsBtn);
+            
             let closeBtn = document.createElement("div");
             closeBtn.id = "x9uVvQH_cls";
             closeBtn.textContent = "閉じる";
