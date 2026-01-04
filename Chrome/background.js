@@ -33,3 +33,8 @@ function ClassDataDownload(sendResponse, url){
         sendResponse({statusCode: -1, htmlStr: "", urlStr: url});
     });
 }
+
+
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});

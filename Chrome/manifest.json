@@ -25,5 +25,12 @@
   "background": {
     "service_worker": "background.js"
   },
-  "action": { "default_popup": "popup.html" }
+  "action": {
+    "default_icon": {
+      "128": "icons/icon128.png",
+      "48": "icons/icon48.png",
+      "32": "icons/icon32.png"
+    },
+    "default_title": "X検索ミュートツール"
+  }
 }
