@@ -51,6 +51,7 @@ const TARGET_URL = [
     let trend_data_enable = false;
     let followingTabClick = false;
     let postHiddenStop = false;
+    let fromSearchStop = false;
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -156,6 +157,7 @@ const TARGET_URL = [
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
+            X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1043,6 +1045,15 @@ const TARGET_URL = [
         block_type = -1;
         let postl;
 
+        if(X_OPTION.FROM_SEARTCH_HIDDEN_STOP) {
+            if(isSearchPage() && isFromSearch()) {
+                fromSearchStop = true;
+                return false;
+            } else {
+                fromSearchStop = false;
+            }
+        }
+
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
         }
@@ -1398,7 +1409,7 @@ const TARGET_URL = [
             document.getElementById("YgE1WQLD").innerText = "";
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
-        if(postHiddenStop) {
+        if(postHiddenStop || fromSearchStop) {
             document.getElementById("x9uVvQH_num").innerText = "⏸";
         } else {
             document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
@@ -1858,17 +1869,20 @@ const TARGET_URL = [
         return "";
     }
 
-    function getSearchWordList(){
-        if(document.getElementById("typeaheadDropdown-3") != null){ return [];}
+    function getSearchWord() {
+        if(document.getElementById("typeaheadDropdown-3") != null){ return "";}
         let input_lst = document.getElementsByTagName("input");
-        let wordLst;
-        let res = [];
         for(const item of input_lst){
             if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
-                wordLst = item.value.replaceAll("　", " ").split(" ");
-                break;
+                return item.value.trim();
             }
         }
+        return "";
+    }
+
+    function getSearchWordList(){
+        let res = [];
+        let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
         if(0 < wordLst.length){
             for(const item of wordLst){
                 if(item.trim() != "" && /.+:.+/.test(item) == false){
@@ -1878,6 +1892,12 @@ const TARGET_URL = [
         }
         return res;
     }
+
+    function isFromSearch() {
+        let input = getSearchWord();
+        return /^from:|[\s\u3000]+from:/i.test(input);
+    }
+
     function isSearchPage(){
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
