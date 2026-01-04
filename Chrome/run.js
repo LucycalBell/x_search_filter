@@ -1045,7 +1045,7 @@ const TARGET_URL = [
         block_type = -1;
         let postl;
 
-        if(X_OPTION.FROM_SEARTCH_HIDDEN_STOP) {
+        if(X_OPTION.FROM_SEARCH_HIDDEN_STOP) {
             if(isSearchPage() && isFromSearch()) {
                 fromSearchStop = true;
                 return false;
