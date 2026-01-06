@@ -2036,6 +2036,10 @@ const TARGET_URL = [
                     return false;
                 }
             }
+            if (followingTab.getAttribute('aria-selected') === 'true') {
+                followingTabClick = true;
+                return;
+            }
             followingTab.click();
             followingTabClick = true;
         } catch (e) {
