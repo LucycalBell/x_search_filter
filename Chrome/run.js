@@ -30,7 +30,8 @@ const TARGET_URL = [
         10:"トレンドワード数超過(ポスト)",
         11:"トレンドワード数超過(ユーザー名)",
         12:"絵文字のみリプライ",
-        13:"テキストなしリプライ"
+        13:"テキストなしリプライ",
+        14:"日本語比率が指定値以下"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -163,6 +164,7 @@ const TARGET_URL = [
             X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
 
             TrendDataLoad();
 
@@ -1097,6 +1099,12 @@ const TARGET_URL = [
                     return true;
                 }
             }
+            if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
+                if(getJapaneseRatio(getPostText(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
+                    block_type = 14;
+                    return true;
+                }
+            }
         }
 
         /* アクティブURLでない場合、ミュート系処理は実行しない */
@@ -1365,7 +1373,7 @@ const TARGET_URL = [
     }
 
     function isPostPageOptionActive() {
-        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN || X_OPTION.REPLY_NO_TEXT_HDN) && isPostPage();
+        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN || X_OPTION.REPLY_NO_TEXT_HDN || 0 < X_OPTION.REPLY_JPN_RATIO_HDN) && isPostPage();
     }
 
     function isPostPage() {
@@ -2323,6 +2331,17 @@ const TARGET_URL = [
             }
         }
         return false;
+    }
+
+    /* 渡されたテキストの日本語（ひらがな／カタカナ／漢字）の割合を返却 */
+    function getJapaneseRatio(text) {
+        if (!text || typeof text !== 'string' || text.length === 0) {
+            return 0;
+        }
+        const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
+        const japaneseCount = japaneseChars ? japaneseChars.length : 0;
+        const ratio = Math.floor((japaneseCount / text.length) * 100);
+        return ratio;
     }
 
     TwitterSearchBlockMain();
