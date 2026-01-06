@@ -75,6 +75,7 @@ function LoadOption(){
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
             X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
             X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -109,6 +110,7 @@ function LoadOption(){
             document.getElementById("link_click_url_check").checked = X_OPTION.LINK_CLICK_URL_CHECK;
             document.getElementById("from_search_hidden_stop").checked = X_OPTION.FROM_SEARCH_HIDDEN_STOP;
             document.getElementById("reply_verified_hdn").checked = X_OPTION.REPLY_VERIFIED_HDN;
+            document.getElementById("reply_emoji_only_hdn").checked = X_OPTION.REPLY_EMOJI_ONLY_HDN;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -226,6 +228,7 @@ function OptionSave(){
     SAVE_OBJ.LINK_CLICK_URL_CHECK = document.getElementById("link_click_url_check").checked;
     SAVE_OBJ.FROM_SEARCH_HIDDEN_STOP = document.getElementById("from_search_hidden_stop").checked;
     SAVE_OBJ.REPLY_VERIFIED_HDN = document.getElementById("reply_verified_hdn").checked;
+    SAVE_OBJ.REPLY_EMOJI_ONLY_HDN = document.getElementById("reply_emoji_only_hdn").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -382,6 +385,7 @@ function EventSet(){
     document.getElementById("link_click_url_check").addEventListener("change", OptionSave, false);
     document.getElementById("from_search_hidden_stop").addEventListener("change", OptionSave, false);
     document.getElementById("reply_verified_hdn").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_emoji_only_hdn").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

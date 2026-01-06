@@ -28,7 +28,8 @@ const TARGET_URL = [
         8:"アカウント名スペース数超過",
         9:"ユーザー名のみ一致",
         10:"トレンドワード数超過(ポスト)",
-        11:"トレンドワード数超過(ユーザー名)"
+        11:"トレンドワード数超過(ユーザー名)",
+        12:"絵文字のみリプライ"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -158,7 +159,8 @@ const TARGET_URL = [
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
             X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
-            X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, true, TYPE_BOOL);
+            X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1081,6 +1083,12 @@ const TARGET_URL = [
                     return true;
                 }
             }
+            if(X_OPTION.REPLY_EMOJI_ONLY_HDN) {
+                if(isEmojiOnlyPost(getPostText(post))){
+                    block_type = 12;
+                    return true;
+                }
+            }
         }
 
         /* アクティブURLでない場合、ミュート系処理は実行しない */
@@ -1091,7 +1099,7 @@ const TARGET_URL = [
         if(X_OPTION.POST_CHECK_ALL){
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
         } else {
-            postl = getPostTextTag(post).innerText.split(/\n/);
+            postl = getPostText(post).split(/\n/);
         }
         if(X_OPTION.REG_EXP){
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
@@ -1171,7 +1179,7 @@ const TARGET_URL = [
         if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
             if(isSearchPage()){
                 if(0 < getSearchWordList().length){
-                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
+                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
                         if((getSearchWordList().some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
                             block_type = 9;
                             return true;
@@ -1181,7 +1189,7 @@ const TARGET_URL = [
             }
         }
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
-            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
+            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostText(post).toUpperCase())){
                 block_type = 10;
                 return true;
             }
@@ -1202,7 +1210,7 @@ const TARGET_URL = [
         }
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostTextTag(post).innerText]);
+            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
             post_parent.setAttribute(DATA_XFILTER_HIDDEN, "true");
@@ -1279,7 +1287,7 @@ const TARGET_URL = [
 
     function HashtagStartLine(post){
         let cnt = 0;
-        let a = getPostTextTag(post).innerText.split(/\n/);
+        let a = getPostText(post).split(/\n/);
         for(let i=0;i<a.length;i++){
             if(a[i].trim().startsWith("#")){
                 cnt++;
@@ -1290,7 +1298,7 @@ const TARGET_URL = [
 
     function SpaceCount(post){
         let cnt = 0;
-        let a = getPostTextTag(post).innerText.split(/\n/);
+        let a = getPostText(post).split(/\n/);
         let r;
         for(let i=0;i<a.length;i++){
             r = a[i].trim().match(/[ ][ぁ-んァ-ヶー一-龯]/g);
@@ -1349,12 +1357,25 @@ const TARGET_URL = [
     }
 
     function isPostPageOptionActive() {
-        return (X_OPTION.REPLY_VERIFIED_HDN) && isPostPage();
+        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN) && isPostPage();
     }
 
     function isPostPage() {
         const postPagePattern = /^https:\/\/(x|twitter)\.com\/[^\/]+\/status\/\d+/;
         return postPagePattern.test(getLUrl());
+    }
+
+    /* 絵文字のみの文字列でtrue */
+    function isEmojiOnlyPost(text) {
+        if (!text || typeof text !== 'string') {
+            return false;
+        }
+        const cleaned = text.replace(/[\s\n\r]/g, '');
+        if (cleaned.length === 0) {
+            return false;
+        }
+        const emojiRegex = /^[\p{Extended_Pictographic}\p{Emoji_Component}\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\u200d\ufe0f]+$/u;
+        return emojiRegex.test(cleaned);
     }
 
     function isVideoCard(card) {
@@ -1813,6 +1834,35 @@ const TARGET_URL = [
             r = r.parentElement;
         }
         return r;
+    }
+
+    /* ポストの本文を絵文字含めて取得 */
+    function getPostText(post) {
+        let t = getPostTextTag(post);
+        if(t != null){
+            let res = "";
+            (function walk(node){
+                if(!node){ return; }
+                if(node.nodeType === Node.TEXT_NODE){
+                    res += node.textContent;
+                    return;
+                }
+                if(node.nodeType === Node.ELEMENT_NODE){
+                    if(node.tagName === "BR"){
+                        res += "\n";
+                        return;
+                    }
+                    if(node.tagName === "IMG"){
+                        res += node.alt || node.title || "";
+                        return;
+                    }
+                }
+                for(let i=0;i<node.childNodes.length;i++){
+                    walk(node.childNodes[i]);
+                }
+            })(t);
+            return res;
+        }
     }
 
     function getPostTextTag(post){
