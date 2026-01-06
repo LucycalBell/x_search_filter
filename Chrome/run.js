@@ -29,7 +29,8 @@ const TARGET_URL = [
         9:"ユーザー名のみ一致",
         10:"トレンドワード数超過(ポスト)",
         11:"トレンドワード数超過(ユーザー名)",
-        12:"絵文字のみリプライ"
+        12:"絵文字のみリプライ",
+        13:"テキストなしリプライ"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -161,6 +162,7 @@ const TARGET_URL = [
             X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
             X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1089,6 +1091,12 @@ const TARGET_URL = [
                     return true;
                 }
             }
+            if(X_OPTION.REPLY_NO_TEXT_HDN) {
+                if(getPostText(post).trim() == ""){
+                    block_type = 13;
+                    return true;
+                }
+            }
         }
 
         /* アクティブURLでない場合、ミュート系処理は実行しない */
@@ -1357,7 +1365,7 @@ const TARGET_URL = [
     }
 
     function isPostPageOptionActive() {
-        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN) && isPostPage();
+        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN || X_OPTION.REPLY_NO_TEXT_HDN) && isPostPage();
     }
 
     function isPostPage() {
