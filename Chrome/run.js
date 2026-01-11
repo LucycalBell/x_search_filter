@@ -11,6 +11,7 @@ const TARGET_URL = [
     const TWEET_TEXT = "tweetText";
     const LINK_IMG_STR = "card.layoutLarge.media";
     const LINK_NO_IMG_STR = "card.wrapper";
+    const DATA_XFILTER_HIDDEN = "data-xfilter-hidden";
     const TYPE_ARRAY = 0;
     const TYPE_INTEGER = 1;
     const TYPE_BOOL = 2;
@@ -27,7 +28,11 @@ const TARGET_URL = [
         8:"アカウント名スペース数超過",
         9:"ユーザー名のみ一致",
         10:"トレンドワード数超過(ポスト)",
-        11:"トレンドワード数超過(ユーザー名)"
+        11:"トレンドワード数超過(ユーザー名)",
+        12:"絵文字のみリプライ",
+        13:"テキストなしリプライ",
+        14:"日本語比率が指定値以下",
+        15:"同一ユーザーからのリプライ数超過"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -49,6 +54,12 @@ const TARGET_URL = [
     let trend_word_list = [];
     let trend_data_enable = false;
     let followingTabClick = false;
+    let sortMenuLatestClick = false;
+    let postHiddenStop = false;
+    let fromSearchStop = false;
+    let checked_IdList = [];
+    let checked_UserNameList = [];
+    let block_postIdList = [];
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -154,6 +165,13 @@ const TARGET_URL = [
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
+            X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
+            X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -178,7 +196,7 @@ const TARGET_URL = [
                         c = {};
                     }
                 } catch(e){
-                    console.error(e);
+                    console.warn(e);
                     c = {};
                 }
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
@@ -231,37 +249,18 @@ const TARGET_URL = [
         }
 
         if(view_url != location.href){
-            postBlockViewNumber = 0;
-            hidden_posts = [];
+            postBlockCounterReset();
         }
         BlockCount();
 
-        if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
-            postClass_Hierarchy = getPostClass();
-        }
-        if(postClass_Hierarchy == void 0){
-            setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
-            return;
-        }
-        if(postClass_Hierarchy[0] == TWEET_DATA){
-            postList = [];
-            let allDiv = document.getElementsByTagName("article");
-            for(let i=0;i<allDiv.length;i++){
-                if(allDiv[i].dataset.testid == TWEET_DATA){
-                    postList.push(allDiv[i]);
-                }
-            }
-        } else {
-            postList = document.getElementsByClassName(postClass_Hierarchy[0]);
-        }
+        postList = getPostList();
 
         view_url = location.href;
 
-        if(activeUrl && X_OPTION.BLOCK_COUNT_VIEW){
+        if((activeUrl || isPostPageOptionActive()) && X_OPTION.BLOCK_COUNT_VIEW){
             if(document.getElementById("x9uVvQH") != null){
                 if(document.getElementById("x9uVvQH").style.display == "none"){
-                    postBlockViewNumber = 0;
-                    hidden_posts = [];
+                    postBlockCounterReset();
                     BlockCount();
                 }
                 document.getElementById("x9uVvQH").style.display = "block";
@@ -277,7 +276,7 @@ const TARGET_URL = [
         }
 
         for(let i=0;i<postList.length;i++){
-            if(activeUrl && PostBlockCheck(postList[i])){
+            if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
@@ -286,6 +285,28 @@ const TARGET_URL = [
             }
         }
         setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
+    }
+
+    function getPostList() {
+        let postList = [];
+        if(postClass_Hierarchy == null || postClass_Hierarchy == void 0){
+            postClass_Hierarchy = getPostClass();
+        }
+        if(postClass_Hierarchy == void 0){
+            return postList;
+        }
+        if(postClass_Hierarchy[0] == TWEET_DATA){
+            postList = [];
+            let allDiv = document.getElementsByTagName("article");
+            for(let i=0;i<allDiv.length;i++){
+                if(allDiv[i].dataset.testid == TWEET_DATA){
+                    postList.push(allDiv[i]);
+                }
+            }
+        } else {
+            postList = document.getElementsByClassName(postClass_Hierarchy[0]);
+        }
+        return postList;
     }
 
     function CardLinkEmphasis(){
@@ -304,7 +325,7 @@ const TARGET_URL = [
                 viewDomain = "";
                 if(0 < a[i].getElementsByTagName("a").length && a[i].getElementsByTagName("a")[0].ariaLabel != null){
                     linkDomain = a[i].getElementsByTagName("a")[0].href;
-                    viewDomain = a[i].getElementsByTagName("a")[0].ariaLabel.split(" ")[0];
+                    viewDomain = getDomainFromText(a[i].getElementsByTagName("a")[0].ariaLabel) || "";
                 }
                 cardList.push([a[i], viewDomain, linkDomain]);
             }
@@ -315,7 +336,7 @@ const TARGET_URL = [
             b = cardList[i][0].getElementsByTagName("a");
             for(let q=0;q<b.length;q++){
                 if(b[q] != void 0 && b[q].ariaLabel != null && b[q].ariaLabel.includes(".")){
-                    labeltxt = b[q].ariaLabel.trim();
+                    labeltxt = getDomainFromText(b[q].ariaLabel) || "";
                     break;
                 }
             }
@@ -388,7 +409,7 @@ const TARGET_URL = [
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
             if(item.ariaLabel !== void 0 && item.ariaLabel.includes(".")){
-                return item.ariaLabel.split(" ")[0];
+                return getDomainFromText(item.ariaLabel);
             }
         }
         return null;
@@ -397,11 +418,24 @@ const TARGET_URL = [
     function getCardLink(card) {
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
-            if(item.ariaLabel == void 0 && item.href.startsWith("http")){
+            if((item.ariaLabel == void 0 || item.ariaLabel.trim() == "" || !item.ariaLabel.includes(".")) && item.href.startsWith("http")){
                 return item;
             }
         }
         return null;
+    }
+
+    function getNodeText(node) {
+        if (!node) {
+            return "";
+        }
+        let text = "";
+        for (let i = 0; i < node.childNodes.length; i++) {
+            if (node.childNodes[i].nodeType === Node.TEXT_NODE) {
+                text += node.childNodes[i].nodeValue;
+            }
+        }
+        return text;
     }
 
     function UrlDomainCheck(cardData) {
@@ -925,17 +959,66 @@ const TARGET_URL = [
         return null;
     }
 
+    /* URLからドメイン部分を取得 */
     function getDomain(url){
         if(!url){ return null; }
         const match = url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i);
         return (match && match[1]) ? match[1] : null;
     }
+
+    /* テキストの中からドメイン部分を取得 */
+    /* こちらはURLではなく、テキストからドメインを抽出する関数（例：ああgoogle.comいい → google.com） */
+    function getDomainFromText(text){
+        if(!text || typeof text !== 'string'){
+            return null;
+        }
+        
+        text = text.trim();
+        if(text === ''){
+            return null;
+        }
+        
+        const domainPattern = /(?:^|[^a-zA-Z0-9-])([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)(?:[^a-zA-Z0-9-]|$)/g;
+        
+        let matches = [];
+        let match;
+        
+        while((match = domainPattern.exec(text)) !== null){
+            let domain = match[1];
+            let parts = domain.split('.');
+            let tld = parts[parts.length - 1];
+            if(tld.length >= 2){
+                matches.push(domain);
+            }
+        }
+        
+        if(matches.length > 0){
+            return matches[0];
+        }
+        
+        let words = text.split(/\s+/);
+        for(let word of words){
+            if(word.includes('.') && isDomainText(word)){
+                return word;
+            }
+        }
+        
+        return null;
+    }
+    
     function getDisplayDomain(linkElement){
         let text = "";
         if(linkElement.ariaLabel){
             text = linkElement.ariaLabel.split(" ")[0].trim();
         } else if(linkElement.textContent){
-            text = linkElement.textContent.trim();
+            let spanLst = linkElement.getElementsByTagName("span");
+            for(const span of spanLst) {
+                const nodeText = getNodeText(span);
+                if(isDomainText(nodeText)) {
+                    text = nodeText;
+                    break;
+                }
+            }
         }
 
         if(!text){
@@ -948,6 +1031,32 @@ const TARGET_URL = [
         }
 
         return text.split(/\s+/)[0];
+    }
+
+    function isDomainText(text) {
+        if (!text || typeof text !== 'string') {
+            return false;
+        }
+        
+        text = text.trim();
+        
+        if (/\s/.test(text)) {
+            return false;
+        }
+        
+        const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        
+        if (!domainPattern.test(text)) {
+            return false;
+        }
+        
+        const parts = text.split('.');
+        const tld = parts[parts.length - 1];
+        if (tld.length < 2) {
+            return false;
+        }
+        
+        return true;
     }
     
     function getPostClass(){
@@ -989,6 +1098,21 @@ const TARGET_URL = [
         block_type = -1;
         let postl;
 
+        if(!checked_IdList.includes(getPostId(post))){
+            checked_IdList.push(getPostId(post));
+            checked_UserNameList.push(getPostUserName(post, true));
+        }
+
+        if(X_OPTION.FROM_SEARCH_HIDDEN_STOP) {
+            if(isSearchPage() && isFromSearch()) {
+                fromSearchStop = true;
+                return false;
+            } else {
+                fromSearchStop = false;
+            }
+        }
+
+        /* 表示中ユーザーの投稿は除外 */
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
         }
@@ -1001,10 +1125,54 @@ const TARGET_URL = [
             return false;
         }
 
+        /* ポストページの場合ツリーポスト（表示中ポストとそれより上）は除外 */
+        if(isPostPage() && isTree(post)){
+            return false;
+        }
+
+        /* ポストページに関するオプション処理 */
+        if(isPostPageOptionActive()) {
+            if(X_OPTION.REPLY_VERIFIED_HDN) {
+                if(isVerified(post)){
+                    block_type = 5;
+                    return true;
+                }
+            }
+            if(X_OPTION.REPLY_EMOJI_ONLY_HDN) {
+                if(isEmojiOnlyPost(getPostText(post))){
+                    block_type = 12;
+                    return true;
+                }
+            }
+            if(X_OPTION.REPLY_NO_TEXT_HDN) {
+                if(getPostText(post).trim() == ""){
+                    block_type = 13;
+                    return true;
+                }
+            }
+            if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
+                if(getJapaneseRatio(getPostTextTag(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
+                    block_type = 14;
+                    return true;
+                }
+            }
+            if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
+                if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
+                    block_type = 15;
+                    return true;
+                }
+            }
+        }
+
+        /* アクティブURLでない場合、ミュート系処理は実行しない */
+        if(!activeUrl) {
+            return false;
+        }
+
         if(X_OPTION.POST_CHECK_ALL){
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
         } else {
-            postl = getPostTextTag(post).innerText.split(/\n/);
+            postl = getPostText(post).split(/\n/);
         }
         if(X_OPTION.REG_EXP){
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
@@ -1084,7 +1252,7 @@ const TARGET_URL = [
         if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
             if(isSearchPage()){
                 if(0 < getSearchWordList().length){
-                    if(!(getSearchWordList().some(item => getPostTextTag(post).innerText.toUpperCase().includes(item.toUpperCase())))){
+                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
                         if((getSearchWordList().some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
                             block_type = 9;
                             return true;
@@ -1094,7 +1262,7 @@ const TARGET_URL = [
             }
         }
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
-            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostTextTag(post).innerText.toUpperCase())){
+            if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostText(post).toUpperCase())){
                 block_type = 10;
                 return true;
             }
@@ -1110,16 +1278,45 @@ const TARGET_URL = [
     }
     
     function PostBlock(post){
+        if(postHiddenStop){
+            return;
+        }
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostTextTag(post).innerText]);
+            // 既に非表示リストアップされているポストはカウントから除外
+            if(!existsInHiddenList(getPostId(post))) {
+                hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
+                block_postIdList.push(getPostId(post));
+                postBlockViewNumber++;
+            }
+            // カウントから除外した場合でも非表示は実行（
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
-            postBlockViewNumber++;
+            post_parent.setAttribute(DATA_XFILTER_HIDDEN, "true");
             if(X_OPTION.BLOCK_COUNT_VIEW){
                 BlockCount();
             }
         }
+    }
+
+    function PostBlockRelease() {
+        let postList = getPostList();
+        for(const post of postList){
+            let post_parent = getPostParent(post, postClass_Hierarchy[1]);
+            if(post_parent.getAttribute(DATA_XFILTER_HIDDEN) == "true"){
+                post_parent.style.visibility = "visible";
+                post_parent.style.height = "";
+                post_parent.removeAttribute(DATA_XFILTER_HIDDEN);
+            }
+        }
+        postBlockCounterReset();
+        if(X_OPTION.BLOCK_COUNT_VIEW){
+            BlockCount();
+        }
+    }
+
+    function PostBlockRestart() {
+        hidden_posts = [];
     }
 
     function AddLinkClickListener(post){
@@ -1168,7 +1365,7 @@ const TARGET_URL = [
 
     function HashtagStartLine(post){
         let cnt = 0;
-        let a = getPostTextTag(post).innerText.split(/\n/);
+        let a = getPostText(post).split(/\n/);
         for(let i=0;i<a.length;i++){
             if(a[i].trim().startsWith("#")){
                 cnt++;
@@ -1179,7 +1376,7 @@ const TARGET_URL = [
 
     function SpaceCount(post){
         let cnt = 0;
-        let a = getPostTextTag(post).innerText.split(/\n/);
+        let a = getPostText(post).split(/\n/);
         let r;
         for(let i=0;i<a.length;i++){
             r = a[i].trim().match(/[ ][ぁ-んァ-ヶー一-龯]/g);
@@ -1217,7 +1414,9 @@ const TARGET_URL = [
                     if(doc[i].children[0].children[1].innerText.trim() != ""){
                         trend.push(doc[i].children[0].children[1].innerText.replace("#", "").toUpperCase());
                     }
-                } catch(e){;}
+                } catch(e){
+                    ;
+                }
             }
         }
         return trend;
@@ -1235,6 +1434,34 @@ const TARGET_URL = [
 
     function isTrendPage(){
         return location.href == TREND_URL;
+    }
+
+    /* リプライ系のオプションが有効かどうか */
+    function isPostPageOptionActive() {
+        return (X_OPTION.REPLY_VERIFIED_HDN || 
+                X_OPTION.REPLY_EMOJI_ONLY_HDN || 
+                X_OPTION.REPLY_NO_TEXT_HDN || 
+                0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
+                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER
+            ) && isPostPage();
+    }
+
+    function isPostPage() {
+        const postPagePattern = /^https:\/\/(x|twitter)\.com\/[^\/]+\/status\/\d+/;
+        return postPagePattern.test(getLUrl());
+    }
+
+    /* 絵文字のみの文字列でtrue */
+    function isEmojiOnlyPost(text) {
+        if (!text || typeof text !== 'string') {
+            return false;
+        }
+        const cleaned = text.replace(/[\s\n\r]/g, '');
+        if (cleaned.length === 0) {
+            return false;
+        }
+        const emojiRegex = /^[\p{Extended_Pictographic}\p{Emoji_Component}\p{Emoji_Presentation}\p{Emoji_Modifier_Base}\u200d\ufe0f]+$/u;
+        return emojiRegex.test(cleaned);
     }
 
     function isVideoCard(card) {
@@ -1262,6 +1489,11 @@ const TARGET_URL = [
         }
     }
 
+    /* ブロック済みポストIDに存在するか */
+    function existsInHiddenList(postId) {
+        return block_postIdList.includes(postId);
+    }
+
     function SaveTrend(trend){
         if(trend.length == 0){ return; }
         chrome.storage.local.set({"XFILTER_OPTION_TREND_SAVE": JSON.stringify(trend)});
@@ -1282,7 +1514,7 @@ const TARGET_URL = [
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH";
             addtag.style.position = "fixed";
-            addtag.style.top = "0.5em";
+            addtag.style.top = "2.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
             
@@ -1320,7 +1552,11 @@ const TARGET_URL = [
             document.getElementById("YgE1WQLD").innerText = "";
         }
         document.getElementById("x9uVvQH_ar").style.display = "block";
-        document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
+        if(postHiddenStop || fromSearchStop) {
+            document.getElementById("x9uVvQH_num").innerText = "⏸";
+        } else {
+            document.getElementById("x9uVvQH_num").innerText = postBlockViewNumber;
+        }
     }
 
     function CountBtn_MouseDown(e) {
@@ -1373,7 +1609,9 @@ const TARGET_URL = [
             document.body.removeEventListener("touchmove", CountBtn_MouseMove, false);
             drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
             drag.classList.remove("drag");
-        } catch(err){;}
+        } catch(err){
+            ;
+        }
     }
 
     let CountBtnMoveStartTime;
@@ -1410,17 +1648,84 @@ const TARGET_URL = [
             lstArea.style.borderRadius = "12px";
             lstArea.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
             lstArea.style.overflow = "hidden";
+
             
             let lstDiv = document.createElement("div");
             lstDiv.id = "x9uVvQH_lst";
             lstDiv.style.position = "absolute";
-            lstDiv.style.top = "0";
+            lstDiv.style.top = "2.5rem";
             lstDiv.style.left = "0";
-            lstDiv.style.height = "calc(100% - 3rem)";
+            lstDiv.style.height = "calc(100% - 5.5rem)";
             lstDiv.style.overflowY = "auto";
             lstDiv.style.width = "100%";
             lstDiv.style.padding = "1rem";
             lstDiv.style.boxSizing = "border-box";
+            
+            let toggleBtn = document.createElement("div");
+            toggleBtn.id = "x9uVvQH_toggle";
+            toggleBtn.textContent = postHiddenStop ? "一時停止中⏸" : "実行中▶";
+            toggleBtn.style.position = "absolute";
+            toggleBtn.style.top = "0";
+            toggleBtn.style.left = "0";
+            toggleBtn.style.height = "2.5rem";
+            toggleBtn.style.lineHeight = "2.5rem";
+            toggleBtn.style.padding = "0 1rem";
+            toggleBtn.style.backgroundColor = postHiddenStop ? "#ff9800" : "#4CAF50";
+            toggleBtn.style.color = "#fff";
+            toggleBtn.style.fontWeight = "bold";
+            toggleBtn.style.cursor = "pointer";
+            toggleBtn.style.transition = "background-color 0.2s";
+            toggleBtn.style.borderRadius = "8px 0 0 0";
+            toggleBtn.style.zIndex = "10000";
+            toggleBtn.onmouseover = function(){
+                this.style.opacity = "0.8";
+            };
+            toggleBtn.onmouseout = function(){
+                this.style.opacity = "1";
+            };
+            toggleBtn.addEventListener("click", function(e){
+                e.stopPropagation();
+                if(postHiddenStop){
+                    PostBlockRestart();
+                    postHiddenStop = false;
+                    toggleBtn.textContent = "実行中▶";
+                    toggleBtn.style.backgroundColor = "#4CAF50";
+                } else {
+                    PostBlockRelease();
+                    postHiddenStop = true;
+                    toggleBtn.textContent = "一時停止中⏸";
+                    toggleBtn.style.backgroundColor = "#ff9800";
+                }
+            }, false);
+            lstArea.appendChild(toggleBtn);
+            
+            let optionsBtn = document.createElement("div");
+            optionsBtn.id = "x9uVvQH_options";
+            optionsBtn.textContent = "⚙設定";
+            optionsBtn.style.position = "absolute";
+            optionsBtn.style.top = "0";
+            optionsBtn.style.right = "0";
+            optionsBtn.style.height = "2.5rem";
+            optionsBtn.style.lineHeight = "2.5rem";
+            optionsBtn.style.padding = "0 1rem";
+            optionsBtn.style.backgroundColor = "#2196F3";
+            optionsBtn.style.color = "#fff";
+            optionsBtn.style.fontWeight = "bold";
+            optionsBtn.style.cursor = "pointer";
+            optionsBtn.style.transition = "background-color 0.2s";
+            optionsBtn.style.borderRadius = "0 8px 0 0";
+            optionsBtn.style.zIndex = "10000";
+            optionsBtn.onmouseover = function(){
+                this.style.opacity = "0.8";
+            };
+            optionsBtn.onmouseout = function(){
+                this.style.opacity = "1";
+            };
+            optionsBtn.addEventListener("click", function(e){
+                e.stopPropagation();
+                chrome.runtime.sendMessage({type: "openOptions"});
+            }, false);
+            lstArea.appendChild(optionsBtn);
             
             let closeBtn = document.createElement("div");
             closeBtn.id = "x9uVvQH_cls";
@@ -1465,6 +1770,7 @@ const TARGET_URL = [
         
         let mainDiv = document.createElement('div');
         mainDiv.style.color = '#000';
+        mainDiv.style.overscrollBehavior = 'contain';
         listFragment.appendChild(mainDiv);
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
@@ -1521,6 +1827,7 @@ const TARGET_URL = [
         
         let postsContainer = document.createElement('div');
         postsContainer.style.margin = '0 0.2rem';
+        postsContainer.style.overscrollBehavior = 'contain';
         
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
@@ -1625,6 +1932,35 @@ const TARGET_URL = [
         return r;
     }
 
+    /* ポストの本文を絵文字含めて取得 */
+    function getPostText(post) {
+        let t = getPostTextTag(post);
+        if(t != null){
+            let res = "";
+            (function walk(node){
+                if(!node){ return; }
+                if(node.nodeType === Node.TEXT_NODE){
+                    res += node.textContent;
+                    return;
+                }
+                if(node.nodeType === Node.ELEMENT_NODE){
+                    if(node.tagName === "BR"){
+                        res += "\n";
+                        return;
+                    }
+                    if(node.tagName === "IMG"){
+                        res += node.alt || node.title || "";
+                        return;
+                    }
+                }
+                for(let i=0;i<node.childNodes.length;i++){
+                    walk(node.childNodes[i]);
+                }
+            })(t);
+            return res;
+        }
+    }
+
     function getPostTextTag(post){
         let r = post.getElementsByTagName("div");
         for(let i=0;i<r.length;i++){
@@ -1651,6 +1987,32 @@ const TARGET_URL = [
             url = url.replace('x.com', 'twitter.com');
         }
         return url;
+    }
+
+    function getPostId(post) {
+        try {
+            // ポスト内のすべてのリンクを取得
+            const links = post.querySelectorAll('a[href*="/status/"]');
+            
+            for (let link of links) {
+                const href = link.getAttribute('href');
+                if (href) {
+                    // status/の後ろの数値を抽出
+                    const match = href.match(/\/status\/(\d+)/);
+                    if (match && match[1]) {
+                        return match[1];
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Error in getPostId:', e);
+        }
+        return null;
+    }
+
+    /* 指定ユーザーのポスト数をカウント */
+    function userPostCount(userId) {
+        return checked_UserNameList.filter(item => item === userId).length;
     }
 
     function isVerified(post){
@@ -1719,6 +2081,30 @@ const TARGET_URL = [
                 return a[i].href;
             }
         }
+
+        try{
+            const links = post.querySelectorAll('a[href*="/status/"]');
+            for(const link of links){
+                const href = link.getAttribute('href');
+                if(!href){ continue; }
+                const m = href.match(/\/status\/(\d+)/);
+                if(m && m[1]){
+                    let cleanHref = href.split('?')[0].replace(/\/analytics(?:\/.*)?$/, "");
+                    if(cleanHref.startsWith('/')){
+                        return 'https://x.com' + cleanHref;
+                    }
+                    return cleanHref;
+                }
+            }
+        } catch(e){
+            ;
+        }
+
+        const id = getPostId(post);
+        const user = getPostUserName(post, true);
+        if(id && user){
+            return 'https://x.com/' + user + '/status/' + id;
+        }
         return null;
     }
 
@@ -1738,17 +2124,20 @@ const TARGET_URL = [
         return "";
     }
 
-    function getSearchWordList(){
-        if(document.getElementById("typeaheadDropdown-3") != null){ return [];}
+    function getSearchWord() {
+        if(document.getElementById("typeaheadDropdown-3") != null){ return "";}
         let input_lst = document.getElementsByTagName("input");
-        let wordLst;
-        let res = [];
         for(const item of input_lst){
             if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
-                wordLst = item.value.replaceAll("　", " ").split(" ");
-                break;
+                return item.value.trim();
             }
         }
+        return "";
+    }
+
+    function getSearchWordList(){
+        let res = [];
+        let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
         if(0 < wordLst.length){
             for(const item of wordLst){
                 if(item.trim() != "" && /.+:.+/.test(item) == false){
@@ -1758,6 +2147,12 @@ const TARGET_URL = [
         }
         return res;
     }
+
+    function isFromSearch() {
+        let input = getSearchWord();
+        return /^from:|[\s\u3000]+from:/i.test(input);
+    }
+
     function isSearchPage(){
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
@@ -1787,8 +2182,16 @@ const TARGET_URL = [
                     return false;
                 }
             }
+            if (followingTab.getAttribute('aria-selected') === 'true') {
+                followingTabClick = true;
+                // すでにフォロー中タブが選択されていたら最新クリック処理へ
+                SortLatestClick();
+                return;
+            }
             followingTab.click();
             followingTabClick = true;
+            // クリックできたら最新クリック処理へ
+            SortLatestClick();
         } catch (e) {
             if (retryCount < 10) {
                 retryCount++;
@@ -1802,6 +2205,71 @@ const TARGET_URL = [
     function FollowTabCheck() {
         if(X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB && location.href.startsWith("https://x.com/home")) {
             setTimeout(FollowingTabClick, 100);
+        }
+    }
+
+    /* ソートメニューの最新項目選択一連処理 */
+    function SortLatestClick(retryCount = 0) {
+        if(!X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT) { return; }
+        if(sortMenuLatestClick) { return; }
+        try {
+            let sortButtons = document.querySelectorAll('[aria-haspopup="menu"]');
+            let sortButton = null;
+            
+            for(let btn of sortButtons) {
+                let tablist = btn.closest('[role="tablist"]');
+                if(tablist) {
+                    sortButton = btn;
+                    break;
+                }
+            }
+            
+            if (!sortButton) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                }
+                return;
+            }
+            sortButton.click();
+            setTimeout(function() { SelectLatestMenuItem(0); }, 150);
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { SortLatestClick(retryCount); }, 100);
+            }
+        }
+    }
+
+    /* ソートメニューの最新項目選択 */
+    function SelectLatestMenuItem(retryCount = 0) {
+        try {
+            let menuItems = document.querySelectorAll('[role="menuitem"], [role="menuitemradio"]');
+            
+            if (menuItems.length === 0) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                }
+                return;
+            }
+            if (menuItems.length < 2) { return false; }
+            let latestMenuItem = menuItems[1];
+            if (latestMenuItem.getAttribute('aria-checked') === 'true') {
+                sortMenuLatestClick = true;
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
+                return;
+            }
+            latestMenuItem.click();
+            sortMenuLatestClick = true;
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+            } else {
+                sortMenuLatestClick = false;
+                return false;
+            }
         }
     }
 
@@ -2046,6 +2514,69 @@ const TARGET_URL = [
                 chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
             }
         }
+    }
+
+    /* ツイートがツリー構造の一部かどうかを判定する関数 */
+    function isTree(tweetArticle) {
+        const divs = tweetArticle.getElementsByTagName('div');
+        
+        for (let i = 0; i < divs.length; i++) {
+            const div = divs[i];
+            if (div.children.length === 0) {
+                const style = window.getComputedStyle(div);
+                if (style.width === '2px' && style.position === 'absolute') {
+                    return true; 
+                }
+            }
+        }
+        return false;
+    }
+
+    /* 渡されたテキスト要素から日本語（ひらがな／カタカナ／漢字）の割合を返却 */
+    function getJapaneseRatio(textElement) {
+        if (!textElement || textElement.nodeType !== Node.ELEMENT_NODE) {
+            return 0;
+        }
+        const clone = textElement.cloneNode(true);
+        const links = clone.querySelectorAll('a');
+        links.forEach(link => link.remove());
+        let text = '';
+        const walk = (node) => {
+            if (!node) return;
+            if (node.nodeType === Node.TEXT_NODE) {
+                text += node.textContent;
+                return;
+            }
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === 'IMG') {
+                    const alt = node.getAttribute('alt') || '';
+                    text += alt;
+                    return;
+                }
+            }
+            for (let i = 0; i < node.childNodes.length; i++) {
+                walk(node.childNodes[i]);
+            }
+        };
+        walk(clone);
+        text = text.replace(/\n/g, '');
+        
+        if (text.length === 0) {
+            return 0;
+        }
+        
+        const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
+        const japaneseCount = japaneseChars ? japaneseChars.length : 0;
+        const ratio = Math.floor((japaneseCount / text.length) * 100);
+        return ratio;
+    }
+
+    function postBlockCounterReset() {
+        postBlockViewNumber = 0;
+        hidden_posts = [];
+        checked_IdList = [];
+        checked_UserNameList = [];
+        block_postIdList = [];
     }
 
     TwitterSearchBlockMain();
