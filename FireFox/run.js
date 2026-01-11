@@ -1157,7 +1157,7 @@ const TARGET_URL = [
                 }
             }
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
-                if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= usetPostCount(getPostUserName(post, true))){
+                if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
                     return true;
                 }
@@ -2011,7 +2011,7 @@ const TARGET_URL = [
     }
 
     /* 指定ユーザーのポスト数をカウント */
-    function usetPostCount(userId) {
+    function userPostCount(userId) {
         return checked_UserNameList.filter(item => item === userId).length;
     }
 
@@ -2253,6 +2253,7 @@ const TARGET_URL = [
                 }
                 return;
             }
+            if (menuItems.length < 2) { return false; }
             let latestMenuItem = menuItems[1];
             if (latestMenuItem.getAttribute('aria-checked') === 'true') {
                 sortMenuLatestClick = true;
@@ -2539,7 +2540,31 @@ const TARGET_URL = [
         const clone = textElement.cloneNode(true);
         const links = clone.querySelectorAll('a');
         links.forEach(link => link.remove());
-        const text = clone.textContent || '';
+        let text = '';
+        const walk = (node) => {
+            if (!node) return;
+            if (node.nodeType === Node.TEXT_NODE) {
+                text += node.textContent;
+                return;
+            }
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === 'IMG') {
+                    const alt = node.getAttribute('alt') || '';
+                    text += alt;
+                    return;
+                }
+            }
+            for (let i = 0; i < node.childNodes.length; i++) {
+                walk(node.childNodes[i]);
+            }
+        };
+        walk(clone);
+        text = text.replace(/\n/g, '');
+        
+        if (text.length === 0) {
+            return 0;
+        }
+        
         const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
         const ratio = Math.floor((japaneseCount / text.length) * 100);
