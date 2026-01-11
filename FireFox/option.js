@@ -3,6 +3,7 @@ let X_OPTION;
 let X_OPTION_SAFE_USER;
 window.onload = function(){
     document.getElementById("version").innerText = browser.runtime.getManifest().version;
+    SetupOptionBlockToggle();
     EventSet();
     LoadOption();
 };
@@ -73,6 +74,13 @@ function LoadOption(){
             X_OPTION.TREND_WORD_BORDER_NAME = getOptionPram(r.TREND_WORD_BORDER_NAME, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB, false, TYPE_BOOL);
             X_OPTION.LINK_CLICK_URL_CHECK = getOptionPram(r.LINK_CLICK_URL_CHECK, false, TYPE_BOOL);
+            X_OPTION.FROM_SEARCH_HIDDEN_STOP = getOptionPram(r.FROM_SEARCH_HIDDEN_STOP, true, TYPE_BOOL);
+            X_OPTION.REPLY_VERIFIED_HDN = getOptionPram(r.REPLY_VERIFIED_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
+            X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -105,6 +113,13 @@ function LoadOption(){
             document.getElementById("trend_word_border_name").value = X_OPTION.TREND_WORD_BORDER_NAME;
             document.getElementById("default_selected_follow_tab").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB;
             document.getElementById("link_click_url_check").checked = X_OPTION.LINK_CLICK_URL_CHECK;
+            document.getElementById("from_search_hidden_stop").checked = X_OPTION.FROM_SEARCH_HIDDEN_STOP;
+            document.getElementById("reply_verified_hdn").checked = X_OPTION.REPLY_VERIFIED_HDN;
+            document.getElementById("reply_emoji_only_hdn").checked = X_OPTION.REPLY_EMOJI_ONLY_HDN;
+            document.getElementById("reply_no_text_hdn").checked = X_OPTION.REPLY_NO_TEXT_HDN;
+            document.getElementById("reply_jpn_ratio_hdn").value = X_OPTION.REPLY_JPN_RATIO_HDN;
+            document.getElementById("reply_multi_count_border").value = X_OPTION.REPLY_MULTI_COUNT_BORDER;
+            document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -134,34 +149,44 @@ function LoadOption(){
 }
 
 function LoadOption_SwitchUpdate(){
-    if(Number(X_OPTION.TAG_BORDER) != NaN){
+    if(Number(X_OPTION.TAG_BORDER)){
         if(0 < X_OPTION.TAG_BORDER){
             document.getElementById("hashtag_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.SPACE_BORDER) != NaN){
+    if(Number(X_OPTION.SPACE_BORDER)){
         if(0 < X_OPTION.SPACE_BORDER){
             document.getElementById("space_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TAG_START_BORDER) != NaN){
+    if(Number(X_OPTION.TAG_START_BORDER)){
         if(0 < X_OPTION.TAG_START_BORDER){
             document.getElementById("short_post_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER) != NaN){
+    if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER)){
         if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
             document.getElementById("accountname_space_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TREND_WORD_BORDER_TEXT) != NaN){
+    if(Number(X_OPTION.TREND_WORD_BORDER_TEXT)){
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
             document.getElementById("trend_word_border_text_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TREND_WORD_BORDER_NAME) != NaN){
+    if(Number(X_OPTION.TREND_WORD_BORDER_NAME)){
         if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
             document.getElementById("trend_word_border_name_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.REPLY_JPN_RATIO_HDN)){
+        if(0 < X_OPTION.REPLY_JPN_RATIO_HDN){
+            document.getElementById("reply_jpn_ratio_hdn_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.REPLY_MULTI_COUNT_BORDER)){
+        if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER){
+            document.getElementById("reply_multi_count_border_switch").checked = true;
         }
     }
     SubOptionVisibleSwitch();
@@ -190,7 +215,16 @@ function OptionSave(){
     } else {
         SAVE_OBJ.TAG_START_BORDER = "0";
     }
-    
+    if(document.getElementById("reply_jpn_ratio_hdn_switch").checked){
+        SAVE_OBJ.REPLY_JPN_RATIO_HDN = document.getElementById("reply_jpn_ratio_hdn").value;
+    } else {
+        SAVE_OBJ.REPLY_JPN_RATIO_HDN = "0";
+    }
+    if(document.getElementById("reply_multi_count_border_switch").checked){
+        SAVE_OBJ.REPLY_MULTI_COUNT_BORDER = document.getElementById("reply_multi_count_border").value;
+    } else {
+        SAVE_OBJ.REPLY_MULTI_COUNT_BORDER = "0";
+    }
     SAVE_OBJ.DEFAULT_ICON_BLOCK = document.getElementById("default_icon_block").checked;
     SAVE_OBJ.DEFAULT_ICON_NAME = document.getElementById("default_icon_name").value;
     SAVE_OBJ.BLOCK_COUNT_VIEW = document.getElementById("block_count_view").checked;
@@ -220,6 +254,11 @@ function OptionSave(){
     SAVE_OBJ.LINK_CARD_URL_VIEW_VIDEO_DISABLE = document.getElementById("link_card_url_view_video_disable").checked;
     SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB = document.getElementById("default_selected_follow_tab").checked;
     SAVE_OBJ.LINK_CLICK_URL_CHECK = document.getElementById("link_click_url_check").checked;
+    SAVE_OBJ.FROM_SEARCH_HIDDEN_STOP = document.getElementById("from_search_hidden_stop").checked;
+    SAVE_OBJ.REPLY_VERIFIED_HDN = document.getElementById("reply_verified_hdn").checked;
+    SAVE_OBJ.REPLY_EMOJI_ONLY_HDN = document.getElementById("reply_emoji_only_hdn").checked;
+    SAVE_OBJ.REPLY_NO_TEXT_HDN = document.getElementById("reply_no_text_hdn").checked;
+    SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = document.getElementById("default_selected_follow_tab_latest_select").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -289,6 +328,22 @@ function SubOptionVisibleSwitch(){
         document.getElementById("trend_word_border_name_subOption").classList.add("suboption_close");
         document.getElementById("trend_word_border_name_subOption").classList.remove("suboption_open");
     }
+
+    if(document.getElementById("reply_jpn_ratio_hdn_switch").checked){
+        document.getElementById("reply_jpn_ratio_hdn_subOption").classList.add("suboption_open");
+        document.getElementById("reply_jpn_ratio_hdn_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("reply_jpn_ratio_hdn_subOption").classList.add("suboption_close");
+        document.getElementById("reply_jpn_ratio_hdn_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("reply_multi_count_border_switch").checked){
+        document.getElementById("reply_multi_count_border_subOption").classList.add("suboption_open");
+        document.getElementById("reply_multi_count_border_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("reply_multi_count_border_subOption").classList.add("suboption_close");
+        document.getElementById("reply_multi_count_border_subOption").classList.remove("suboption_open");
+    }
 }
 
 function LinkOptionChange(){
@@ -307,6 +362,13 @@ function LinkOptionChange(){
     } else {
         document.getElementById("link_card_url_view_oneLine").disabled = false;
         document.getElementById("link_card_mismatch_warning").disabled = false;
+    }
+
+    if(!document.getElementById("default_selected_follow_tab").checked){
+        document.getElementById("default_selected_follow_tab_latest_select").disabled = true;
+        document.getElementById("default_selected_follow_tab_latest_select").checked = false;
+    } else {
+        document.getElementById("default_selected_follow_tab_latest_select").disabled = false;
     }
 }
 
@@ -330,6 +392,27 @@ function MakeClassArray(str){
         res.push([c[0], c[1], c[2]]);
     }
     return res;
+}
+
+function SetupOptionBlockToggle(){
+    const blocks = document.querySelectorAll(".option_block");
+    blocks.forEach(block => {
+        const title = block.querySelector(".option-title");
+        if(!title){ return; }
+        title.classList.add("option-title-toggle");
+        title.setAttribute("role", "button");
+        title.setAttribute("tabindex", "0");
+        const toggle = () => {
+            block.classList.toggle("collapsed");
+        };
+        title.addEventListener("click", toggle, false);
+        title.addEventListener("keydown", (e) => {
+            if(e.key === "Enter" || e.key === " "){
+                e.preventDefault();
+                toggle();
+            }
+        }, false);
+    });
 }
 
 function EventSet(){
@@ -374,6 +457,15 @@ function EventSet(){
     document.getElementById("trend_word_border_name_switch").addEventListener("change", OptionSave, false);
     document.getElementById("default_selected_follow_tab").addEventListener("change", OptionSave, false);
     document.getElementById("link_click_url_check").addEventListener("change", OptionSave, false);
+    document.getElementById("from_search_hidden_stop").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_verified_hdn").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_emoji_only_hdn").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_no_text_hdn").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_jpn_ratio_hdn_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_jpn_ratio_hdn").addEventListener("input", OptionSave, false);
+    document.getElementById("reply_multi_count_border_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_multi_count_border").addEventListener("input", OptionSave, false);
+    document.getElementById("default_selected_follow_tab_latest_select").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
@@ -488,8 +580,10 @@ function BackupExport(option_obj){
     let blob = new Blob([ content ], { "type" : "text/plain" });
     let url = window.URL.createObjectURL(blob);
     let a = document.getElementById("backup_export_link");
+    const df = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const result = df.format(new Date()).replace(/[^0-9]/g, '');
     a.href = window.URL.createObjectURL(blob);
-    a.download = "XFilter_Backup_" + new Date().getTime() + ".json";
+    a.download = "XFilter_Backup_" + result + ".json";
     window.URL.revokeObjectURL(url);
 }
 
