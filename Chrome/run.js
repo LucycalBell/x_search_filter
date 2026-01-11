@@ -31,7 +31,8 @@ const TARGET_URL = [
         11:"トレンドワード数超過(ユーザー名)",
         12:"絵文字のみリプライ",
         13:"テキストなしリプライ",
-        14:"日本語比率が指定値以下"
+        14:"日本語比率が指定値以下",
+        15:"同一ユーザーからのリプライ数超過"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -55,6 +56,9 @@ const TARGET_URL = [
     let followingTabClick = false;
     let postHiddenStop = false;
     let fromSearchStop = false;
+    let checked_IdList = [];
+    let checked_UserNameList = [];
+    let block_postIdList = [];
     
     function TwitterSearchBlockMain(){
         OptionLoad_run();
@@ -165,6 +169,7 @@ const TARGET_URL = [
             X_OPTION.REPLY_EMOJI_ONLY_HDN = getOptionPram(r.REPLY_EMOJI_ONLY_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
 
             TrendDataLoad();
 
@@ -1052,6 +1057,11 @@ const TARGET_URL = [
         block_type = -1;
         let postl;
 
+        if(!checked_IdList.includes(getPostId(post))){
+            checked_IdList.push(getPostId(post));
+            checked_UserNameList.push(getPostUserName(post, true));
+        }
+
         if(X_OPTION.FROM_SEARCH_HIDDEN_STOP) {
             if(isSearchPage() && isFromSearch()) {
                 fromSearchStop = true;
@@ -1102,6 +1112,12 @@ const TARGET_URL = [
             if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
                 if(getJapaneseRatio(getPostText(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
                     block_type = 14;
+                    return true;
+                }
+            }
+            if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
+                if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= usetPostCount(getPostUserName(post, true))){
+                    block_type = 15;
                     return true;
                 }
             }
@@ -1372,8 +1388,14 @@ const TARGET_URL = [
         return location.href == TREND_URL;
     }
 
+    /* リプライ系のオプションが有効かどうか */
     function isPostPageOptionActive() {
-        return (X_OPTION.REPLY_VERIFIED_HDN || X_OPTION.REPLY_EMOJI_ONLY_HDN || X_OPTION.REPLY_NO_TEXT_HDN || 0 < X_OPTION.REPLY_JPN_RATIO_HDN) && isPostPage();
+        return (X_OPTION.REPLY_VERIFIED_HDN || 
+                X_OPTION.REPLY_EMOJI_ONLY_HDN || 
+                X_OPTION.REPLY_NO_TEXT_HDN || 
+                0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
+                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER
+            ) && isPostPage();
     }
 
     function isPostPage() {
@@ -1417,6 +1439,11 @@ const TARGET_URL = [
         } catch(e) {
             return null;
         }
+    }
+
+    /* ブロック済みポストIDに存在するか */
+    function existsInHiddenList(postId) {
+        return block_postIdList.includes(postId);
     }
 
     function SaveTrend(trend){
@@ -1907,6 +1934,32 @@ const TARGET_URL = [
             url = url.replace('x.com', 'twitter.com');
         }
         return url;
+    }
+
+    function getPostId(post) {
+        try {
+            // ポスト内のすべてのリンクを取得
+            const links = post.querySelectorAll('a[href*="/status/"]');
+            
+            for (let link of links) {
+                const href = link.getAttribute('href');
+                if (href) {
+                    // status/の後ろの数値を抽出
+                    const match = href.match(/\/status\/(\d+)/);
+                    if (match && match[1]) {
+                        return match[1];
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error in getPostId:', e);
+        }
+        return null;
+    }
+
+    /* 指定ユーザーのポスト数をカウント */
+    function usetPostCount(userId) {
+        return checked_UserNameList.filter(item => item === userId).length;
     }
 
     function isVerified(post){
