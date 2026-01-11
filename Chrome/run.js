@@ -54,6 +54,7 @@ const TARGET_URL = [
     let trend_word_list = [];
     let trend_data_enable = false;
     let followingTabClick = false;
+    let sortMenuLatestClick = false;
     let postHiddenStop = false;
     let fromSearchStop = false;
     let checked_IdList = [];
@@ -170,6 +171,7 @@ const TARGET_URL = [
             X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -2111,10 +2113,14 @@ const TARGET_URL = [
             }
             if (followingTab.getAttribute('aria-selected') === 'true') {
                 followingTabClick = true;
+                // すでにフォロー中タブが選択されていたら最新クリック処理へ
+                SortLatestClick();
                 return;
             }
             followingTab.click();
             followingTabClick = true;
+            // クリックできたら最新クリック処理へ
+            SortLatestClick();
         } catch (e) {
             if (retryCount < 10) {
                 retryCount++;
@@ -2128,6 +2134,70 @@ const TARGET_URL = [
     function FollowTabCheck() {
         if(X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB && location.href.startsWith("https://x.com/home")) {
             setTimeout(FollowingTabClick, 100);
+        }
+    }
+
+    /* ソートメニューの最新項目選択一連処理 */
+    function SortLatestClick(retryCount = 0) {
+        if(!X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT) { return; }
+        if(sortMenuLatestClick) { return; }
+        try {
+            let sortButtons = document.querySelectorAll('[aria-haspopup="menu"]');
+            let sortButton = null;
+            
+            for(let btn of sortButtons) {
+                let tablist = btn.closest('[role="tablist"]');
+                if(tablist) {
+                    sortButton = btn;
+                    break;
+                }
+            }
+            
+            if (!sortButton) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                }
+                return;
+            }
+            sortButton.click();
+            setTimeout(function() { SelectLatestMenuItem(0); }, 150);
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { SortLatestClick(retryCount); }, 100);
+            }
+        }
+    }
+
+    /* ソートメニューの最新項目選択 */
+    function SelectLatestMenuItem(retryCount = 0) {
+        try {
+            let menuItems = document.querySelectorAll('[role="menuitem"], [role="menuitemradio"]');
+            
+            if (menuItems.length === 0) {
+                if (retryCount < 10) {
+                    retryCount++;
+                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                }
+                return;
+            }
+            let latestMenuItem = menuItems[1];
+            if (latestMenuItem.getAttribute('aria-checked') === 'true') {
+                sortMenuLatestClick = true;
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
+                return;
+            }
+            latestMenuItem.click();
+            sortMenuLatestClick = true;
+        } catch (e) {
+            if (retryCount < 10) {
+                retryCount++;
+                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+            } else {
+                sortMenuLatestClick = false;
+                return false;
+            }
         }
     }
 

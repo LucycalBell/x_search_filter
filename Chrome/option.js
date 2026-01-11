@@ -79,6 +79,7 @@ function LoadOption(){
             X_OPTION.REPLY_NO_TEXT_HDN = getOptionPram(r.REPLY_NO_TEXT_HDN, false, TYPE_BOOL);
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
+            X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -117,6 +118,7 @@ function LoadOption(){
             document.getElementById("reply_no_text_hdn").checked = X_OPTION.REPLY_NO_TEXT_HDN;
             document.getElementById("reply_jpn_ratio_hdn").value = X_OPTION.REPLY_JPN_RATIO_HDN;
             document.getElementById("reply_multi_count_border").value = X_OPTION.REPLY_MULTI_COUNT_BORDER;
+            document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -255,6 +257,7 @@ function OptionSave(){
     SAVE_OBJ.REPLY_VERIFIED_HDN = document.getElementById("reply_verified_hdn").checked;
     SAVE_OBJ.REPLY_EMOJI_ONLY_HDN = document.getElementById("reply_emoji_only_hdn").checked;
     SAVE_OBJ.REPLY_NO_TEXT_HDN = document.getElementById("reply_no_text_hdn").checked;
+    SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = document.getElementById("default_selected_follow_tab_latest_select").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -359,6 +362,13 @@ function LinkOptionChange(){
         document.getElementById("link_card_url_view_oneLine").disabled = false;
         document.getElementById("link_card_mismatch_warning").disabled = false;
     }
+
+    if(!document.getElementById("default_selected_follow_tab").checked){
+        document.getElementById("default_selected_follow_tab_latest_select").disabled = true;
+         document.getElementById("default_selected_follow_tab_latest_select").checked = false;
+    } else {
+        document.getElementById("default_selected_follow_tab_latest_select").disabled = false;
+    }
 }
 
 function ArrayObjtoText(arr){
@@ -433,6 +443,7 @@ function EventSet(){
     document.getElementById("reply_jpn_ratio_hdn").addEventListener("input", OptionSave, false);
     document.getElementById("reply_multi_count_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("reply_multi_count_border").addEventListener("input", OptionSave, false);
+    document.getElementById("default_selected_follow_tab_latest_select").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
