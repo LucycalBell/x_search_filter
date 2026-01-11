@@ -67,6 +67,28 @@ input[type="number"]{
     margin-bottom:0.5em;
     box-sizing: border-box;
 }
+.option-title-toggle{
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 2em;
+    display: flex;
+    align-items: center;
+}
+.option-title-toggle::after{
+    content: "▼";
+    position: absolute;
+    right: 0.6em;
+    font-size: 0.9em;
+    color: #2f96ff;
+    transition: transform 0.2s ease;
+}
+.option_block.collapsed .option-title-toggle::after{
+    transform: rotate(-90deg);
+}
+.option_block.collapsed > :not(.option-title){
+    display: none;
+}
 .option_block{
     border-radius: 5px;
     background-color:rgb(255, 255, 255);
@@ -262,17 +284,24 @@ input[type="number"]{
     padding-left: 0.8em;
     position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    gap: 0.35em;
 }
 
 .sub-tree::before {
-    content: "└ ";
+    content: "└";
     color: #2f96ff;
     font-weight: bold;
-    margin-right: 0.3em;
-    font-size: 1.3em;
+    font-size: 1.1em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
     white-space: nowrap;
     flex-shrink: 0;
+}
+
+.sub-tree .switch-container {
+    top: 0;
 }
 
 .switch_box-inline{
@@ -387,7 +416,7 @@ input[type="number"]{
                     </ul>
                 </ul>
             </div>
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">ミュートワード設定</div>
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
                     <h4>ミュートワード（1行1ワード）</h4>
@@ -416,7 +445,7 @@ input[type="number"]{
                     <textarea id="safe_user" class="area-input"></textarea>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">ミュートオプション</div>
 
                 <div class="switch_box">
@@ -538,7 +567,7 @@ input[type="number"]{
                 </div>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">リプライ設定</div>
                 <div class="font_red">※本カテゴリはターゲットURLの設定に関わらずポストページでのみ機能します（それ以外の画面では機能しません）</div>
                 <div class="switch_box zero-bottom-margin">
@@ -591,7 +620,7 @@ input[type="number"]{
                 </div>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">表示設定</div>
 
                 <div class="switch_box zero-bottom-margin">
@@ -625,7 +654,7 @@ input[type="number"]{
                 </div>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
             <div class="option-title">リンク設定</div>
             <div class="switch_box small-bottom-margin">
                 <label class="switch-container">
@@ -702,13 +731,15 @@ input[type="number"]{
                 </label>
             </div>
             <h4>セーフドメイン（1行1ドメイン）</h4>
-            ■ ここで指定したドメインが遷移先の場合、表示URLと遷移先が一致していなくても警告が出なくなります。表示URL判定ではない点ご注意ください。
+            <div>■ ここで指定したドメインが遷移先の場合、表示URLと遷移先が一致していなくても警告が出なくなります。表示URL判定ではない点ご注意ください。</div>
             <textarea id="link_card_url_safe" class="area-input"></textarea><br>
+            <div>
             ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります<br>
             ※ドメイン部のみで判定するため「https://」や「www」、末尾の「/」は除外してください
             </div>
+            </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">ツールシステム設定</div>
                 <div class="switch_box">
                     <label class="switch-container">
@@ -729,10 +760,12 @@ input[type="number"]{
                     </label>
                 </div>
                 <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
-                <input type="number" id="interval_time" class="number-input" value="200">ミリ秒<br>
+                <input type="number" id="interval_time" class="number-input" value="200"><span>ミリ秒</span><br>
                 <h4>ターゲットURL（1行1URL） <button id="default_set_3">初期値に戻す</button></h4>
-                ※本ツールが動作するページを指定、正規表現で指定（twitter.comとx.com以外を指定しても拡張機能自体が動作しないため注意）<br>
-                ※ポストのリプライも対象にする場合は次の指定を追加してください：twitter.com/.*/status/
+                <div>
+                    ※本ツールが動作するページを指定、正規表現で指定（twitter.comとx.com以外を指定しても拡張機能自体が動作しないため注意）<br>
+                    ※ポストのリプライも対象にする場合は次の指定を追加してください：twitter.com/.*/status/
+                </div>
                 <textarea id="target_url" class="area-input area-input-mini">twitter.com/search
     twitter.com/hashtag</textarea>
                 <div class="switch_box zero-top-margin">
@@ -745,9 +778,11 @@ input[type="number"]{
                     </label>
                 </div>
                 <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
-                ※階層はクラス名の要素から何階層上を非表示にするか<br>
-                ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
-                ※「tweet」と記載した場合のみ特別に「tweet」が付与されたdata属性を参照します
+                <div>
+                    ※階層はクラス名の要素から何階層上を非表示にするか<br>
+                    ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
+                    ※「tweet」と記載した場合のみ特別に「tweet」が付与されたdata属性を参照します
+                </div>
                 <textarea id="post_class_area" class="area-input area-input-mini">tweet, 3, article
     css-1rynq56 r-8akbws r-krxsd3 r-dnmrzs r-1udh08x r-bcqeeo r-qvutc0 r-37j5jr r-1b43r93 r-14yzgew r-16dba41 r-bnwqim, 9, div
     css-901oao css-cens5h r-18jsvk2 r-37j5jr r-1b43r93 r-16dba41 r-hjklzo r-bcqeeo r-bnwqim r-qvutc0, 9, div
@@ -764,9 +799,9 @@ input[type="number"]{
                 </div>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">ミュートアカウントリストのインポート</div>
-                インポート状況：<span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
+                <span>インポート状況：</span><span id="manual_import_status" style="margin-right:0.5em;">インポートされていません</span><button id="manual_import_delete" disabled>削除</button>
                 <div class="div_box">
                     <span class="sub_title">ミュートリストファイルのインポート（アカウントリスト）</span><br>
                     インポートタイプ：
@@ -780,7 +815,7 @@ input[type="number"]{
                 </div>
             </div>
 
-            <div class="option_block">
+            <div class="option_block collapsed">
                 <div class="option-title">設定のバックアップと復元</div>
                 <div style="color:red">※「ミュートアカウントリスト」はバックアップ対象外です。「ミュートアカウントリストのインポート」項目の「エクスポート」から別途保管してください</div>
                     <div style="margin-bottom:2em;">

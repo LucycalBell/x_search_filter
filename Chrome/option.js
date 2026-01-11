@@ -3,6 +3,7 @@ let X_OPTION;
 let X_OPTION_SAFE_USER;
 window.onload = function(){
     document.getElementById("version").innerText = chrome.runtime.getManifest().version;
+    SetupOptionBlockToggle();
     EventSet();
     LoadOption();
 };
@@ -391,6 +392,27 @@ function MakeClassArray(str){
         res.push([c[0], c[1], c[2]]);
     }
     return res;
+}
+
+function SetupOptionBlockToggle(){
+    const blocks = document.querySelectorAll(".option_block");
+    blocks.forEach(block => {
+        const title = block.querySelector(".option-title");
+        if(!title){ return; }
+        title.classList.add("option-title-toggle");
+        title.setAttribute("role", "button");
+        title.setAttribute("tabindex", "0");
+        const toggle = () => {
+            block.classList.toggle("collapsed");
+        };
+        title.addEventListener("click", toggle, false);
+        title.addEventListener("keydown", (e) => {
+            if(e.key === "Enter" || e.key === " "){
+                e.preventDefault();
+                toggle();
+            }
+        }, false);
+    });
 }
 
 function EventSet(){
