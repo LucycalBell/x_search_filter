@@ -146,42 +146,42 @@ function LoadOption(){
 }
 
 function LoadOption_SwitchUpdate(){
-    if(Number(X_OPTION.TAG_BORDER) != NaN){
+    if(Number(X_OPTION.TAG_BORDER)){
         if(0 < X_OPTION.TAG_BORDER){
             document.getElementById("hashtag_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.SPACE_BORDER) != NaN){
+    if(Number(X_OPTION.SPACE_BORDER)){
         if(0 < X_OPTION.SPACE_BORDER){
             document.getElementById("space_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TAG_START_BORDER) != NaN){
+    if(Number(X_OPTION.TAG_START_BORDER)){
         if(0 < X_OPTION.TAG_START_BORDER){
             document.getElementById("short_post_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER) != NaN){
+    if(Number(X_OPTION.ACCOUNTNAME_SPACE_BORDER)){
         if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
             document.getElementById("accountname_space_border_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TREND_WORD_BORDER_TEXT) != NaN){
+    if(Number(X_OPTION.TREND_WORD_BORDER_TEXT)){
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
             document.getElementById("trend_word_border_text_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.TREND_WORD_BORDER_NAME) != NaN){
+    if(Number(X_OPTION.TREND_WORD_BORDER_NAME)){
         if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
             document.getElementById("trend_word_border_name_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.REPLY_JPN_RATIO_HDN) != NaN){
+    if(Number(X_OPTION.REPLY_JPN_RATIO_HDN)){
         if(0 < X_OPTION.REPLY_JPN_RATIO_HDN){
             document.getElementById("reply_jpn_ratio_hdn_switch").checked = true;
         }
     }
-    if(Number(X_OPTION.REPLY_MULTI_COUNT_BORDER) != NaN){
+    if(Number(X_OPTION.REPLY_MULTI_COUNT_BORDER)){
         if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER){
             document.getElementById("reply_multi_count_border_switch").checked = true;
         }

@@ -1368,7 +1368,9 @@ const TARGET_URL = [
                     if(doc[i].children[0].children[1].innerText.trim() != ""){
                         trend.push(doc[i].children[0].children[1].innerText.replace("#", "").toUpperCase());
                     }
-                } catch(e){;}
+                } catch(e){
+                    console.error(e);
+                }
             }
         }
         return trend;
@@ -1561,7 +1563,9 @@ const TARGET_URL = [
             document.body.removeEventListener("touchmove", CountBtn_MouseMove, false);
             drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
             drag.classList.remove("drag");
-        } catch(err){;}
+        } catch(err){
+            console.error(err);
+        }
     }
 
     let CountBtnMoveStartTime;
