@@ -1607,6 +1607,7 @@ const TARGET_URL = [
             lstArea.style.borderRadius = "12px";
             lstArea.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
             lstArea.style.overflow = "hidden";
+
             
             let lstDiv = document.createElement("div");
             lstDiv.id = "x9uVvQH_lst";
@@ -1715,8 +1716,6 @@ const TARGET_URL = [
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
-        document.body.style.overflow = "hidden";
-        document.documentElement.style.overflow = "hidden";
         
         let listFragment = document.createDocumentFragment();
         
@@ -1730,6 +1729,7 @@ const TARGET_URL = [
         
         let mainDiv = document.createElement('div');
         mainDiv.style.color = '#000';
+        mainDiv.style.overscrollBehavior = 'contain';
         listFragment.appendChild(mainDiv);
 
         if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
@@ -1786,6 +1786,7 @@ const TARGET_URL = [
         
         let postsContainer = document.createElement('div');
         postsContainer.style.margin = '0 0.2rem';
+        postsContainer.style.overscrollBehavior = 'contain';
         
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
@@ -1879,8 +1880,6 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") != null){
             document.getElementById("x9uVvQH_lst_base").style.display = "none";
             document.getElementById("x9uVvQH_ar").style.display = "block";
-            document.body.style.overflow = "";
-            document.documentElement.style.overflow = "";
         }
     }
     
