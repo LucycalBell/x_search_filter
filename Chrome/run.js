@@ -249,8 +249,7 @@ const TARGET_URL = [
         }
 
         if(view_url != location.href){
-            postBlockViewNumber = 0;
-            hidden_posts = [];
+            postBlockCounterReset();
         }
         BlockCount();
 
@@ -261,8 +260,7 @@ const TARGET_URL = [
         if((activeUrl || isPostPageOptionActive()) && X_OPTION.BLOCK_COUNT_VIEW){
             if(document.getElementById("x9uVvQH") != null){
                 if(document.getElementById("x9uVvQH").style.display == "none"){
-                    postBlockViewNumber = 0;
-                    hidden_posts = [];
+                    postBlockCounterReset();
                     BlockCount();
                 }
                 document.getElementById("x9uVvQH").style.display = "block";
@@ -1265,7 +1263,7 @@ const TARGET_URL = [
                 post_parent.removeAttribute(DATA_XFILTER_HIDDEN);
             }
         }
-        postBlockViewNumber = 0;
+        postBlockCounterReset();
         if(X_OPTION.BLOCK_COUNT_VIEW){
             BlockCount();
         }
@@ -2469,6 +2467,14 @@ const TARGET_URL = [
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
         const ratio = Math.floor((japaneseCount / text.length) * 100);
         return ratio;
+    }
+
+    function postBlockCounterReset() {
+        postBlockViewNumber = 0;
+        hidden_posts = [];
+        checked_IdList = [];
+        checked_UserNameList = [];
+        block_postIdList = [];
     }
 
     TwitterSearchBlockMain();
