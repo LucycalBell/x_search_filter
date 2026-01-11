@@ -603,8 +603,9 @@ input[type="number"]{
                         <input type="checkbox" id="reply_jpn_ratio_hdn_switch">
                         <span class="slider"></span>
                         <div class="switch-text">
-                            <span class="switch-label">ポスト内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライを非表示にする</span>
-                            <span class="switch_sub_text">※短文だと誤検知多くなります。（例えば「新しいiPhone買った」で50%です）</span>
+                            <span class="switch-label">ポスト内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライを非表示にする</span><br>
+                            <span class="switch_sub_text">※メンション、URL、ハッシュタグは除外されます</span><br>
+                            <span class="switch_sub_text">※数字が大きくなるほど厳しくなります</span>
                         </div>
                     </label>
                     <div class="switch_sub_option" id="reply_jpn_ratio_hdn_subOption">→ ミュートにする日本語率：<input type="number" id="reply_jpn_ratio_hdn" class="number-input" value="0" min="0">%以下をミュート</div>
@@ -650,7 +651,8 @@ input[type="number"]{
                         <input type="checkbox" id="default_selected_follow_tab_latest_select">
                         <span class="slider"></span>
                         <div class="switch-text">
-                            <span class="switch-label">最新タブを選択する</span>
+                            <span class="switch-label">最新タブを選択する</span><br>
+                            <span class="switch_sub_text">※どちらが選択されているか確認のため一瞬ソートダイアログが表示されます</span>
                         </div>
                     </label>
                 </div>

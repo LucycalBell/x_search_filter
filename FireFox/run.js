@@ -325,7 +325,7 @@ const TARGET_URL = [
                 viewDomain = "";
                 if(0 < a[i].getElementsByTagName("a").length && a[i].getElementsByTagName("a")[0].ariaLabel != null){
                     linkDomain = a[i].getElementsByTagName("a")[0].href;
-                    viewDomain = a[i].getElementsByTagName("a")[0].ariaLabel.split(" ")[0];
+                    viewDomain = getDomainFromText(a[i].getElementsByTagName("a")[0].ariaLabel) || "";
                 }
                 cardList.push([a[i], viewDomain, linkDomain]);
             }
@@ -336,7 +336,7 @@ const TARGET_URL = [
             b = cardList[i][0].getElementsByTagName("a");
             for(let q=0;q<b.length;q++){
                 if(b[q] != void 0 && b[q].ariaLabel != null && b[q].ariaLabel.includes(".")){
-                    labeltxt = b[q].ariaLabel.trim();
+                    labeltxt = getDomainFromText(b[q].ariaLabel) || "";
                     break;
                 }
             }
@@ -409,7 +409,7 @@ const TARGET_URL = [
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
             if(item.ariaLabel !== void 0 && item.ariaLabel.includes(".")){
-                return item.ariaLabel.split(" ")[0];
+                return getDomainFromText(item.ariaLabel);
             }
         }
         return null;
@@ -418,7 +418,7 @@ const TARGET_URL = [
     function getCardLink(card) {
         let aList = card.parentElement.parentElement.getElementsByTagName("a");
         for(const item of aList){
-            if(item.ariaLabel == void 0 && item.href.startsWith("http")){
+            if((item.ariaLabel == void 0 || item.ariaLabel.trim() == "" || !item.ariaLabel.includes(".")) && item.href.startsWith("http")){
                 return item;
             }
         }
@@ -959,10 +959,51 @@ const TARGET_URL = [
         return null;
     }
 
+    /* URLからドメイン部分を取得 */
     function getDomain(url){
         if(!url){ return null; }
         const match = url.match(/^(?:https?:\/\/)?(?:www.)?([^/]+)/i);
         return (match && match[1]) ? match[1] : null;
+    }
+
+    /* テキストの中からドメイン部分を取得 */
+    /* こちらはURLではなく、テキストからドメインを抽出する関数（例：ああgoogle.comいい → google.com） */
+    function getDomainFromText(text){
+        if(!text || typeof text !== 'string'){
+            return null;
+        }
+        
+        text = text.trim();
+        if(text === ''){
+            return null;
+        }
+        
+        const domainPattern = /(?:^|[^a-zA-Z0-9-])([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)(?:[^a-zA-Z0-9-]|$)/g;
+        
+        let matches = [];
+        let match;
+        
+        while((match = domainPattern.exec(text)) !== null){
+            let domain = match[1];
+            let parts = domain.split('.');
+            let tld = parts[parts.length - 1];
+            if(tld.length >= 2){
+                matches.push(domain);
+            }
+        }
+        
+        if(matches.length > 0){
+            return matches[0];
+        }
+        
+        let words = text.split(/\s+/);
+        for(let word of words){
+            if(word.includes('.') && isDomainText(word)){
+                return word;
+            }
+        }
+        
+        return null;
     }
     
     function getDisplayDomain(linkElement){
@@ -1110,7 +1151,7 @@ const TARGET_URL = [
                 }
             }
             if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
-                if(getJapaneseRatio(getPostText(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
+                if(getJapaneseRatio(getPostTextTag(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
                     block_type = 14;
                     return true;
                 }
@@ -2040,6 +2081,30 @@ const TARGET_URL = [
                 return a[i].href;
             }
         }
+
+        try{
+            const links = post.querySelectorAll('a[href*="/status/"]');
+            for(const link of links){
+                const href = link.getAttribute('href');
+                if(!href){ continue; }
+                const m = href.match(/\/status\/(\d+)/);
+                if(m && m[1]){
+                    let cleanHref = href.split('?')[0].replace(/\/analytics(?:\/.*)?$/, "");
+                    if(cleanHref.startsWith('/')){
+                        return 'https://x.com' + cleanHref;
+                    }
+                    return cleanHref;
+                }
+            }
+        } catch(e){
+            ;
+        }
+
+        const id = getPostId(post);
+        const user = getPostUserName(post, true);
+        if(id && user){
+            return 'https://x.com/' + user + '/status/' + id;
+        }
         return null;
     }
 
@@ -2466,11 +2531,15 @@ const TARGET_URL = [
         return false;
     }
 
-    /* 渡されたテキストの日本語（ひらがな／カタカナ／漢字）の割合を返却 */
-    function getJapaneseRatio(text) {
-        if (!text || typeof text !== 'string' || text.length === 0) {
+    /* 渡されたテキスト要素から日本語（ひらがな／カタカナ／漢字）の割合を返却 */
+    function getJapaneseRatio(textElement) {
+        if (!textElement || textElement.nodeType !== Node.ELEMENT_NODE) {
             return 0;
         }
+        const clone = textElement.cloneNode(true);
+        const links = clone.querySelectorAll('a');
+        links.forEach(link => link.remove());
+        const text = clone.textContent || '';
         const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
         const ratio = Math.floor((japaneseCount / text.length) * 100);
