@@ -196,7 +196,7 @@ const TARGET_URL = [
                         c = {};
                     }
                 } catch(e){
-                    console.error(e);
+                    console.warn(e);
                     c = {};
                 }
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
@@ -1242,11 +1242,16 @@ const TARGET_URL = [
         }
         let post_parent = getPostParent(post, postClass_Hierarchy[1]);
         if(post_parent.style.visibility != "hidden"){
-            hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
+            // 既に非表示リストアップされているポストはカウントから除外
+            if(!existsInHiddenList(getPostId(post))) {
+                hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
+                block_postIdList.push(getPostId(post));
+                postBlockViewNumber++;
+            }
+            // カウントから除外した場合でも非表示は実行（
             post_parent.style.visibility = "hidden";
             post_parent.style.height = "0px";
             post_parent.setAttribute(DATA_XFILTER_HIDDEN, "true");
-            postBlockViewNumber++;
             if(X_OPTION.BLOCK_COUNT_VIEW){
                 BlockCount();
             }
@@ -1369,7 +1374,7 @@ const TARGET_URL = [
                         trend.push(doc[i].children[0].children[1].innerText.replace("#", "").toUpperCase());
                     }
                 } catch(e){
-                    console.error(e);
+                    ;
                 }
             }
         }
@@ -1468,7 +1473,7 @@ const TARGET_URL = [
             let addtag = document.createElement("div");
             addtag.id = "x9uVvQH";
             addtag.style.position = "fixed";
-            addtag.style.top = "0.5em";
+            addtag.style.top = "2.5em";
             addtag.style.left = "0.5em";
             document.body.appendChild(addtag);
             
@@ -1564,7 +1569,7 @@ const TARGET_URL = [
             drag.removeEventListener("touchend", CountBtn_MoveEnd, false);
             drag.classList.remove("drag");
         } catch(err){
-            console.error(err);
+            ;
         }
     }
 
@@ -1710,6 +1715,8 @@ const TARGET_URL = [
         } else {
             document.getElementById("x9uVvQH_lst_base").style.display = "block";
         }
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
         
         let listFragment = document.createDocumentFragment();
         
@@ -1872,6 +1879,8 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") != null){
             document.getElementById("x9uVvQH_lst_base").style.display = "none";
             document.getElementById("x9uVvQH_ar").style.display = "block";
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
         }
     }
     
@@ -1956,7 +1965,7 @@ const TARGET_URL = [
                 }
             }
         } catch (e) {
-            console.error('Error in getPostId:', e);
+            console.warn('Error in getPostId:', e);
         }
         return null;
     }

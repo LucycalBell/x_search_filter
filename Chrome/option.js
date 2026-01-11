@@ -366,7 +366,7 @@ function LinkOptionChange(){
 
     if(!document.getElementById("default_selected_follow_tab").checked){
         document.getElementById("default_selected_follow_tab_latest_select").disabled = true;
-         document.getElementById("default_selected_follow_tab_latest_select").checked = false;
+        document.getElementById("default_selected_follow_tab_latest_select").checked = false;
     } else {
         document.getElementById("default_selected_follow_tab_latest_select").disabled = false;
     }
@@ -580,8 +580,10 @@ function BackupExport(option_obj){
     let blob = new Blob([ content ], { "type" : "text/plain" });
     let url = window.URL.createObjectURL(blob);
     let a = document.getElementById("backup_export_link");
+    const df = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const result = df.format(new Date()).replace(/[^0-9]/g, '');
     a.href = window.URL.createObjectURL(blob);
-    a.download = "XFilter_Backup_" + new Date().getTime() + ".json";
+    a.download = "XFilter_Backup_" + result + ".json";
     window.URL.revokeObjectURL(url);
 }
 

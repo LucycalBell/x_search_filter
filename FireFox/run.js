@@ -1566,6 +1566,9 @@ const TARGET_URL = [
             addtag.appendChild(lstArea);
             
             document.body.appendChild(addtag);
+            // モーダル表示時に背後のスクロールを防止
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
             document.getElementById("x9uVvQH_cls").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst_base").addEventListener("click", HiddenPostList_Cls, false);
             document.getElementById("x9uVvQH_lst").addEventListener("click", function(e){e.stopPropagation();}, false);
@@ -1734,6 +1737,9 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") != null){
             document.getElementById("x9uVvQH_lst_base").style.display = "none";
             document.getElementById("x9uVvQH_ar").style.display = "block";
+            // モーダルクローズ時にスクロール復元
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
         }
     }
     
