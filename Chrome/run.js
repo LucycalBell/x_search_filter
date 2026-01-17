@@ -31,8 +31,10 @@ const TARGET_URL = [
         11:"トレンドワード数超過(ユーザー名)",
         12:"絵文字のみリプライ",
         13:"テキストなしリプライ",
-        14:"日本語比率が指定値以下",
-        15:"同一ユーザーからのリプライ数超過"
+        14:"ポスト本文の日本語比率が指定値以下",
+        15:"同一ユーザーからのリプライ数超過",
+        16:"プロフィール文の日本語比率が指定値以下",
+        17:"プロフィールの文字数が指定値以下"
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -172,6 +174,8 @@ const TARGET_URL = [
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
+            X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN = getOptionPram(r.REPLY_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
 
             TrendDataLoad();
 
@@ -1097,6 +1101,7 @@ const TARGET_URL = [
     function PostBlockCheck(post){
         block_type = -1;
         let postl;
+        let postObj = getPostDataObject(post);
 
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
@@ -1159,6 +1164,12 @@ const TARGET_URL = [
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
                 if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
+                    return true;
+                }
+            }
+            if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
+                if(japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
+                    block_type = 16;
                     return true;
                 }
             }
@@ -1271,6 +1282,13 @@ const TARGET_URL = [
         if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
             if(X_OPTION.TREND_WORD_BORDER_NAME <= getTrendWordCount(getPostAccountName(post).toUpperCase())){
                 block_type = 11;
+                return true;
+            }
+        }
+
+        if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
+            if(japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
+                block_type = 16;
                 return true;
             }
         }
@@ -1442,7 +1460,8 @@ const TARGET_URL = [
                 X_OPTION.REPLY_EMOJI_ONLY_HDN || 
                 X_OPTION.REPLY_NO_TEXT_HDN || 
                 0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
-                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER
+                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER ||
+                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN
             ) && isPostPage();
     }
 
@@ -2532,6 +2551,62 @@ const TARGET_URL = [
         return false;
     }
 
+    /* ポスト要素からプロフィールデータを取得 */
+    function getPostDataObject(post) {
+        try {
+            let element = post;
+            let maxDepth = 10;
+            let depth = 0;
+            
+            while (element && depth < maxDepth) {
+                if (element.hasAttribute && element.hasAttribute('cslt_tweet_info')) {
+                    const jsonStr = element.getAttribute('cslt_tweet_info');
+                    if (jsonStr) {
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            
+                            return {
+                                user_data: data.user_data ? {
+                                    name: data.user_data.name,
+                                    screen_name: data.user_data.scr_name,
+                                    user_id: data.user_data.user_id,
+                                    description: data.user_data.description,
+                                    all_tweet_count: data.user_data.all_tweet_count,
+                                    is_blue: data.user_data.is_blue,
+                                    location: data.user_data.location,
+                                    account_create_date: data.user_data.account_create_date,
+                                    blocked_by: data.user_data.blocked_by
+                                } : null,
+                                in_reply_user_data: data.in_reply_user_data ? {
+                                    user_id: data.in_reply_user_data.user_id,
+                                    screen_name: data.in_reply_user_data.scr_name
+                                } : null,
+                                tweet_id: data.tweet_id,
+                                text: data.text,
+                                tweet_lang: data.tweet_lang,
+                                is_reply: data.is_reply,
+                                is_promoted: data.is_promoted,
+                                tweet_client: data.tweet_client,
+                                mentions: data.mentions || [],
+                                raw: data
+                            };
+                        } catch (parseError) {
+                            console.warn('Error parsing cslt_tweet_info JSON:', parseError);
+                            return null;
+                        }
+                    }
+                }
+                element = element.parentElement;
+                depth++;
+            }
+            
+            return null;
+        } catch (e) {
+            console.warn('Error in getProfileData:', e);
+            return null;
+        }
+    }
+
     /* 渡されたテキスト要素から日本語（ひらがな／カタカナ／漢字）の割合を返却 */
     function getJapaneseRatio(textElement) {
         if (!textElement || textElement.nodeType !== Node.ELEMENT_NODE) {
@@ -2565,6 +2640,14 @@ const TARGET_URL = [
             return 0;
         }
         
+        return japaneseRatio(text);
+    }
+
+    /* 渡されたテキストから日本語（ひらがな／カタカナ／漢字）の割合を返却 */
+    function japaneseRatio(text) {
+        if (text == null || text == undefined) {
+            return 0;
+        }
         const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
         const ratio = Math.floor((japaneseCount / text.length) * 100);

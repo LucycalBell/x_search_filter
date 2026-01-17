@@ -81,6 +81,8 @@ function LoadOption(){
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
+            X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN = getOptionPram(r.REPLY_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -120,6 +122,8 @@ function LoadOption(){
             document.getElementById("reply_jpn_ratio_hdn").value = X_OPTION.REPLY_JPN_RATIO_HDN;
             document.getElementById("reply_multi_count_border").value = X_OPTION.REPLY_MULTI_COUNT_BORDER;
             document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
+            document.getElementById("reply_profile_jpn_ratio_hdn").value = X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN;
+            document.getElementById("post_profile_jpn_ratio_hdn").value = X_OPTION.POST_PROFILE_JPN_RATIO_HDN;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -189,6 +193,16 @@ function LoadOption_SwitchUpdate(){
             document.getElementById("reply_multi_count_border_switch").checked = true;
         }
     }
+    if(Number(X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN)){
+        if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN){
+            document.getElementById("reply_profile_jpn_ratio_hdn_switch").checked = true;
+        }
+    }
+    if(Number(X_OPTION.POST_PROFILE_JPN_RATIO_HDN)){
+        if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN){
+            document.getElementById("post_profile_jpn_ratio_hdn_switch").checked = true;
+        }
+    }
     SubOptionVisibleSwitch();
 }
 
@@ -224,6 +238,16 @@ function OptionSave(){
         SAVE_OBJ.REPLY_MULTI_COUNT_BORDER = document.getElementById("reply_multi_count_border").value;
     } else {
         SAVE_OBJ.REPLY_MULTI_COUNT_BORDER = "0";
+    }
+    if(document.getElementById("reply_profile_jpn_ratio_hdn_switch").checked){
+        SAVE_OBJ.REPLY_PROFILE_JPN_RATIO_HDN = document.getElementById("reply_profile_jpn_ratio_hdn").value;
+    } else {
+        SAVE_OBJ.REPLY_PROFILE_JPN_RATIO_HDN = "0";
+    }
+    if(document.getElementById("post_profile_jpn_ratio_hdn_switch").checked){
+        SAVE_OBJ.POST_PROFILE_JPN_RATIO_HDN = document.getElementById("post_profile_jpn_ratio_hdn").value;
+    } else {
+        SAVE_OBJ.POST_PROFILE_JPN_RATIO_HDN = "0";
     }
     SAVE_OBJ.DEFAULT_ICON_BLOCK = document.getElementById("default_icon_block").checked;
     SAVE_OBJ.DEFAULT_ICON_NAME = document.getElementById("default_icon_name").value;
@@ -343,6 +367,22 @@ function SubOptionVisibleSwitch(){
     } else {
         document.getElementById("reply_multi_count_border_subOption").classList.add("suboption_close");
         document.getElementById("reply_multi_count_border_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("reply_profile_jpn_ratio_hdn_switch").checked){
+        document.getElementById("reply_profile_jpn_ratio_hdn_subOption").classList.add("suboption_open");
+        document.getElementById("reply_profile_jpn_ratio_hdn_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("reply_profile_jpn_ratio_hdn_subOption").classList.add("suboption_close");
+        document.getElementById("reply_profile_jpn_ratio_hdn_subOption").classList.remove("suboption_open");
+    }
+
+    if(document.getElementById("post_profile_jpn_ratio_hdn_switch").checked){
+        document.getElementById("post_profile_jpn_ratio_hdn_subOption").classList.add("suboption_open");
+        document.getElementById("post_profile_jpn_ratio_hdn_subOption").classList.remove("suboption_close");
+    } else {
+        document.getElementById("post_profile_jpn_ratio_hdn_subOption").classList.add("suboption_close");
+        document.getElementById("post_profile_jpn_ratio_hdn_subOption").classList.remove("suboption_open");
     }
 }
 
@@ -466,6 +506,10 @@ function EventSet(){
     document.getElementById("reply_multi_count_border_switch").addEventListener("change", OptionSave, false);
     document.getElementById("reply_multi_count_border").addEventListener("input", OptionSave, false);
     document.getElementById("default_selected_follow_tab_latest_select").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_profile_jpn_ratio_hdn_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("reply_profile_jpn_ratio_hdn").addEventListener("input", OptionSave, false);
+    document.getElementById("post_profile_jpn_ratio_hdn_switch").addEventListener("change", OptionSave, false);
+    document.getElementById("post_profile_jpn_ratio_hdn").addEventListener("input", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

@@ -566,6 +566,19 @@ input[type="number"]{
                         </div>
                     </label>
                 </div>
+
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="post_profile_jpn_ratio_hdn_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">ポストユーザーのプロフィール内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライを非表示にする</span><br>
+                            <span class="switch_sub_text">※数字が大きくなるほど厳しくなります</span><br>
+                            <span class="switch_sub_text">※特に巻き込み非表示が発生しやすいオプションのためご注意ください</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="post_profile_jpn_ratio_hdn_subOption">→ ミュートにする日本語率：<input type="number" id="post_profile_jpn_ratio_hdn" class="number-input" value="0" min="0">%以下をミュート</div>
+                </div>
             </div>
 
             <div class="option_block collapsed">
@@ -620,6 +633,18 @@ input[type="number"]{
                         </div>
                     </label>
                     <div class="switch_sub_option" id="reply_multi_count_border_subOption">→ 同アカウントのリプライ数：<input type="number" id="reply_multi_count_border" class="number-input" value="0" min="0">回以上をミュート</div>
+                </div>
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="reply_profile_jpn_ratio_hdn_switch">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">リプライユーザーのプロフィール内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライを非表示にする</span><br>
+                            <span class="switch_sub_text">※数字が大きくなるほど厳しくなります</span><br>
+                            <span class="switch_sub_text">※特に巻き込み非表示が発生しやすいオプションのためご注意ください</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="reply_profile_jpn_ratio_hdn_subOption">→ ミュートにする日本語率：<input type="number" id="reply_profile_jpn_ratio_hdn" class="number-input" value="0" min="0">%以下をミュート</div>
                 </div>
             </div>
 
