@@ -395,6 +395,7 @@ input[type="number"]{
 }
 .font_bold {
     font-weight: bold;
+    color: black;
 }
   
         </style>
@@ -418,13 +419,38 @@ input[type="number"]{
                         <li><a href="https://github.com/LucycalBell/x_search_filter/" target="_blank">GitHub</a></li>
                     </ul>
                 </ul>
+                <h4>表示名の表記について</h4>
+                <div>一部表記に揺れが生じていましたが以下に統一しました</div>
+                <ul>
+                    <li>ユーザー名：@から始まるアカウントの識別子</li>
+                    <li>アカウント名：プロフィールで大きく表示される名前（ニックネーム）</li>
             </div>
             <div class="option_block collapsed">
                 <div class="option-title">ミュートワード設定</div>
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
-                    <h4>ミュートワード（1行1ワード）</h4>
+                    <h4>ミュートワード（非表示にするワード/1行1ワード）</h4>
+                    <div class="switch-text">
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                    </div>
                     <textarea id="mute_words" class="area-input"></textarea>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="mute_word_list_hidden">
+                            <span class="slider"></span>
+                            <div class="switch-text">
+                                <span class="switch-label">ミュートワード一致で非表示にしたポストは「非表示にしたポスト」に表示しない</span>
+                                <div class="switch-text">
+                                    <span class="switch_sub_text">※ネタバレ防止などでワード設定している場合非表示一覧から目に入ってしまうので防止用</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
                     <h4>セーフワード（除外しないワード/1行1ワード）</h4>
+                    <div class="switch-text">
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                    </div>
                     <textarea id="exclude_words" class="area-input"></textarea>
 
                     <div class="switch_box">
@@ -437,14 +463,26 @@ input[type="number"]{
 
                     <div class="switch_box">
                         <label class="switch-container">
-                            <input type="checkbox" id="post_check_all">
+                            <input type="checkbox" id="post_check_accountname">
                             <span class="slider"></span>
-                            <span class="switch-label">ミュート/セーフワードをポスト全体からチェックする（OFF時はポスト本文のみ、ON時はユーザー名やIDも含んでチェック）</span>
+                            <span class="switch-label">アカウント名にも適用する</span>
                         </label>
                     </div>
 
-                    <h4>セーフユーザー（1行1ユーザー）</h4>
-                    <div>※非表示にしたくないユーザー名を記載（先頭の@は不要、記載した場合無視されます）</div>
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="post_check_all">
+                            <span class="slider"></span>
+                            <div class="switch-text">
+                                <span class="switch-label">ミュート/セーフワードをポスト全体からチェックする</span>
+                                <span class="switch_sub_text">※「アカウント名にも適用する」とは異なりこちらはユーザー名や投稿時間、RP数、いいね数などポスト内に表示されているあらゆるテキストが対象となります</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <h4>セーフユーザー（非表示にしないユーザー/1行1ユーザー）</h4>
+                    <div class="switch_sub_text">※こちらは「@」から始まるユーザー名で指定します</div>
+                    <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
                     <textarea id="safe_user" class="area-input"></textarea>
             </div>
 
@@ -527,7 +565,7 @@ input[type="number"]{
                         <input type="checkbox" id="trend_word_border_name_switch">
                         <span class="slider"></span>
                         <div class="switch-text">
-                            <span class="switch-label">トレンドワードを多数含むポストをミュート（ユーザー名）</span>
+                            <span class="switch-label">トレンドワードを多数含むポストをミュート（アカウント名）</span>
                             <span class="switch_sub_text">※トレンドが自動取得できないためトレンド一覧を開いた直後のみこの機能は有効になります（トレンド取得できているとブロックポスト件数の横に💾アイコンが表示されます）</span>
                             <span class="switch_sub_text">※トレンド（初期表示のおすすめタブはNG）表示時に自動でトレンド一覧を取得します</span>
                         </div>

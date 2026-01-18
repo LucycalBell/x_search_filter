@@ -176,6 +176,8 @@ const TARGET_URL = [
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
             X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN = getOptionPram(r.REPLY_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1186,10 +1188,15 @@ const TARGET_URL = [
             postl = getPostText(post).split(/\n/);
         }
         if(X_OPTION.REG_EXP){
+            /* 正規表現モード */
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
                         if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
+                        }
                     }
                 }
             }
@@ -1197,14 +1204,23 @@ const TARGET_URL = [
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
                         if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
+                        }
                     }
                 }
             }
         } else {
+            /* 通常モード */
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
                         if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
+                        }
                     }
                 }
             }
@@ -1212,6 +1228,10 @@ const TARGET_URL = [
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
                         if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
+                        }
                     }
                 }
             }
@@ -1850,6 +1870,10 @@ const TARGET_URL = [
         
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
+                /* ミュートワード一致で非表示のポストをリストに表示しない設定の場合は一覧追加処理スキップ */
+                if(X_OPTION.MUTE_WORD_LIST_HIDDEN && hidden_posts[i][1] == 0){
+                    continue;
+                }
                 let btn = document.createElement('button');
                 btn.id = 'hl_' + i;
                 btn.setAttribute('data-huserid', hidden_posts[i][2]);
