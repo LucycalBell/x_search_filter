@@ -1,6 +1,6 @@
 {
   "name": "X検索ミュートツール",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "manifest_version": 3,
   "description": "Xの検索結果にミュートワードを設定出来るようにします",
   "offline_enabled": false,
