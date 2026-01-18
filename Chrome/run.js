@@ -1813,11 +1813,12 @@ const TARGET_URL = [
             closeBtn.style.textAlign = "center";
             closeBtn.style.fontWeight = "bold";
             closeBtn.style.fontSize = "1.1rem";
-            closeBtn.style.background = "linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%)";
+            closeBtn.style.background = "#f47521";
             closeBtn.style.color = "#fff";
             closeBtn.style.borderTop = "none";
             closeBtn.style.cursor = "pointer";
             closeBtn.style.transition = "opacity 0.2s";
+            closeBtn.style.boxShadow = "none";
             closeBtn.onmouseover = function(){ this.style.opacity = "0.9"; };
             closeBtn.onmouseout = function(){ this.style.opacity = "1"; };
             
@@ -1931,6 +1932,14 @@ const TARGET_URL = [
                 }
             }
         }
+        let lstElement = document.getElementById("x9uVvQH_lst");
+        if(lstElement){
+            if(lstElement.dataset.shadowListenerAdded !== "true"){
+                lstElement.addEventListener("scroll", UpdateCloseButtonShadow, false);
+                lstElement.dataset.shadowListenerAdded = "true";
+            }
+            UpdateCloseButtonShadow();
+        }
     }
 
     function AddSafe(ev){
@@ -1951,6 +1960,22 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") != null){
             document.getElementById("x9uVvQH_lst_base").style.display = "none";
             document.getElementById("x9uVvQH_ar").style.display = "block";
+        }
+    }
+
+    /* 非表示一覧がスクロール可能な場合ボタンに影を付ける */
+    function UpdateCloseButtonShadow(){
+        let listEl = document.getElementById("x9uVvQH_lst");
+        let closeBtn = document.getElementById("x9uVvQH_cls");
+        if(!listEl || !closeBtn){ return; }
+
+        const isScrollable = listEl.scrollHeight > (listEl.clientHeight + 1);
+        const atBottom = Math.ceil(listEl.scrollTop + listEl.clientHeight) >= (listEl.scrollHeight - 1);
+
+        if(isScrollable && !atBottom){
+            closeBtn.style.boxShadow = "0 -6px 14px rgba(0, 0, 0, 0.25)";
+        } else {
+            closeBtn.style.boxShadow = "none";
         }
     }
     
