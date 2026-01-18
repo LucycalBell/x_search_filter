@@ -1138,11 +1138,6 @@ const TARGET_URL = [
             return false;
         }
 
-        /* ポストページの場合ツリーポスト（表示中ポストとそれより上）は除外 */
-        if(isPostPage() && isTree(post)){
-            return false;
-        }
-
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
@@ -2569,22 +2564,6 @@ const TARGET_URL = [
                 chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
             }
         }
-    }
-
-    /* ツイートがツリー構造の一部かどうかを判定する関数 */
-    function isTree(tweetArticle) {
-        const divs = tweetArticle.getElementsByTagName('div');
-        
-        for (let i = 0; i < divs.length; i++) {
-            const div = divs[i];
-            if (div.children.length === 0) {
-                const style = window.getComputedStyle(div);
-                if (style.width === '2px' && style.position === 'absolute') {
-                    return true; 
-                }
-            }
-        }
-        return false;
     }
 
     /* ポスト要素からプロフィールデータを取得 */
