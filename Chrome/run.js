@@ -1125,11 +1125,6 @@ const TARGET_URL = [
             }
         }
 
-        /* 表示中ユーザーの投稿は除外 */
-        if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
-            return false;
-        }
-
         if(isDialog(post)){
             return false;
         }
@@ -1150,6 +1145,12 @@ const TARGET_URL = [
                         return false;
                 }
             }
+
+            /* 表示中ユーザーの投稿は除外 */
+            if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
+                return false;
+            }
+
             /* 認証アカウントミュート判定 */
             if(X_OPTION.REPLY_VERIFIED_HDN) {
                 if(isVerified(post)){
@@ -1206,6 +1207,11 @@ const TARGET_URL = [
                 return true;
             case WORD_BLOCK_TYPE.EXCLUDE:
                 return false;
+        }
+
+        /* 表示中ユーザーの投稿は除外 */
+        if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
+            return false;
         }
 
         if(0 < manual_spam_list.length){
