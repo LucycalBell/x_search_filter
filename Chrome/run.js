@@ -1109,7 +1109,6 @@
     
     function PostBlockCheck(post){
         block_type = -1;
-        let postl;
         let postObj = getPostDataObject(post);
 
         if(!checked_IdList.includes(getPostId(post))){
@@ -1189,7 +1188,7 @@
             }
             /* プロフィール日本語比率ミュート判定 */
             if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
-                if(japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
+                if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
                     block_type = 16;
                     return true;
                 }
@@ -1285,7 +1284,7 @@
         }
 
         if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
-            if(japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
+            if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
                 block_type = 16;
                 return true;
             }
@@ -1317,6 +1316,7 @@
 
     /* ワード系のミュート判定 */
     function postWordCheck(post) {
+        let postl;
         if(X_OPTION.POST_CHECK_ALL){
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
         } else {
@@ -2675,8 +2675,8 @@
 
     /* 渡されたテキストから日本語（ひらがな／カタカナ／漢字）の割合を返却 */
     function japaneseRatio(text) {
-        if (text == null || text == undefined) {
-            return 0;
+        if (!text) {
+            return 100;
         }
         const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
