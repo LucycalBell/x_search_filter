@@ -1811,55 +1811,6 @@ const TARGET_URL = [
         mainDiv.style.color = '#000';
         mainDiv.style.overscrollBehavior = 'contain';
         listFragment.appendChild(mainDiv);
-
-        if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
-            let hr1 = document.createElement('hr');
-            mainDiv.appendChild(hr1);
-            
-            let optionTitle = document.createElement('p');
-            optionTitle.textContent = '※以下のオプションが設定されています';
-            mainDiv.appendChild(optionTitle);
-            
-            let ul = document.createElement('ul');
-            
-            if(0 < X_OPTION.TAG_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ハッシュタグが' + X_OPTION.TAG_BORDER + '以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.TAG_START_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ハッシュタグから始まる行が' + X_OPTION.TAG_START_BORDER + '行以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.ACCOUNTNAME_SPACE_BORDER + '以上あるアカウント名のポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.DEFAULT_ICON_BLOCK){
-                let li = document.createElement('li');
-                li.textContent = 'プロフィールアイコン未設定アカウントからのポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.SPACE_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.SPACE_BORDER + '以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.VERIFIED_HDN){
-                let li = document.createElement('li');
-                li.textContent = '認証済みアカウントのポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-                let li = document.createElement('li');
-                li.textContent = '検索ワードがアカウント名にしか存在しないポストを非表示';
-                ul.appendChild(li);
-            }
-            
-            mainDiv.appendChild(ul);
-        }
         
         let hr2 = document.createElement('hr');
         mainDiv.appendChild(hr2);
