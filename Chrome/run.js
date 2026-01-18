@@ -1,7 +1,8 @@
-
-const TARGET_URL = [
+    const TARGET_URL = [
     "twitter.com/search",
-    "twitter.com/hashtag"
+    "twitter.com/hashtag",
+    "twitter.com/i/trending",
+    "twitter.com/explore"
     ];
     const DEFAULT_ICON_NAME = "default_profile_normal.png";
     const POST_CLASS = [
