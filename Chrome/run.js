@@ -2246,16 +2246,16 @@ const TARGET_URL = [
             if (!sortButton) {
                 if (retryCount < 10) {
                     retryCount++;
-                    setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                    setTimeout(function() { SortLatestClick(retryCount); }, 15);
                 }
                 return;
             }
             sortButton.click();
-            setTimeout(function() { SelectLatestMenuItem(0); }, 150);
+            setTimeout(function() { SelectLatestMenuItem(0);}, 15);
         } catch (e) {
             if (retryCount < 10) {
                 retryCount++;
-                setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                setTimeout(function() { SortLatestClick(retryCount); }, 15);
             }
         }
     }
@@ -2266,9 +2266,9 @@ const TARGET_URL = [
             let menuItems = document.querySelectorAll('[role="menuitem"], [role="menuitemradio"]');
             
             if (menuItems.length === 0) {
-                if (retryCount < 10) {
+                if (retryCount < 30) {
                     retryCount++;
-                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 15);
                 }
                 return;
             }
@@ -2282,9 +2282,9 @@ const TARGET_URL = [
             latestMenuItem.click();
             sortMenuLatestClick = true;
         } catch (e) {
-            if (retryCount < 10) {
+            if (retryCount < 30) {
                 retryCount++;
-                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 15);
             } else {
                 sortMenuLatestClick = false;
                 return false;
