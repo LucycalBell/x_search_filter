@@ -9,7 +9,7 @@ browser.runtime.onMessage.addListener(
     	ClassDataDownload(sendResponse, request.url);
 	  return true;
     case "openOptions":
-      chrome.runtime.openOptionsPage();
+      browser.runtime.openOptionsPage();
       return true;
     default:
       console.log("Error: Unkown request.");
@@ -33,6 +33,7 @@ function ClassDataDownload(sendResponse, url){
         sendResponse({statusCode: -1, htmlStr: "", urlStr: url});
     });
 }
+
 
 browser.action.onClicked.addListener(() => {
   browser.runtime.openOptionsPage();

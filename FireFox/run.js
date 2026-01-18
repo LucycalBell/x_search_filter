@@ -31,8 +31,15 @@ const TARGET_URL = [
         11:"トレンドワード数超過(ユーザー名)",
         12:"絵文字のみリプライ",
         13:"テキストなしリプライ",
-        14:"日本語比率が指定値以下",
-        15:"同一ユーザーからのリプライ数超過"
+        14:"ポスト本文の日本語比率が指定値以下",
+        15:"同一ユーザーからのリプライ数超過",
+        16:"プロフィール文の日本語比率が指定値以下",
+        17:"プロフィールの文字数が指定値以下"
+    };
+    const WORD_BLOCK_TYPE = {
+        NONE: 0,
+        BLOCKED: 1,
+        EXCLUDE: 2
     };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
@@ -172,6 +179,11 @@ const TARGET_URL = [
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
+            X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN = getOptionPram(r.REPLY_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
+            X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1097,6 +1109,7 @@ const TARGET_URL = [
     function PostBlockCheck(post){
         block_type = -1;
         let postl;
+        let postObj = getPostDataObject(post);
 
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
@@ -1112,11 +1125,6 @@ const TARGET_URL = [
             }
         }
 
-        /* 表示中ユーザーの投稿は除外 */
-        if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
-            return false;
-        }
-
         if(isDialog(post)){
             return false;
         }
@@ -1125,40 +1133,63 @@ const TARGET_URL = [
             return false;
         }
 
-        /* ポストページの場合ツリーポスト（表示中ポストとそれより上）は除外 */
-        if(isPostPage() && isTree(post)){
-            return false;
-        }
-
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
+            /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
+            if(X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY) {
+                switch(postWordCheck(post)){
+                    case WORD_BLOCK_TYPE.BLOCKED:
+                        block_type = 0;
+                        return true;
+                    case WORD_BLOCK_TYPE.EXCLUDE:
+                        return false;
+                }
+            }
+
+            /* 表示中ユーザーの投稿は除外 */
+            if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
+                return false;
+            }
+
+            /* 認証アカウントミュート判定 */
             if(X_OPTION.REPLY_VERIFIED_HDN) {
                 if(isVerified(post)){
                     block_type = 5;
                     return true;
                 }
             }
+            /* 絵文字のみポストミュート判定 */
             if(X_OPTION.REPLY_EMOJI_ONLY_HDN) {
                 if(isEmojiOnlyPost(getPostText(post))){
                     block_type = 12;
                     return true;
                 }
             }
+            /* テキスト無しポストミュート判定 */
             if(X_OPTION.REPLY_NO_TEXT_HDN) {
                 if(getPostText(post).trim() == ""){
                     block_type = 13;
                     return true;
                 }
             }
+            /* 日本語比率ミュート判定 */
             if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
                 if(getJapaneseRatio(getPostTextTag(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
                     block_type = 14;
                     return true;
                 }
             }
+            /* 同ユーザー複数投稿判定 */
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
                 if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
+                    return true;
+                }
+            }
+            /* プロフィール日本語比率ミュート判定 */
+            if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
+                if(japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
+                    block_type = 16;
                     return true;
                 }
             }
@@ -1169,41 +1200,18 @@ const TARGET_URL = [
             return false;
         }
 
-        if(X_OPTION.POST_CHECK_ALL){
-            postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
-        } else {
-            postl = getPostText(post).split(/\n/);
+        /* ミュートワードチェック */
+        switch(postWordCheck(post)){
+            case WORD_BLOCK_TYPE.BLOCKED:
+                block_type = 0;
+                return true;
+            case WORD_BLOCK_TYPE.EXCLUDE:
+                return false;
         }
-        if(X_OPTION.REG_EXP){
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                    }
-                }
-            }
-        } else {
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                    }
-                }
-            }
+
+        /* 表示中ユーザーの投稿は除外 */
+        if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
+            return false;
         }
 
         if(0 < manual_spam_list.length){
@@ -1274,6 +1282,13 @@ const TARGET_URL = [
                 return true;
             }
         }
+
+        if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
+            if(japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
+                block_type = 16;
+                return true;
+            }
+        }
         return false;
     }
     
@@ -1297,6 +1312,73 @@ const TARGET_URL = [
                 BlockCount();
             }
         }
+    }
+
+    /* ワード系のミュート判定 */
+    function postWordCheck(post) {
+        if(X_OPTION.POST_CHECK_ALL){
+            postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
+        } else {
+            postl = getPostText(post).split(/\n/);
+        }
+        if(X_OPTION.REG_EXP){
+            /* 正規表現モード */
+            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        try {
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                            if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                                /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                            }
+                        } catch(e) {
+                            ;
+                        }
+                    }
+                }
+            }
+            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        try {
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                                /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            }
+                        } catch(e) {
+                            ;
+                        }
+                    }
+                }
+            }
+        } else {
+            /* 通常モード */
+            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        }
+                    }
+                }
+            }
+            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        }
+                    }
+                }
+            }
+        }
+        return WORD_BLOCK_TYPE.NONE;
     }
 
     function PostBlockRelease() {
@@ -1442,7 +1524,9 @@ const TARGET_URL = [
                 X_OPTION.REPLY_EMOJI_ONLY_HDN || 
                 X_OPTION.REPLY_NO_TEXT_HDN || 
                 0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
-                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER
+                1 < X_OPTION.REPLY_MULTI_COUNT_BORDER ||
+                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN ||
+                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY
             ) && isPostPage();
     }
 
@@ -1738,11 +1822,12 @@ const TARGET_URL = [
             closeBtn.style.textAlign = "center";
             closeBtn.style.fontWeight = "bold";
             closeBtn.style.fontSize = "1.1rem";
-            closeBtn.style.background = "linear-gradient(135deg, #4562e6ff 0%, #9c77c0ff 100%)";
+            closeBtn.style.background = "#f47521";
             closeBtn.style.color = "#fff";
             closeBtn.style.borderTop = "none";
             closeBtn.style.cursor = "pointer";
             closeBtn.style.transition = "opacity 0.2s";
+            closeBtn.style.boxShadow = "none";
             closeBtn.onmouseover = function(){ this.style.opacity = "0.9"; };
             closeBtn.onmouseout = function(){ this.style.opacity = "1"; };
             
@@ -1772,55 +1857,6 @@ const TARGET_URL = [
         mainDiv.style.color = '#000';
         mainDiv.style.overscrollBehavior = 'contain';
         listFragment.appendChild(mainDiv);
-
-        if(0 < X_OPTION.TAG_BORDER || X_OPTION.DEFAULT_ICON_BLOCK || 0 < X_OPTION.SPACE_BORDER){
-            let hr1 = document.createElement('hr');
-            mainDiv.appendChild(hr1);
-            
-            let optionTitle = document.createElement('p');
-            optionTitle.textContent = '※以下のオプションが設定されています';
-            mainDiv.appendChild(optionTitle);
-            
-            let ul = document.createElement('ul');
-            
-            if(0 < X_OPTION.TAG_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ハッシュタグが' + X_OPTION.TAG_BORDER + '以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.TAG_START_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ハッシュタグから始まる行が' + X_OPTION.TAG_START_BORDER + '行以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.ACCOUNTNAME_SPACE_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.ACCOUNTNAME_SPACE_BORDER + '以上あるアカウント名のポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.DEFAULT_ICON_BLOCK){
-                let li = document.createElement('li');
-                li.textContent = 'プロフィールアイコン未設定アカウントからのポストを非表示';
-                ul.appendChild(li);
-            }
-            if(0 < X_OPTION.SPACE_BORDER){
-                let li = document.createElement('li');
-                li.textContent = 'ひらがなカタカナ漢字の直前にスペースが' + X_OPTION.SPACE_BORDER + '以上あるポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.VERIFIED_HDN){
-                let li = document.createElement('li');
-                li.textContent = '認証済みアカウントのポストを非表示';
-                ul.appendChild(li);
-            }
-            if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
-                let li = document.createElement('li');
-                li.textContent = '検索ワードがアカウント名にしか存在しないポストを非表示';
-                ul.appendChild(li);
-            }
-            
-            mainDiv.appendChild(ul);
-        }
         
         let hr2 = document.createElement('hr');
         mainDiv.appendChild(hr2);
@@ -1831,6 +1867,10 @@ const TARGET_URL = [
         
         for(let i=0;i<hidden_posts.length;i++){
             if(hidden_posts[i] != null || hidden_posts[i] != void 0){
+                /* ミュートワード一致で非表示のポストをリストに表示しない設定の場合は一覧追加処理スキップ */
+                if(X_OPTION.MUTE_WORD_LIST_HIDDEN && hidden_posts[i][1] == 0){
+                    continue;
+                }
                 let btn = document.createElement('button');
                 btn.id = 'hl_' + i;
                 btn.setAttribute('data-huserid', hidden_posts[i][2]);
@@ -1901,6 +1941,14 @@ const TARGET_URL = [
                 }
             }
         }
+        let lstElement = document.getElementById("x9uVvQH_lst");
+        if(lstElement){
+            if(lstElement.dataset.shadowListenerAdded !== "true"){
+                lstElement.addEventListener("scroll", UpdateCloseButtonShadow, false);
+                lstElement.dataset.shadowListenerAdded = "true";
+            }
+            UpdateCloseButtonShadow();
+        }
     }
 
     function AddSafe(ev){
@@ -1921,6 +1969,22 @@ const TARGET_URL = [
         if(document.getElementById("x9uVvQH_lst_base") != null){
             document.getElementById("x9uVvQH_lst_base").style.display = "none";
             document.getElementById("x9uVvQH_ar").style.display = "block";
+        }
+    }
+
+    /* 非表示一覧がスクロール可能な場合ボタンに影を付ける */
+    function UpdateCloseButtonShadow(){
+        let listEl = document.getElementById("x9uVvQH_lst");
+        let closeBtn = document.getElementById("x9uVvQH_cls");
+        if(!listEl || !closeBtn){ return; }
+
+        const isScrollable = listEl.scrollHeight > (listEl.clientHeight + 1);
+        const atBottom = Math.ceil(listEl.scrollTop + listEl.clientHeight) >= (listEl.scrollHeight - 1);
+
+        if(isScrollable && !atBottom){
+            closeBtn.style.boxShadow = "0 -6px 14px rgba(0, 0, 0, 0.25)";
+        } else {
+            closeBtn.style.boxShadow = "none";
         }
     }
     
@@ -2227,16 +2291,16 @@ const TARGET_URL = [
             if (!sortButton) {
                 if (retryCount < 10) {
                     retryCount++;
-                    setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                    setTimeout(function() { SortLatestClick(retryCount); }, 15);
                 }
                 return;
             }
             sortButton.click();
-            setTimeout(function() { SelectLatestMenuItem(0); }, 150);
+            setTimeout(function() { SelectLatestMenuItem(0);}, 15);
         } catch (e) {
             if (retryCount < 10) {
                 retryCount++;
-                setTimeout(function() { SortLatestClick(retryCount); }, 100);
+                setTimeout(function() { SortLatestClick(retryCount); }, 15);
             }
         }
     }
@@ -2247,9 +2311,9 @@ const TARGET_URL = [
             let menuItems = document.querySelectorAll('[role="menuitem"], [role="menuitemradio"]');
             
             if (menuItems.length === 0) {
-                if (retryCount < 10) {
+                if (retryCount < 30) {
                     retryCount++;
-                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                    setTimeout(function() { SelectLatestMenuItem(retryCount); }, 15);
                 }
                 return;
             }
@@ -2263,9 +2327,9 @@ const TARGET_URL = [
             latestMenuItem.click();
             sortMenuLatestClick = true;
         } catch (e) {
-            if (retryCount < 10) {
+            if (retryCount < 30) {
                 retryCount++;
-                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 100);
+                setTimeout(function() { SelectLatestMenuItem(retryCount); }, 15);
             } else {
                 sortMenuLatestClick = false;
                 return false;
@@ -2516,20 +2580,60 @@ const TARGET_URL = [
         }
     }
 
-    /* ツイートがツリー構造の一部かどうかを判定する関数 */
-    function isTree(tweetArticle) {
-        const divs = tweetArticle.getElementsByTagName('div');
-        
-        for (let i = 0; i < divs.length; i++) {
-            const div = divs[i];
-            if (div.children.length === 0) {
-                const style = window.getComputedStyle(div);
-                if (style.width === '2px' && style.position === 'absolute') {
-                    return true; 
+    /* ポスト要素からプロフィールデータを取得 */
+    function getPostDataObject(post) {
+        try {
+            let element = post;
+            let maxDepth = 10;
+            let depth = 0;
+            
+            while (element && depth < maxDepth) {
+                if (element.hasAttribute && element.hasAttribute('cslt_tweet_info')) {
+                    const jsonStr = element.getAttribute('cslt_tweet_info');
+                    if (jsonStr) {
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            
+                            return {
+                                user_data: data.user_data ? {
+                                    name: data.user_data.name,
+                                    screen_name: data.user_data.scr_name,
+                                    user_id: data.user_data.user_id,
+                                    description: data.user_data.description,
+                                    all_tweet_count: data.user_data.all_tweet_count,
+                                    is_blue: data.user_data.is_blue,
+                                    location: data.user_data.location,
+                                    account_create_date: data.user_data.account_create_date,
+                                    blocked_by: data.user_data.blocked_by
+                                } : null,
+                                in_reply_user_data: data.in_reply_user_data ? {
+                                    user_id: data.in_reply_user_data.user_id,
+                                    screen_name: data.in_reply_user_data.scr_name
+                                } : null,
+                                tweet_id: data.tweet_id,
+                                text: data.text,
+                                tweet_lang: data.tweet_lang,
+                                is_reply: data.is_reply,
+                                is_promoted: data.is_promoted,
+                                tweet_client: data.tweet_client,
+                                mentions: data.mentions || [],
+                                raw: data
+                            };
+                        } catch (parseError) {
+                            console.warn('Error parsing cslt_tweet_info JSON:', parseError);
+                            return null;
+                        }
+                    }
                 }
+                element = element.parentElement;
+                depth++;
             }
+            
+            return null;
+        } catch (e) {
+            console.warn('Error in getProfileData:', e);
+            return null;
         }
-        return false;
     }
 
     /* 渡されたテキスト要素から日本語（ひらがな／カタカナ／漢字）の割合を返却 */
@@ -2565,6 +2669,14 @@ const TARGET_URL = [
             return 0;
         }
         
+        return japaneseRatio(text);
+    }
+
+    /* 渡されたテキストから日本語（ひらがな／カタカナ／漢字）の割合を返却 */
+    function japaneseRatio(text) {
+        if (text == null || text == undefined) {
+            return 0;
+        }
         const japaneseChars = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g);
         const japaneseCount = japaneseChars ? japaneseChars.length : 0;
         const ratio = Math.floor((japaneseCount / text.length) * 100);
