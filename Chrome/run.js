@@ -1326,10 +1326,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
                 if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        try {
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                            if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                                /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                            }
+                        } catch(e) {
+                            ;
                         }
                     }
                 }
@@ -1337,10 +1341,14 @@ const TARGET_URL = [
             for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
                 if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
                     for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        try {
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                                /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            }
+                        } catch(e) {
+                            ;
                         }
                     }
                 }
