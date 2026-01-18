@@ -85,6 +85,7 @@ function LoadOption(){
             X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -126,9 +127,9 @@ function LoadOption(){
             document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
             document.getElementById("reply_profile_jpn_ratio_hdn").value = X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN;
             document.getElementById("post_profile_jpn_ratio_hdn").value = X_OPTION.POST_PROFILE_JPN_RATIO_HDN;
-            document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN ? true : false;
-            document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME ? true : false;
-
+            document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN
+            document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME
+            document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
@@ -289,6 +290,7 @@ function OptionSave(){
     SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = document.getElementById("default_selected_follow_tab_latest_select").checked;
     SAVE_OBJ.MUTE_WORD_LIST_HIDDEN = document.getElementById("mute_word_list_hidden").checked;
     SAVE_OBJ.POST_CHECK_ACCOUNTNAME = document.getElementById("post_check_accountname").checked;
+    SAVE_OBJ.REPLY_MUTE_WORD_SETTINGS_APPLY = document.getElementById("reply_mute_word_settings_apply").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -518,6 +520,7 @@ function EventSet(){
     document.getElementById("post_profile_jpn_ratio_hdn").addEventListener("input", OptionSave, false);
     document.getElementById("mute_word_list_hidden").addEventListener("click", OptionSave, false);
     document.getElementById("post_check_accountname").addEventListener("click", OptionSave, false);
+    document.getElementById("reply_mute_word_settings_apply").addEventListener("click", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

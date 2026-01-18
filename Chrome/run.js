@@ -36,6 +36,11 @@ const TARGET_URL = [
         16:"プロフィール文の日本語比率が指定値以下",
         17:"プロフィールの文字数が指定値以下"
     };
+    const WORD_BLOCK_TYPE = {
+        NONE: 0,
+        BLOCKED: 1,
+        EXCLUDE: 2
+    };
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
     const TREND_URL = "https://x.com/explore/tabs/trending";
@@ -178,6 +183,7 @@ const TARGET_URL = [
             X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1139,36 +1145,52 @@ const TARGET_URL = [
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
+            /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
+            if(X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY) {
+                switch(postWordCheck(post)){
+                    case WORD_BLOCK_TYPE.BLOCKED:
+                        block_type = 0;
+                        return true;
+                    case WORD_BLOCK_TYPE.EXCLUDE:
+                        return false;
+                }
+            }
+            /* 認証アカウントミュート判定 */
             if(X_OPTION.REPLY_VERIFIED_HDN) {
                 if(isVerified(post)){
                     block_type = 5;
                     return true;
                 }
             }
+            /* 絵文字のみポストミュート判定 */
             if(X_OPTION.REPLY_EMOJI_ONLY_HDN) {
                 if(isEmojiOnlyPost(getPostText(post))){
                     block_type = 12;
                     return true;
                 }
             }
+            /* テキスト無しポストミュート判定 */
             if(X_OPTION.REPLY_NO_TEXT_HDN) {
                 if(getPostText(post).trim() == ""){
                     block_type = 13;
                     return true;
                 }
             }
+            /* 日本語比率ミュート判定 */
             if(0 < X_OPTION.REPLY_JPN_RATIO_HDN) {
                 if(getJapaneseRatio(getPostTextTag(post)) < X_OPTION.REPLY_JPN_RATIO_HDN){
                     block_type = 14;
                     return true;
                 }
             }
+            /* 同ユーザー複数投稿判定 */
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
                 if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
                     return true;
                 }
             }
+            /* プロフィール日本語比率ミュート判定 */
             if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
                 if(japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
                     block_type = 16;
@@ -1182,59 +1204,13 @@ const TARGET_URL = [
             return false;
         }
 
-        if(X_OPTION.POST_CHECK_ALL){
-            postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
-        } else {
-            postl = getPostText(post).split(/\n/);
-        }
-        if(X_OPTION.REG_EXP){
-            /* 正規表現モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                        }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                        }
-                    }
-                }
-            }
-        } else {
-            /* 通常モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return false; }
-                        }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ block_type = 0;return true; }
-                        }
-                    }
-                }
-            }
+        /* ミュートワードチェック */
+        switch(postWordCheck(post)){
+            case WORD_BLOCK_TYPE.BLOCKED:
+                block_type = 0;
+                return true;
+            case WORD_BLOCK_TYPE.EXCLUDE:
+                return false;
         }
 
         if(0 < manual_spam_list.length){
@@ -1335,6 +1311,65 @@ const TARGET_URL = [
                 BlockCount();
             }
         }
+    }
+
+    /* ワード系のミュート判定 */
+    function postWordCheck(post) {
+        if(X_OPTION.POST_CHECK_ALL){
+            postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
+        } else {
+            postl = getPostText(post).split(/\n/);
+        }
+        if(X_OPTION.REG_EXP){
+            /* 正規表現モード */
+            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        }
+                    }
+                }
+            }
+            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        }
+                    }
+                }
+            }
+        } else {
+            /* 通常モード */
+            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        }
+                    }
+                }
+            }
+            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                    for(let p=0;p<postl.length;p++){
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                        }
+                    }
+                }
+            }
+        }
+        return WORD_BLOCK_TYPE.NONE;
     }
 
     function PostBlockRelease() {
@@ -1481,7 +1516,8 @@ const TARGET_URL = [
                 X_OPTION.REPLY_NO_TEXT_HDN || 
                 0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
                 1 < X_OPTION.REPLY_MULTI_COUNT_BORDER ||
-                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN
+                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN ||
+                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY
             ) && isPostPage();
     }
 
