@@ -1268,9 +1268,11 @@
         }
         if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
             if(isSearchPage()) {
-                if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
-                    block_type = 18;
-                    return true;
+                if (isSearchWordEditing() == false) {
+                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
+                        block_type = 18;
+                        return true;
+                    }
                 }
             }
         }
@@ -2203,6 +2205,17 @@
             }
         }
         return "";
+    }
+
+    function isSearchWordEditing() {
+        if(document.getElementById("typeaheadDropdown-3") != null){ return "";}
+        let input_lst = document.getElementsByTagName("input");
+        for(const item of input_lst){
+            if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
+                return item === document.activeElement;
+            }
+        }
+        return false;
     }
 
     function getSearchWordList(){
