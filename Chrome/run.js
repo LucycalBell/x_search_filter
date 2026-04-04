@@ -1136,7 +1136,7 @@
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
-            if(X_OPTION.POST_TREE_NONBLOCK && isInPostTree(post)){
+            if(X_OPTION.POST_TREE_NONBLOCK && isPosttree(post)){
                 return false;
             }
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
