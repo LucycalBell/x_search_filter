@@ -1268,7 +1268,7 @@
         }
         if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
             if(isSearchPage()) {
-                if (isSearchWordEditing() == false) {
+                if (isSearchWordEditing() == false && 0 < getSearchWordList().length) {
                     if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
                         block_type = 18;
                         return true;
@@ -1286,13 +1286,6 @@
         if(0 < X_OPTION.TREND_WORD_BORDER_NAME){
             if(X_OPTION.TREND_WORD_BORDER_NAME <= getTrendWordCount(getPostAccountName(post).toUpperCase())){
                 block_type = 11;
-                return true;
-            }
-        }
-
-        if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
-            if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
-                block_type = 16;
                 return true;
             }
         }
@@ -1533,8 +1526,8 @@
                 X_OPTION.REPLY_NO_TEXT_HDN || 
                 0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
                 1 < X_OPTION.REPLY_MULTI_COUNT_BORDER ||
-                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN ||
-                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY
+                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY ||
+                X_OPTION.POST_TREE_NONBLOCK
             ) && isPostPage();
     }
 
