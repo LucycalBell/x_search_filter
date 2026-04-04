@@ -36,7 +36,8 @@
         15:"同一ユーザーからのリプライ数超過",
         16:"プロフィール文の日本語比率が指定値以下",
         17:"プロフィールの文字数が指定値以下",
-        18:"検索ワードにヒットしないポスト"
+        18:"検索ワードにヒットしないポスト",
+        19:"自動翻訳されたポスト"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -188,6 +189,7 @@
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -1289,6 +1291,13 @@
                 return true;
             }
         }
+
+        if(X_OPTION.AUTO_TRANSLATION_POST_BLOCK) {
+            if(isAutoTranslationPost(post)){
+                block_type = 19;
+                return true;
+            }
+        }
         return false;
     }
     
@@ -2306,6 +2315,72 @@
         }
 
         return false;
+    }
+
+    function isAutoTranslationPost(post) {
+        try {
+            if (!post) {
+                return false;
+            }
+
+            const tweetText = post.querySelector('[data-testid="tweetText"]');
+            if (!tweetText) {
+                return false;
+            }
+
+            const translationBlock = tweetText.previousElementSibling;
+            if (!translationBlock) {
+                return false;
+            }
+
+            const svgs = translationBlock.getElementsByTagName('svg');
+            const buttons = translationBlock.getElementsByTagName('button');
+
+            if (svgs.length === 0 || buttons.length === 0) {
+                return false;
+            }
+
+            for (const svg of svgs) {
+                const paths = svg.getElementsByTagName('path');
+                for (const path of paths) {
+                    const d = path.getAttribute('d');
+                    if (d && d.startsWith('M12.745 20.54')) {
+                        for (const button of buttons) {
+                            if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                continue;
+                            }
+
+                            const textElements = translationBlock.querySelectorAll('span, div');
+                            let hasTextBetween = false;
+
+                            for (const textElement of textElements) {
+                                if (textElement.contains(svg) || textElement.contains(button)) {
+                                    continue;
+                                }
+                                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                    continue;
+                                }
+                                if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                    continue;
+                                }
+                                if (textElement.textContent && textElement.textContent.trim() !== '') {
+                                    hasTextBetween = true;
+                                    break;
+                                }
+                            }
+
+                            if (hasTextBetween) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        } catch (e) {
+            return false;
+        }
     }
 
     function FollowingTabClick(retryCount = 0) {
