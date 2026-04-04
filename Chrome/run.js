@@ -35,7 +35,8 @@
         14:"ポスト本文の日本語比率が指定値以下",
         15:"同一ユーザーからのリプライ数超過",
         16:"プロフィール文の日本語比率が指定値以下",
-        17:"プロフィールの文字数が指定値以下"
+        17:"プロフィールの文字数が指定値以下",
+        18:"検索ワードにヒットしないポスト"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -185,6 +186,7 @@
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
+            X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
 
             TrendDataLoad();
 
@@ -1266,6 +1268,14 @@
                             return true;
                         }
                     }
+                }
+            }
+        }
+        if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
+            if(isSearchPage()) {
+                if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
+                    block_type = 18;
+                    return true;
                 }
             }
         }

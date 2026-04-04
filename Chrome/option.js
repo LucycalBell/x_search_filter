@@ -88,6 +88,7 @@ function LoadOption(){
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
+            X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -109,6 +110,7 @@ function LoadOption(){
             document.getElementById("link_card_emphasis_all").checked = X_OPTION.LINK_EMPHASIS_ALL;
             document.getElementById("verified_hidden").checked = X_OPTION.VERIFIED_HDN;
             document.getElementById("post_check_all").checked = X_OPTION.POST_CHECK_ALL;
+            document.getElementById("search_notmatch_block").checked = X_OPTION.SEARCH_NO_HIT_BLOCK;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
             document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
@@ -132,6 +134,7 @@ function LoadOption(){
             document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN;
             document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME;
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
+            document.getElementById("search_notmatch_block").checked = X_OPTION.SEARCH_NO_HIT_BLOCK;
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
@@ -293,6 +296,7 @@ function OptionSave(){
     SAVE_OBJ.MUTE_WORD_LIST_HIDDEN = document.getElementById("mute_word_list_hidden").checked;
     SAVE_OBJ.POST_CHECK_ACCOUNTNAME = document.getElementById("post_check_accountname").checked;
     SAVE_OBJ.REPLY_MUTE_WORD_SETTINGS_APPLY = document.getElementById("reply_mute_word_settings_apply").checked;
+    SAVE_OBJ.SEARCH_NO_HIT_BLOCK = document.getElementById("search_notmatch_block").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -523,6 +527,7 @@ function EventSet(){
     document.getElementById("mute_word_list_hidden").addEventListener("click", OptionSave, false);
     document.getElementById("post_check_accountname").addEventListener("click", OptionSave, false);
     document.getElementById("reply_mute_word_settings_apply").addEventListener("click", OptionSave, false);
+    document.getElementById("search_notmatch_block").addEventListener("click", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
