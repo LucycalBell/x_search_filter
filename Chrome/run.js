@@ -187,7 +187,7 @@
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
-
+            X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -1111,7 +1111,6 @@
     
     function PostBlockCheck(post){
         block_type = -1;
-        let postObj = getPostDataObject(post);
 
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
@@ -1137,6 +1136,9 @@
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
+            if(X_OPTION.POST_TREE_NONBLOCK && isInPostTree(post)){
+                return false;
+            }
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
             if(X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY) {
                 switch(postWordCheck(post)){
@@ -1185,13 +1187,6 @@
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
                 if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
-                    return true;
-                }
-            }
-            /* プロフィール日本語比率ミュート判定 */
-            if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
-                if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
-                    block_type = 16;
                     return true;
                 }
             }
@@ -2234,6 +2229,79 @@
         return false;
     }
 
+    function isPosttree(post) {
+        try {
+            if(post == null || post == void 0){
+                return false;
+            }
+
+            const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
+            if(avatar == null){
+                return false;
+            }
+
+            const avatarRect = avatar.getBoundingClientRect();
+            const postRect = post.getBoundingClientRect();
+            if(avatarRect.width <= 0 || avatarRect.height <= 0 || postRect.width <= 0 || postRect.height <= 0){
+                return false;
+            }
+
+            const divList = post.getElementsByTagName("div");
+            for(const item of divList){
+                if(item == null || item == avatar || avatar.contains(item)){
+                    continue;
+                }
+
+                if(item.querySelector("img,svg,video,a,button")){
+                    continue;
+                }
+
+                if(item.textContent != null && item.textContent.trim() != ""){
+                    continue;
+                }
+
+                const rect = item.getBoundingClientRect();
+                if(rect.width <= 0 || rect.height <= 0){
+                    continue;
+                }
+
+                if(rect.height < 18 || rect.width > 8){
+                    continue;
+                }
+
+                if(rect.left < (postRect.left - 2) || rect.right > (avatarRect.right + 8)){
+                    continue;
+                }
+
+                if(rect.left > (avatarRect.left + 8)){
+                    continue;
+                }
+
+                if(rect.bottom < (avatarRect.top - 24) || rect.top > (avatarRect.bottom + 48)){
+                    continue;
+                }
+
+                const style = getComputedStyle(item);
+                if(style.display == "none" || style.visibility == "hidden" || Number(style.opacity) === 0){
+                    continue;
+                }
+
+                const hasVisibleLine = (
+                    style.backgroundColor != "rgba(0, 0, 0, 0)" &&
+                    style.backgroundColor != "transparent"
+                ) || 0 < parseFloat(style.borderLeftWidth) || 0 < parseFloat(style.borderRightWidth);
+
+                if(hasVisibleLine){
+                    return true;
+                }
+            }
+        } catch(e) {
+            return false;
+        }
+
+        return false;
+    }
+
     function FollowingTabClick(retryCount = 0) {
         if(followingTabClick) { return; }
         let tabList, tabs;
@@ -2588,62 +2656,6 @@
                 X_OPTION.LINK_CARD_URL_SAFE.push(domain);
                 chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
             }
-        }
-    }
-
-    /* ポスト要素からプロフィールデータを取得 */
-    function getPostDataObject(post) {
-        try {
-            let element = post;
-            let maxDepth = 10;
-            let depth = 0;
-            
-            while (element && depth < maxDepth) {
-                if (element.hasAttribute && element.hasAttribute('cslt_tweet_info')) {
-                    const jsonStr = element.getAttribute('cslt_tweet_info');
-                    if (jsonStr) {
-                        try {
-                            const data = JSON.parse(jsonStr);
-                            
-                            return {
-                                user_data: data.user_data ? {
-                                    name: data.user_data.name,
-                                    screen_name: data.user_data.scr_name,
-                                    user_id: data.user_data.user_id,
-                                    description: data.user_data.description,
-                                    all_tweet_count: data.user_data.all_tweet_count,
-                                    is_blue: data.user_data.is_blue,
-                                    location: data.user_data.location,
-                                    account_create_date: data.user_data.account_create_date,
-                                    blocked_by: data.user_data.blocked_by
-                                } : null,
-                                in_reply_user_data: data.in_reply_user_data ? {
-                                    user_id: data.in_reply_user_data.user_id,
-                                    screen_name: data.in_reply_user_data.scr_name
-                                } : null,
-                                tweet_id: data.tweet_id,
-                                text: data.text,
-                                tweet_lang: data.tweet_lang,
-                                is_reply: data.is_reply,
-                                is_promoted: data.is_promoted,
-                                tweet_client: data.tweet_client,
-                                mentions: data.mentions || [],
-                                raw: data
-                            };
-                        } catch (parseError) {
-                            console.warn('Error parsing cslt_tweet_info JSON:', parseError);
-                            return null;
-                        }
-                    }
-                }
-                element = element.parentElement;
-                depth++;
-            }
-            
-            return null;
-        } catch (e) {
-            console.warn('Error in getProfileData:', e);
-            return null;
         }
     }
 
