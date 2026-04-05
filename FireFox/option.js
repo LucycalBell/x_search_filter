@@ -88,6 +88,9 @@ function LoadOption(){
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
+            X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
+            X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -101,7 +104,6 @@ function LoadOption(){
             document.getElementById("hira_kata_conv").checked = X_OPTION.HIRA_KATA_COV;
             document.getElementById("case_conv").checked = X_OPTION.CASE_CONV;
             document.getElementById("interval_time").value = X_OPTION.INTERVAL_TIME;
-            document.getElementById("target_url").value = ArrayObjtoText(X_OPTION.TARGET_URL);
             document.getElementById("x_conv").checked = X_OPTION.URL_XT_CONVERT;
             document.getElementById("post_class_area").value = ArrayObjtoText(X_OPTION.POST_CLASS);
             document.getElementById("insert_default_class").checked = X_OPTION.INSERT_DEFAULT_CLASS;
@@ -109,6 +111,7 @@ function LoadOption(){
             document.getElementById("link_card_emphasis_all").checked = X_OPTION.LINK_EMPHASIS_ALL;
             document.getElementById("verified_hidden").checked = X_OPTION.VERIFIED_HDN;
             document.getElementById("post_check_all").checked = X_OPTION.POST_CHECK_ALL;
+            document.getElementById("search_notmatch_block").checked = X_OPTION.SEARCH_NO_HIT_BLOCK;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
             document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
@@ -132,12 +135,16 @@ function LoadOption(){
             document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN;
             document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME;
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
+            document.getElementById("search_notmatch_block").checked = X_OPTION.SEARCH_NO_HIT_BLOCK;
+            document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
+            document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
                     document.getElementById("manual_import_delete").disabled = false;
                 }
             }
+            setActiveUrlList(X_OPTION.TARGET_URL);
             LoadOption_SwitchUpdate();
             ManualExportSetting();
             LinkOptionChange();
@@ -262,7 +269,6 @@ function OptionSave(){
     SAVE_OBJ.HIRA_KATA_COV = document.getElementById("hira_kata_conv").checked;
     SAVE_OBJ.CASE_CONV = document.getElementById("case_conv").checked;
     SAVE_OBJ.INTERVAL_TIME = document.getElementById("interval_time").value;
-    SAVE_OBJ.TARGET_URL = document.getElementById("target_url").value.split(/\n/);
     SAVE_OBJ.URL_XT_CONVERT = document.getElementById("x_conv").checked;
     SAVE_OBJ.POST_CLASS = MakeClassArray(document.getElementById("post_class_area").value);
     SAVE_OBJ.INSERT_DEFAULT_CLASS = document.getElementById("insert_default_class").checked;
@@ -293,6 +299,10 @@ function OptionSave(){
     SAVE_OBJ.MUTE_WORD_LIST_HIDDEN = document.getElementById("mute_word_list_hidden").checked;
     SAVE_OBJ.POST_CHECK_ACCOUNTNAME = document.getElementById("post_check_accountname").checked;
     SAVE_OBJ.REPLY_MUTE_WORD_SETTINGS_APPLY = document.getElementById("reply_mute_word_settings_apply").checked;
+    SAVE_OBJ.SEARCH_NO_HIT_BLOCK = document.getElementById("search_notmatch_block").checked;
+    SAVE_OBJ.POST_TREE_NONBLOCK = document.getElementById("post_tree_nonBlock").checked;
+    SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK = document.getElementById("auto_translation_post_block").checked;
+    SAVE_OBJ.TARGET_URL = getActiveUrlList();
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -523,6 +533,15 @@ function EventSet(){
     document.getElementById("mute_word_list_hidden").addEventListener("click", OptionSave, false);
     document.getElementById("post_check_accountname").addEventListener("click", OptionSave, false);
     document.getElementById("reply_mute_word_settings_apply").addEventListener("click", OptionSave, false);
+    document.getElementById("search_notmatch_block").addEventListener("click", OptionSave, false);
+    document.getElementById("post_tree_nonBlock").addEventListener("click", OptionSave, false);
+    document.getElementById("auto_translation_post_block").addEventListener("click", OptionSave, false);
+    document.getElementById("active_url_home").addEventListener("change", OptionSave, false);
+    document.getElementById("active_url_search").addEventListener("change", OptionSave, false);
+    document.getElementById("active_url_post").addEventListener("change", OptionSave, false);
+    document.getElementById("active_url_hashtag").addEventListener("change", OptionSave, false);
+    document.getElementById("active_url_trending").addEventListener("change", OptionSave, false);
+    document.getElementById("active_url_explore").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
@@ -530,15 +549,6 @@ function EventSet(){
     }, false);
     document.getElementById("default_set_2").addEventListener("click", function(){
         document.getElementById("interval_time").value = INTERVAL_TIME;
-        OptionSave();
-    }, false);
-    document.getElementById("default_set_3").addEventListener("click", function(){
-        let a = "";
-        for(let i=0;i<TARGET_URL.length;i++){
-            if(0 < i){ a += "\n";}
-            a += TARGET_URL[i];
-        }
-        document.getElementById("target_url").value = a;
         OptionSave();
     }, false);
     document.getElementById("default_set_4").addEventListener("click", function(){
@@ -672,6 +682,77 @@ function BackupImport(){
             }
         }
     }
+}
+
+function getActiveUrlList() {
+    let urlList = [];
+    if(document.getElementById("active_url_home").checked) {
+        urlList.push(document.getElementById("active_url_home").dataset.url);
+    }
+    if(document.getElementById("active_url_search").checked) {
+        urlList.push(document.getElementById("active_url_search").dataset.url);
+    }
+    if(document.getElementById("active_url_post").checked) {
+        urlList.push(document.getElementById("active_url_post").dataset.url);
+    }
+    if(document.getElementById("active_url_hashtag").checked) {
+        urlList.push(document.getElementById("active_url_hashtag").dataset.url);
+    }
+    if(document.getElementById("active_url_trending").checked) {
+        urlList.push(document.getElementById("active_url_trending").dataset.url);
+    }
+    if(document.getElementById("active_url_explore").checked) {
+        urlList.push(document.getElementById("active_url_explore").dataset.url);
+    }
+    let targetUrls = document.getElementById("target_url").value.split(/\n/);
+    for(let i=0;i<targetUrls.length;i++) {
+        if(targetUrls[i] != void 0 && targetUrls[i] != null && targetUrls[i].trim() != "" && !urlList.includes(targetUrls[i].trim())) {
+            urlList.push(targetUrls[i].trim());
+        }
+    }
+    return urlList;
+}
+
+function setActiveUrlList(urlList) {
+    let switchActive = false;
+    let targetUrlTextField = [];
+    document.getElementById("active_url_home").checked = false;
+    document.getElementById("active_url_search").checked = false;
+    document.getElementById("active_url_post").checked = false;
+    document.getElementById("active_url_hashtag").checked = false;
+    document.getElementById("active_url_trending").checked = false;
+    document.getElementById("active_url_explore").checked = false;
+    for(let i=0;i<urlList.length;i++) {
+        switchActive = false;
+        if(urlList[i] == document.getElementById("active_url_home").dataset.url) {
+            document.getElementById("active_url_home").checked = true;
+            switchActive = true;
+        }
+        if(urlList[i] == document.getElementById("active_url_search").dataset.url) {
+            document.getElementById("active_url_search").checked = true;
+            switchActive = true;
+        }
+        if(urlList[i] == document.getElementById("active_url_post").dataset.url) {
+            document.getElementById("active_url_post").checked = true;
+            switchActive = true;
+        }
+        if(urlList[i] == document.getElementById("active_url_hashtag").dataset.url) {
+            document.getElementById("active_url_hashtag").checked = true;
+            switchActive = true;
+        }
+        if(urlList[i] == document.getElementById("active_url_trending").dataset.url) {
+            document.getElementById("active_url_trending").checked = true;
+            switchActive = true;
+        }
+        if(urlList[i] == document.getElementById("active_url_explore").dataset.url) {
+            document.getElementById("active_url_explore").checked = true;
+            switchActive = true;
+        }
+        if(!switchActive) {
+            targetUrlTextField.push(urlList[i]);
+        }
+    }
+    document.getElementById("target_url").value = targetUrlTextField.join("\n");
 }
 
 document.addEventListener('DOMContentLoaded', function() {
