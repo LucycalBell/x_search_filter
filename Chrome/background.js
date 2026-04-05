@@ -9,7 +9,9 @@ chrome.runtime.onMessage.addListener(
     	ClassDataDownload(sendResponse, request.url);
 	  return true;
     case "openOptions":
-      chrome.runtime.openOptionsPage();
+      chrome.tabs.create({
+        url: chrome.runtime.getURL("option.html")
+      });
       return true;
     default:
       console.log("Error: Unkown request.");

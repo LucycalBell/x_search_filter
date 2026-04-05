@@ -35,7 +35,9 @@
         14:"ポスト本文の日本語比率が指定値以下",
         15:"同一ユーザーからのリプライ数超過",
         16:"プロフィール文の日本語比率が指定値以下",
-        17:"プロフィールの文字数が指定値以下"
+        17:"プロフィールの文字数が指定値以下",
+        18:"検索ワードにヒットしないポスト",
+        19:"自動翻訳されたポスト"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -185,7 +187,9 @@
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
-
+            X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
+            X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -1109,7 +1113,6 @@
     
     function PostBlockCheck(post){
         block_type = -1;
-        let postObj = getPostDataObject(post);
 
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
@@ -1135,6 +1138,9 @@
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
+            if(X_OPTION.POST_TREE_NONBLOCK && isPosttree(post)){
+                return false;
+            }
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
             if(X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY) {
                 switch(postWordCheck(post)){
@@ -1183,13 +1189,6 @@
             if(1 < X_OPTION.REPLY_MULTI_COUNT_BORDER) {
                 if(X_OPTION.REPLY_MULTI_COUNT_BORDER <= userPostCount(getPostUserName(post, true))){
                     block_type = 15;
-                    return true;
-                }
-            }
-            /* プロフィール日本語比率ミュート判定 */
-            if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
-                if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN) {
-                    block_type = 16;
                     return true;
                 }
             }
@@ -1269,6 +1268,16 @@
                 }
             }
         }
+        if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
+            if(isSearchPage()) {
+                if (isSearchWordEditing() == false && 0 < getSearchWordList().length) {
+                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
+                        block_type = 18;
+                        return true;
+                    }
+                }
+            }
+        }
         if(0 < X_OPTION.TREND_WORD_BORDER_TEXT){
             if(X_OPTION.TREND_WORD_BORDER_TEXT <= getTrendWordCount(getPostText(post).toUpperCase())){
                 block_type = 10;
@@ -1283,9 +1292,9 @@
             }
         }
 
-        if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
-            if(postObj && postObj.user_data && japaneseRatio(postObj.user_data.description) < X_OPTION.POST_PROFILE_JPN_RATIO_HDN) {
-                block_type = 16;
+        if(X_OPTION.AUTO_TRANSLATION_POST_BLOCK) {
+            if(isAutoTranslationPost(post)){
+                block_type = 19;
                 return true;
             }
         }
@@ -1526,8 +1535,8 @@
                 X_OPTION.REPLY_NO_TEXT_HDN || 
                 0 < X_OPTION.REPLY_JPN_RATIO_HDN ||
                 1 < X_OPTION.REPLY_MULTI_COUNT_BORDER ||
-                0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN ||
-                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY
+                X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY ||
+                X_OPTION.POST_TREE_NONBLOCK
             ) && isPostPage();
     }
 
@@ -1847,7 +1856,7 @@
         let listFragment = document.createDocumentFragment();
         
         let titleDiv = document.createElement('div');
-        titleDiv.textContent = '【非表示にしたポスト】';
+        titleDiv.textContent = '【ミュートしたポスト】';
         titleDiv.style.textAlign = 'center';
         titleDiv.style.fontSize = 'large';
         titleDiv.style.color = '#000';
@@ -1922,7 +1931,7 @@
                 postsContainer.appendChild(contentSpan);
                 
                 let reasonSpan = document.createElement('span');
-                reasonSpan.textContent = '（非表示理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
+                reasonSpan.textContent = '（ミュート理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
                 reasonSpan.style.fontWeight = 'bold';
                 postsContainer.appendChild(reasonSpan);
                 
@@ -2200,6 +2209,17 @@
         return "";
     }
 
+    function isSearchWordEditing() {
+        if(document.getElementById("typeaheadDropdown-3") != null){ return true;}
+        let input_lst = document.getElementsByTagName("input");
+        for(const item of input_lst){
+            if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
+                return item === document.activeElement;
+            }
+        }
+        return false;
+    }
+
     function getSearchWordList(){
         let res = [];
         let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
@@ -2222,6 +2242,145 @@
         let url = getLUrl().replace("https://", "");
         if(url.match("twitter.com/search")){ return true; }
         return false;
+    }
+
+    function isPosttree(post) {
+        try {
+            if(post == null || post == void 0){
+                return false;
+            }
+
+            const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
+            if(avatar == null){
+                return false;
+            }
+
+            const avatarRect = avatar.getBoundingClientRect();
+            const postRect = post.getBoundingClientRect();
+            if(avatarRect.width <= 0 || avatarRect.height <= 0 || postRect.width <= 0 || postRect.height <= 0){
+                return false;
+            }
+
+            const divList = post.getElementsByTagName("div");
+            for(const item of divList){
+                if(item == null || item == avatar || avatar.contains(item)){
+                    continue;
+                }
+
+                if(item.querySelector("img,svg,video,a,button")){
+                    continue;
+                }
+
+                if(item.textContent != null && item.textContent.trim() != ""){
+                    continue;
+                }
+
+                const rect = item.getBoundingClientRect();
+                if(rect.width <= 0 || rect.height <= 0){
+                    continue;
+                }
+
+                if(rect.height < 18 || rect.width > 8){
+                    continue;
+                }
+
+                if(rect.left < (postRect.left - 2) || rect.right > (avatarRect.right + 8)){
+                    continue;
+                }
+
+                if(rect.left > (avatarRect.left + 8)){
+                    continue;
+                }
+
+                if(rect.bottom < (avatarRect.top - 24) || rect.top > (avatarRect.bottom + 48)){
+                    continue;
+                }
+
+                const style = getComputedStyle(item);
+                if(style.display == "none" || style.visibility == "hidden" || Number(style.opacity) === 0){
+                    continue;
+                }
+
+                const hasVisibleLine = (
+                    style.backgroundColor != "rgba(0, 0, 0, 0)" &&
+                    style.backgroundColor != "transparent"
+                ) || 0 < parseFloat(style.borderLeftWidth) || 0 < parseFloat(style.borderRightWidth);
+
+                if(hasVisibleLine){
+                    return true;
+                }
+            }
+        } catch(e) {
+            return false;
+        }
+
+        return false;
+    }
+
+    function isAutoTranslationPost(post) {
+        try {
+            if (!post) {
+                return false;
+            }
+
+            const tweetText = post.querySelector('[data-testid="tweetText"]');
+            if (!tweetText) {
+                return false;
+            }
+
+            const translationBlock = tweetText.previousElementSibling;
+            if (!translationBlock) {
+                return false;
+            }
+
+            const svgs = translationBlock.getElementsByTagName('svg');
+            const buttons = translationBlock.getElementsByTagName('button');
+
+            if (svgs.length === 0 || buttons.length === 0) {
+                return false;
+            }
+
+            for (const svg of svgs) {
+                const paths = svg.getElementsByTagName('path');
+                for (const path of paths) {
+                    const d = path.getAttribute('d');
+                    if (d && d.startsWith('M12.745 20.54')) {
+                        for (const button of buttons) {
+                            if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                continue;
+                            }
+
+                            const textElements = translationBlock.querySelectorAll('span, div');
+                            let hasTextBetween = false;
+
+                            for (const textElement of textElements) {
+                                if (textElement.contains(svg) || textElement.contains(button)) {
+                                    continue;
+                                }
+                                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                    continue;
+                                }
+                                if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                                    continue;
+                                }
+                                if (textElement.textContent && textElement.textContent.trim() !== '') {
+                                    hasTextBetween = true;
+                                    break;
+                                }
+                            }
+
+                            if (hasTextBetween) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        } catch (e) {
+            return false;
+        }
     }
 
     function FollowingTabClick(retryCount = 0) {
@@ -2578,62 +2737,6 @@
                 X_OPTION.LINK_CARD_URL_SAFE.push(domain);
                 chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
             }
-        }
-    }
-
-    /* ポスト要素からプロフィールデータを取得 */
-    function getPostDataObject(post) {
-        try {
-            let element = post;
-            let maxDepth = 10;
-            let depth = 0;
-            
-            while (element && depth < maxDepth) {
-                if (element.hasAttribute && element.hasAttribute('cslt_tweet_info')) {
-                    const jsonStr = element.getAttribute('cslt_tweet_info');
-                    if (jsonStr) {
-                        try {
-                            const data = JSON.parse(jsonStr);
-                            
-                            return {
-                                user_data: data.user_data ? {
-                                    name: data.user_data.name,
-                                    screen_name: data.user_data.scr_name,
-                                    user_id: data.user_data.user_id,
-                                    description: data.user_data.description,
-                                    all_tweet_count: data.user_data.all_tweet_count,
-                                    is_blue: data.user_data.is_blue,
-                                    location: data.user_data.location,
-                                    account_create_date: data.user_data.account_create_date,
-                                    blocked_by: data.user_data.blocked_by
-                                } : null,
-                                in_reply_user_data: data.in_reply_user_data ? {
-                                    user_id: data.in_reply_user_data.user_id,
-                                    screen_name: data.in_reply_user_data.scr_name
-                                } : null,
-                                tweet_id: data.tweet_id,
-                                text: data.text,
-                                tweet_lang: data.tweet_lang,
-                                is_reply: data.is_reply,
-                                is_promoted: data.is_promoted,
-                                tweet_client: data.tweet_client,
-                                mentions: data.mentions || [],
-                                raw: data
-                            };
-                        } catch (parseError) {
-                            console.warn('Error parsing cslt_tweet_info JSON:', parseError);
-                            return null;
-                        }
-                    }
-                }
-                element = element.parentElement;
-                depth++;
-            }
-            
-            return null;
-        } catch (e) {
-            console.warn('Error in getProfileData:', e);
-            return null;
         }
     }
 
