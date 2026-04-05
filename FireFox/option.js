@@ -208,12 +208,12 @@ function LoadOption_SwitchUpdate(){
     }
     if(Number(X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN)){
         if(0 < X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN){
-            document.getElementById("reply_profile_jpn_ratio_hdn_switch").checked = true;
+            document.getElementById("reply_profile_jpn_ratio_hdn_switch").checked = false;
         }
     }
     if(Number(X_OPTION.POST_PROFILE_JPN_RATIO_HDN)){
         if(0 < X_OPTION.POST_PROFILE_JPN_RATIO_HDN){
-            document.getElementById("post_profile_jpn_ratio_hdn_switch").checked = true;
+            document.getElementById("post_profile_jpn_ratio_hdn_switch").checked = false;
         }
     }
     SubOptionVisibleSwitch();
