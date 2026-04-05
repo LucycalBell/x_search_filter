@@ -1856,7 +1856,7 @@
         let listFragment = document.createDocumentFragment();
         
         let titleDiv = document.createElement('div');
-        titleDiv.textContent = '【非表示にしたポスト】';
+        titleDiv.textContent = '【ミュートしたポスト】';
         titleDiv.style.textAlign = 'center';
         titleDiv.style.fontSize = 'large';
         titleDiv.style.color = '#000';
@@ -1931,7 +1931,7 @@
                 postsContainer.appendChild(contentSpan);
                 
                 let reasonSpan = document.createElement('span');
-                reasonSpan.textContent = '（非表示理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
+                reasonSpan.textContent = '（ミュート理由：' + BLOCK_TYPE_TEXT[hidden_posts[i][1]] + '）';
                 reasonSpan.style.fontWeight = 'bold';
                 postsContainer.appendChild(reasonSpan);
                 

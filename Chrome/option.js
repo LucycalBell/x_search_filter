@@ -9,7 +9,12 @@ window.onload = function(){
 };
 
 const INTERVAL_TIME = 200;
-const TARGET_URL = [];
+const TARGET_URL = [
+"twitter.com/search",
+"twitter.com/hashtag",
+"twitter.com/i/trending",
+"twitter.com/explore"
+];
 const DEFAULT_ICON_NAME = "default_profile_normal.png";
 const POST_CLASS = [
     ["tweet", 3, "article"],
@@ -546,15 +551,6 @@ function EventSet(){
         document.getElementById("interval_time").value = INTERVAL_TIME;
         OptionSave();
     }, false);
-    document.getElementById("default_set_3").addEventListener("click", function(){
-        let a = "";
-        for(let i=0;i<TARGET_URL.length;i++){
-            if(0 < i){ a += "\n";}
-            a += TARGET_URL[i];
-        }
-        document.getElementById("target_url").value = a;
-        OptionSave();
-    }, false);
     document.getElementById("default_set_4").addEventListener("click", function(){
         let a = "";
         for(let i=0;i<POST_CLASS.length;i++){
@@ -719,6 +715,7 @@ function getActiveUrlList() {
 
 function setActiveUrlList(urlList) {
     let switchActive = false;
+    let targetUrlTextField = [];
     document.getElementById("active_url_home").checked = false;
     document.getElementById("active_url_search").checked = false;
     document.getElementById("active_url_post").checked = false;
