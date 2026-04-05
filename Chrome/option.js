@@ -135,7 +135,6 @@ function LoadOption(){
             document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN;
             document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME;
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
-            document.getElementById("search_notmatch_block").checked = X_OPTION.SEARCH_NO_HIT_BLOCK;
             document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
             document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){

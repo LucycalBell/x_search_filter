@@ -2210,7 +2210,7 @@
     }
 
     function isSearchWordEditing() {
-        if(document.getElementById("typeaheadDropdown-3") != null){ return "";}
+        if(document.getElementById("typeaheadDropdown-3") != null){ return true;}
         let input_lst = document.getElementsByTagName("input");
         for(const item of input_lst){
             if(item.enterKeyHint == "search" && item.dataset.testid == "SearchBox_Search_Input"){
