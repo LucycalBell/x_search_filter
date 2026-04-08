@@ -2224,15 +2224,16 @@
         return false;
     }
 
-    function getSearchWordList(){
+    function getSearchWordList() {
         let res = [];
-        let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
-        if(0 < wordLst.length){
-            for(const item of wordLst){
-                if(item.trim() != "" && /.+:.+/.test(item) == false){
-                    res.push(item.trim());
+            let wordLst = getSearchWord().replaceAll("　", " ").match(/"[^"]*"|'[^']*'|[^\s]+/g) || [];
+            if(0 < wordLst.length){
+                for(let item of wordLst){
+                    item = item.trim().replace(/^(["'])(.*)\1$/, "$2");
+                    if(item != "" && /.+:.+/.test(item) == false){
+                        res.push(item);
+                    }
                 }
-            }
         }
         return res;
     }
