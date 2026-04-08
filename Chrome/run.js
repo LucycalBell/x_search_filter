@@ -190,6 +190,7 @@
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -298,6 +299,9 @@
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
                     AddLinkClickListener(postList[i]);
+                    if(X_OPTION.POST_TAP_NEW_TAB){
+                        postTapNewWindow(postList[i]);
+                    }
                 }
             }
         }
@@ -2381,6 +2385,55 @@
         } catch (e) {
             return false;
         }
+    }
+
+    function postTapNewWindow(post) {
+        if(!post || post.dataset.xsfPostTapNewWindowAdded === "true"){
+            return;
+        }
+
+        post.dataset.xsfPostTapNewWindowAdded = "true";
+        post.addEventListener("click", function(event){
+            if(event.defaultPrevented){
+                return;
+            }
+
+            if(event.button !== 0){
+                return;
+            }
+
+            if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey){
+                return;
+            }
+
+            const selection = window.getSelection ? window.getSelection() : null;
+            if(selection && String(selection).trim() !== ""){
+                return;
+            }
+
+            const target = event.target;
+            if(!(target instanceof Element)){
+                return;
+            }
+
+            if(target.closest('a, button, input, textarea, select, label, summary, [role="button"], [role="link"], [role="menuitem"], [contenteditable="true"]')){
+                return;
+            }
+
+            if(target.closest('[data-testid="caret"], [data-testid="reply"], [data-testid="retweet"], [data-testid="like"], [data-testid="bookmark"], [data-testid="videoComponent"], [data-testid="placementTracking"]')){
+                return;
+            }
+
+            const postUrl = getPostUrl(post);
+            if(!postUrl){
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            window.open(postUrl, "_blank", "noopener,noreferrer");
+        }, true);
     }
 
     function FollowingTabClick(retryCount = 0) {

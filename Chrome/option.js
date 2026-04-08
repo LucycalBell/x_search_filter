@@ -91,6 +91,7 @@ function LoadOption(){
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -137,6 +138,7 @@ function LoadOption(){
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
             document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
             document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
+            document.getElementById("post_tap_newtab").checked = X_OPTION.POST_TAP_NEW_TAB;
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
                     document.getElementById("manual_import_status").innerText = X_OPTION.MANUAL_SPAM_LIST.length + "件インポートされています";
@@ -302,6 +304,7 @@ function OptionSave(){
     SAVE_OBJ.POST_TREE_NONBLOCK = document.getElementById("post_tree_nonBlock").checked;
     SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK = document.getElementById("auto_translation_post_block").checked;
     SAVE_OBJ.TARGET_URL = getActiveUrlList();
+    SAVE_OBJ.POST_TAP_NEW_TAB = document.getElementById("post_tap_newtab").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -541,6 +544,7 @@ function EventSet(){
     document.getElementById("active_url_hashtag").addEventListener("change", OptionSave, false);
     document.getElementById("active_url_trending").addEventListener("change", OptionSave, false);
     document.getElementById("active_url_explore").addEventListener("change", OptionSave, false);
+    document.getElementById("post_tap_newtab").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
