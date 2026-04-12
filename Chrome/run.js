@@ -75,6 +75,46 @@
         OptionLoad_run();
     }
 
+    let targetNode;
+    let observer;
+    function ResetObserver() {
+        if(observer) {
+            observer.disconnect();
+            observer = null;
+        }
+        targetNode = null;
+    }
+
+    function ObserverStart() {
+        if(observer) {
+            observer.disconnect();
+            observer = null;
+        }
+        targetNode = getPostViewLine();
+        if(targetNode == null || targetNode == undefined) {
+            targetNode = null;
+            setTimeout(ObserverStart, 50);
+            return;
+        }
+        const config = { attributes: true, childList: true, subtree: true };
+        observer = new MutationObserver(MainLoopX);
+        console.log("Observer Start");
+        observer.observe(targetNode, config);
+    }
+
+    function ObserverActiveCheck() {
+        if(observer != null && observer != undefined) {
+            const latestTargetNode = getPostViewLine();
+            if(targetNode == null || !targetNode.isConnected || (latestTargetNode != null && latestTargetNode != targetNode)) {
+                ResetObserver();
+            }
+        }
+        if(observer == null || observer == undefined) {
+            ObserverStart();
+        }
+        setTimeout(ObserverActiveCheck, 100);
+    }
+
     function SafeListLoad(cb){
         chrome.storage.local.get(["XFILTER_OPTION_SAFE_USER"]).then((result) => {
             try{
@@ -149,7 +189,6 @@
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
             X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
-            X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, 350, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
             X_OPTION.REG_EXP = getOptionPram(r.REG_EXP, false, TYPE_BOOL);
@@ -220,6 +259,8 @@
                 }
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
                 MainLoopX();
+                ObserverStart();
+                ObserverActiveCheck();
             });
             FollowTabCheck();
         });
@@ -295,7 +336,9 @@
         }
 
         for(let i=0;i<postList.length;i++){
+            console.log((activeUrl || isPostPageOptionActive()));
             if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
+                console.log("Post Blocked_B");
                 PostBlock(postList[i]);
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
@@ -306,7 +349,6 @@
                 }
             }
         }
-        setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
     }
 
     function getPostList() {
@@ -1324,6 +1366,7 @@
                 hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
                 block_postIdList.push(getPostId(post));
                 postBlockViewNumber++;
+                console.log(postBlockViewNumber);
             }
             // カウントから除外した場合でも非表示は実行（
             post_parent.style.visibility = "hidden";
@@ -1610,6 +1653,7 @@
     }
     
     function BlockCount(){
+        console.log("BlockCount:" + postBlockViewNumber);
         if(!X_OPTION.BLOCK_COUNT_VIEW){
             if(document.getElementById("x9uVvQH") != null){
                 HiddenPostList_Cls();
@@ -2246,6 +2290,10 @@
                 }
         }
         return res;
+    }
+
+    function getPostViewLine() {
+        return document.querySelector('[data-testid="primaryColumn"]');
     }
 
     function isFromSearch() {
