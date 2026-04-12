@@ -77,6 +77,67 @@
 
     let targetNode;
     let observer;
+    function hasRelevantTweetMutation(mutations) {
+        if (!Array.isArray(mutations) || mutations.length === 0) {
+            return false;
+        }
+
+        const tweetSelector = 'article[data-testid="tweet"]';
+        const cardMediaSelector = 'div[data-testid="card.wrapper"]';
+
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                const target = mutation.target;
+                if (
+                    target instanceof Element &&
+                    (
+                        target.matches(tweetSelector) ||
+                        target.closest(tweetSelector) != null ||
+                        target.matches(cardMediaSelector) ||
+                        target.closest(cardMediaSelector) != null
+                    )
+                ) {
+                    return true;
+                }
+
+                for (const addedNode of mutation.addedNodes) {
+                    if (!(addedNode instanceof Element)) {
+                        continue;
+                    }
+                    if (
+                        addedNode.matches(tweetSelector) ||
+                        addedNode.querySelector(tweetSelector) != null ||
+                        addedNode.matches(cardMediaSelector) ||
+                        addedNode.querySelector(cardMediaSelector) != null
+                    ) {
+                        return true;
+                    }
+                }
+            }
+
+            if (mutation.type === "characterData") {
+                const parentElement = mutation.target && mutation.target.parentElement;
+                if (
+                    parentElement instanceof Element &&
+                    (
+                        parentElement.closest(tweetSelector) != null ||
+                        parentElement.closest(cardMediaSelector) != null
+                    )
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function HandleObserverMutations(mutations) {
+        if (!hasRelevantTweetMutation(mutations)) {
+            return;
+        }
+        MainLoopX();
+    }
+
     function ResetObserver() {
         if(observer) {
             observer.disconnect();
@@ -96,9 +157,8 @@
             setTimeout(ObserverStart, 50);
             return;
         }
-        const config = { attributes: true, childList: true, subtree: true };
-        observer = new MutationObserver(MainLoopX);
-        console.log("Observer Start");
+        const config = { childList: true, characterData: true, subtree: true };
+        observer = new MutationObserver(HandleObserverMutations);
         observer.observe(targetNode, config);
     }
 
@@ -331,14 +391,8 @@
             }
         }
 
-        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
-            CardLinkEmphasis();
-        }
-
         for(let i=0;i<postList.length;i++){
-            console.log((activeUrl || isPostPageOptionActive()));
             if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
-                console.log("Post Blocked_B");
                 PostBlock(postList[i]);
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
@@ -348,6 +402,9 @@
                     }
                 }
             }
+        }
+        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
+            CardLinkEmphasis();
         }
     }
 
@@ -374,6 +431,7 @@
     }
 
     function CardLinkEmphasis(){
+        console.log("CardLinkEmphasis");
         let a;
         let cardList = [];
         let b;
@@ -1366,7 +1424,6 @@
                 hidden_posts.unshift([post.innerText, block_type, getPostUserName(post, false), getPostUrl(post), getPostAccountName(post), getPostText(post)]);
                 block_postIdList.push(getPostId(post));
                 postBlockViewNumber++;
-                console.log(postBlockViewNumber);
             }
             // カウントから除外した場合でも非表示は実行（
             post_parent.style.visibility = "hidden";
@@ -1653,7 +1710,6 @@
     }
     
     function BlockCount(){
-        console.log("BlockCount:" + postBlockViewNumber);
         if(!X_OPTION.BLOCK_COUNT_VIEW){
             if(document.getElementById("x9uVvQH") != null){
                 HiddenPostList_Cls();
@@ -2309,6 +2365,8 @@
 
     function isPosttree(post) {
         try {
+            if (!post) return false;
+
             const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
             if (!avatar) return false;
 
@@ -2316,17 +2374,26 @@
             if (!avatarColumn) return false;
             const avatarRow = avatarColumn.parentElement;
             if (!avatarRow) return false;
-            if (avatarRow.childElementCount > 1) {
-                return true;
-            }
-            const topSection = avatarRow.previousElementSibling;
-            if (topSection && topSection.firstElementChild) {
-                if (topSection.firstElementChild.childElementCount > 1) {
-                    return true;
-                }
-            }
 
-            return false;
+            const hasTreeContainerClass = post.classList.contains("r-1ut4w64");
+
+            const hasLeftConnector = Array.from(avatarRow.children).some(function(el) {
+                if (el === avatarColumn) {
+                    return false;
+                }
+                if (el.querySelector('[data-testid="Tweet-User-Avatar"]')) {
+                    return false;
+                }
+                if (el.querySelector("img, svg, time")) {
+                    return false;
+                }
+                return el.textContent.trim() === "";
+            });
+
+            const topSection = avatarRow.previousElementSibling;
+            const hasTopConnector = !!(topSection && topSection.querySelector(".r-15zivkp, .r-14gqq1x"));
+
+            return hasTreeContainerClass && (hasLeftConnector || hasTopConnector);
         } catch (e) {
             return false;
         }

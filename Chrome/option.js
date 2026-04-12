@@ -8,7 +8,6 @@ window.onload = function(){
     LoadOption();
 };
 
-const INTERVAL_TIME = 200;
 const TARGET_URL = [
 "twitter.com/search",
 "twitter.com/hashtag",
@@ -50,7 +49,6 @@ function LoadOption(){
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
             X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
-            X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, INTERVAL_TIME, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
             X_OPTION.REG_EXP = getOptionPram(r.REG_EXP, false, TYPE_BOOL);
@@ -105,7 +103,6 @@ function LoadOption(){
             document.getElementById("block_count_view").checked = X_OPTION.BLOCK_COUNT_VIEW;
             document.getElementById("hira_kata_conv").checked = X_OPTION.HIRA_KATA_COV;
             document.getElementById("case_conv").checked = X_OPTION.CASE_CONV;
-            document.getElementById("interval_time").value = X_OPTION.INTERVAL_TIME;
             document.getElementById("x_conv").checked = X_OPTION.URL_XT_CONVERT;
             document.getElementById("post_class_area").value = ArrayObjtoText(X_OPTION.POST_CLASS);
             document.getElementById("insert_default_class").checked = X_OPTION.INSERT_DEFAULT_CLASS;
@@ -282,7 +279,6 @@ function OptionSave(){
     SAVE_OBJ.BLOCK_COUNT_VIEW = document.getElementById("block_count_view").checked;
     SAVE_OBJ.HIRA_KATA_COV = document.getElementById("hira_kata_conv").checked;
     SAVE_OBJ.CASE_CONV = document.getElementById("case_conv").checked;
-    SAVE_OBJ.INTERVAL_TIME = document.getElementById("interval_time").value;
     SAVE_OBJ.URL_XT_CONVERT = document.getElementById("x_conv").checked;
     SAVE_OBJ.POST_CLASS = MakeClassArray(document.getElementById("post_class_area").value);
     SAVE_OBJ.INSERT_DEFAULT_CLASS = document.getElementById("insert_default_class").checked;
@@ -506,7 +502,6 @@ function EventSet(){
     document.getElementById("block_count_view").addEventListener("click", OptionSave, false);
     document.getElementById("hira_kata_conv").addEventListener("click", OptionSave, false);
     document.getElementById("case_conv").addEventListener("click", OptionSave, false);
-    document.getElementById("interval_time").addEventListener("input", OptionSave, false);
     document.getElementById("target_url").addEventListener("input", OptionSave, false);
     document.getElementById("post_class_area").addEventListener("input", OptionSave, false);
     document.getElementById("insert_default_class").addEventListener("click", OptionSave, false);
@@ -567,10 +562,6 @@ function EventSet(){
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
-        OptionSave();
-    }, false);
-    document.getElementById("default_set_2").addEventListener("click", function(){
-        document.getElementById("interval_time").value = INTERVAL_TIME;
         OptionSave();
     }, false);
     document.getElementById("default_set_4").addEventListener("click", function(){
