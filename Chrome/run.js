@@ -84,6 +84,7 @@
 
         const tweetSelector = 'article[data-testid="tweet"]';
         const cardMediaSelector = 'div[data-testid="card.wrapper"]';
+        const trendSelector = 'div[data-testid="trend"]';
 
         for (const mutation of mutations) {
             if (mutation.type === "childList") {
@@ -94,7 +95,10 @@
                         target.matches(tweetSelector) ||
                         target.closest(tweetSelector) != null ||
                         target.matches(cardMediaSelector) ||
-                        target.closest(cardMediaSelector) != null
+                        target.closest(cardMediaSelector) != null ||
+                        target.matches(trendSelector) ||
+                        target.closest(trendSelector) != null
+
                     )
                 ) {
                     return true;
@@ -108,7 +112,9 @@
                         addedNode.matches(tweetSelector) ||
                         addedNode.querySelector(tweetSelector) != null ||
                         addedNode.matches(cardMediaSelector) ||
-                        addedNode.querySelector(cardMediaSelector) != null
+                        addedNode.querySelector(cardMediaSelector) != null ||
+                        addedNode.matches(trendSelector) ||
+                        addedNode.querySelector(trendSelector) != null
                     ) {
                         return true;
                     }
@@ -121,7 +127,8 @@
                     parentElement instanceof Element &&
                     (
                         parentElement.closest(tweetSelector) != null ||
-                        parentElement.closest(cardMediaSelector) != null
+                        parentElement.closest(cardMediaSelector) != null ||
+                        parentElement.closest(trendSelector) != null
                     )
                 ) {
                     return true;
@@ -1608,6 +1615,7 @@
     }
 
     function getTrend(){
+        console.log("in getTrend");
         let trend = new Array();
         let doc = document.getElementsByTagName("div");
         for(let i=0;i<doc.length;i++){
@@ -1927,7 +1935,7 @@
             };
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                window.open(chrome.runtime.getURL("options.html"), "_blank");
+                window.open(chrome.runtime.getURL("option.html"), "_blank");
             }, false);
             lstArea.appendChild(optionsBtn);
             
