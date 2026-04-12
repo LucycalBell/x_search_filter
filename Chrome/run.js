@@ -1829,7 +1829,7 @@
             };
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                chrome.runtime.sendMessage({type: "openOptions"});
+                window.open(chrome.runtime.getURL("options.html"), "_blank");
             }, false);
             lstArea.appendChild(optionsBtn);
             
