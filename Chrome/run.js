@@ -191,6 +191,7 @@
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
+            X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -1117,6 +1118,13 @@
     
     function PostBlockCheck(post){
         block_type = -1;
+
+        // 自分の投稿を除外するオプションが有効で自分のポストの場合、ミュート処理をスキップ
+        if(X_OPTION.EXCLUDE_MY_POSTS && X_OPTION.EXCLUDE_MY_POSTS.trim() !== ""){
+            if(getPostUserName(post, true) === X_OPTION.EXCLUDE_MY_POSTS.trim().replace("@", "")){
+                return false;
+            }
+        }
 
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
@@ -2137,6 +2145,8 @@
         return res;
     }
 
+    /* ポストからユーザー名を取得 */
+    /* dltAtがtrueのときはユーザー名から@を削除して返却 */
     function getPostUserName(post, dltAt){
         let a = getPostParent(post, postClass_Hierarchy[1]).getElementsByTagName("a");
         for(let i=0;i<a.length;i++){
