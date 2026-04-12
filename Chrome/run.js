@@ -2261,75 +2261,27 @@
 
     function isPosttree(post) {
         try {
-            if(post == null || post == void 0){
-                return false;
-            }
-
             const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
-            if(avatar == null){
-                return false;
+            if (!avatar) return false;
+
+            const avatarColumn = avatar.parentElement;
+            if (!avatarColumn) return false;
+            const avatarRow = avatarColumn.parentElement;
+            if (!avatarRow) return false;
+            if (avatarRow.childElementCount > 1) {
+                return true;
             }
-
-            const avatarRect = avatar.getBoundingClientRect();
-            const postRect = post.getBoundingClientRect();
-            if(avatarRect.width <= 0 || avatarRect.height <= 0 || postRect.width <= 0 || postRect.height <= 0){
-                return false;
-            }
-
-            const divList = post.getElementsByTagName("div");
-            for(const item of divList){
-                if(item == null || item == avatar || avatar.contains(item)){
-                    continue;
-                }
-
-                if(item.querySelector("img,svg,video,a,button")){
-                    continue;
-                }
-
-                if(item.textContent != null && item.textContent.trim() != ""){
-                    continue;
-                }
-
-                const rect = item.getBoundingClientRect();
-                if(rect.width <= 0 || rect.height <= 0){
-                    continue;
-                }
-
-                if(rect.height < 18 || rect.width > 8){
-                    continue;
-                }
-
-                if(rect.left < (postRect.left - 2) || rect.right > (avatarRect.right + 8)){
-                    continue;
-                }
-
-                if(rect.left > (avatarRect.left + 8)){
-                    continue;
-                }
-
-                if(rect.bottom < (avatarRect.top - 24) || rect.top > (avatarRect.bottom + 48)){
-                    continue;
-                }
-
-                const style = getComputedStyle(item);
-                if(style.display == "none" || style.visibility == "hidden" || Number(style.opacity) === 0){
-                    continue;
-                }
-
-                const hasVisibleLine = (
-                    style.backgroundColor != "rgba(0, 0, 0, 0)" &&
-                    style.backgroundColor != "transparent"
-                ) || 0 < parseFloat(style.borderLeftWidth) || 0 < parseFloat(style.borderRightWidth);
-
-                if(hasVisibleLine){
+            const topSection = avatarRow.previousElementSibling;
+            if (topSection && topSection.firstElementChild) {
+                if (topSection.firstElementChild.childElementCount > 1) {
                     return true;
                 }
             }
-        } catch(e) {
+
+            return false;
+        } catch (e) {
             return false;
         }
-
-        return false;
     }
 
     function isAutoTranslationPost(post) {
