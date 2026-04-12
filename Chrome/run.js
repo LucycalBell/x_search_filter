@@ -1255,7 +1255,7 @@
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
-            if(X_OPTION.POST_TREE_NONBLOCK && isPosttree(post)){
+            if(X_OPTION.POST_TREE_NONBLOCK && isPostTree(post)){
                 return false;
             }
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
@@ -1388,7 +1388,7 @@
         if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
             if(isSearchPage()) {
                 if (isSearchWordEditing() == false && 0 < getSearchWordList().length) {
-                    if(!(getSearchWordList().some(item => searchWordConvertion(getPostText(post)).includes(searchWordConvertion(item))))) {
+                    if(!(getSearchWordList().some(item => searchWordConversion(getPostText(post)).includes(searchWordConversion(item))))) {
                         block_type = 18;
                         return true;
                     }
@@ -2350,14 +2350,14 @@
 
     function getSearchWordList() {
         let res = [];
-            let wordLst = getSearchWord().replaceAll("　", " ").match(/"[^"]*"|'[^']*'|[^\s]+/g) || [];
-            if(0 < wordLst.length){
-                for(let item of wordLst){
-                    item = item.trim().replace(/^(["'])(.*)\1$/, "$2");
-                    if(item != "" && /.+:.+/.test(item) == false){
-                        res.push(item);
-                    }
+        let wordLst = getSearchWord().replaceAll("　", " ").match(/"[^"]*"|'[^']*'|[^\s]+/g) || [];
+        if(0 < wordLst.length){
+            for(let item of wordLst){
+                item = item.trim().replace(/^(["'])(.*)\1$/, "$2");
+                if(item != "" && /.+:.+/.test(item) == false){
+                    res.push(item);
                 }
+            }
         }
         return res;
     }
@@ -2377,40 +2377,13 @@
         return false;
     }
 
-    function isPosttree(post) {
-        try {
-            if (!post) return false;
-
-            const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
-            if (!avatar) return false;
-
-            const avatarColumn = avatar.parentElement;
-            if (!avatarColumn) return false;
-            const avatarRow = avatarColumn.parentElement;
-            if (!avatarRow) return false;
-
-            const hasTreeContainerClass = post.classList.contains("r-1ut4w64");
-
-            const hasLeftConnector = Array.from(avatarRow.children).some(function(el) {
-                if (el === avatarColumn) {
-                    return false;
-                }
-                if (el.querySelector('[data-testid="Tweet-User-Avatar"]')) {
-                    return false;
-                }
-                if (el.querySelector("img, svg, time")) {
-                    return false;
-                }
-                return el.textContent.trim() === "";
-            });
-
-            const topSection = avatarRow.previousElementSibling;
-            const hasTopConnector = !!(topSection && topSection.querySelector(".r-15zivkp, .r-14gqq1x"));
-
-            return hasTreeContainerClass && (hasLeftConnector || hasTopConnector);
-        } catch (e) {
-            return false;
-        }
+    function isPostTree(post) {
+        const tweet = post.closest('[data-testid="tweet"]');
+        if (!tweet) return false;
+        const avatar = tweet.querySelector('[data-testid="Tweet-User-Avatar"]');
+        if (!avatar) return false;
+        const avatarColumn = avatar.parentElement;
+        return avatarColumn.children.length > 1;
     }
 
     function isAutoTranslationPost(post) {
@@ -2942,7 +2915,7 @@
 
     /* 検索用に変換 */
     /* 大文字に統一、ひらがなをカタカナに変換 */
-    function searchWordConvertion(text) {
+    function searchWordConversion(text) { 
         return hanKanaToZenKana(hiraToKana(toHalfWidth(text).toUpperCase())).trim().replace(/^['"]|['"]$/g, '');
     }
 
