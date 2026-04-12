@@ -315,12 +315,8 @@ function OptionSave(){
     } else {
         SAVE_OBJ.TREND_WORD_BORDER_NAME = "0";
     }
-    chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(SAVE_OBJ)}, function() {
-        ;
-    });
-    chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(document.getElementById("safe_user").value.split(/\n/))}, function() {
-        ;
-    });
+    chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(SAVE_OBJ)});
+    chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(document.getElementById("safe_user").value.split(/\n/))});
     SubOptionVisibleSwitch();
     ManualExportSetting();
     BackupExport(SAVE_OBJ);
@@ -670,8 +666,8 @@ function BackupImport(){
                     let safeUser = r.SAFE_USER || [];
                     delete r.SAFE_USER;
                     X_OPTION = r;
-                    chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)}, function() {
-                        chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(safeUser)}, function() {
+                    chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)}).then(() => {
+                        chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(safeUser)}).then(() => {
                             alert("バックアップファイルを読み込みました。\n画面を再読み込みします。");
                             LoadOption();
                             window.scrollTo(0, 0);

@@ -96,7 +96,7 @@
 
     function SafeListSave(cb){
         let saveList = safe_user_list.filter(checkEmpty);
-        chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(saveList)}, function() {
+        chrome.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(saveList)}).then((result) => {
             if(cb != null){
                 cb();
             }
