@@ -1935,7 +1935,15 @@
             };
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                window.open(chrome.runtime.getURL("option.html"), "_blank");
+                try {
+                    chrome.runtime.sendMessage({type: "openOptionsPage"}, function(response){
+                        if(chrome.runtime.lastError){
+                            window.open(chrome.runtime.getURL("option.html"), "_blank");
+                        }
+                    });
+                } catch(err) {
+                    window.open(chrome.runtime.getURL("option.html"), "_blank");
+                }
             }, false);
             lstArea.appendChild(optionsBtn);
             
