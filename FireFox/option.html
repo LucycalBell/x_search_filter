@@ -427,11 +427,6 @@ input[type="number"]{
                         <li><a href="https://github.com/LucycalBell/x_search_filter/" target="_blank">GitHub</a></li>
                     </ul>
                 </ul>
-                <h4>表示名の表記について</h4>
-                <div>一部表記に揺れが生じていましたが以下に統一しました</div>
-                <ul>
-                    <li>ユーザー名：@から始まるアカウントの識別子</li>
-                    <li>アカウント名：プロフィールで大きく表示される名前（ニックネーム）</li>
             </div>
             <div class="option_block collapsed">
                 <div class="option-title">ミュートワード設定</div>
@@ -496,6 +491,17 @@ input[type="number"]{
 
             <div class="option_block collapsed">
                 <div class="option-title">ミュートオプション</div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="exclude_my_posts">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">自分のポストはミュート対象外にする</span>
+                        </div>
+                    </label>
+                    <div class="switch_sub_option" id="exclude_my_posts_subOption">→ 自分のユーザー名：@<input type="text" id="my_username"></div>
+                </div>
 
                 <div class="switch_box">
                     <label class="switch-container">
@@ -593,20 +599,6 @@ input[type="number"]{
 
                 <h4 class="small_top_margin">デフォルトアイコン画像名 <button id="default_set_1">初期値に戻す</button></h4>
                 <input type="text" id="default_icon_name" class="text-input" value="default_profile_normal.png">
-
-                <div class="switch_box zero-bottom-margin">
-                    <label class="switch-container">
-                        <input type="checkbox" id="post_profile_jpn_ratio_hdn_switch" disabled>
-                        <span class="slider"></span>
-                        <div class="switch-text">
-                            <span class="switch-label">ポストユーザーのプロフィール内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライをミュートにする</span>
-                            <span class="switch_sub_text">※数字が大きくなるほど厳しくなります</span>
-                            <span class="switch_sub_text">※特に巻き込みミュートが発生しやすいオプションのためご注意ください</span>
-                            <span class="switch_sub_text"><span class="font_red">※2026/04/04時点でこの機能は動作しなくなっており無効化されています、次回アップデートで削除予定です</span>
-                        </div>
-                    </label>
-                    <div class="switch_sub_option" id="post_profile_jpn_ratio_hdn_subOption">→ ミュートにする日本語率：<input type="number" id="post_profile_jpn_ratio_hdn" class="number-input" value="0" min="0">%以下をミュート</div>
-                </div>
 
                 <div class="switch_box zero-bottom-margin">
                     <label class="switch-container">
@@ -710,19 +702,6 @@ input[type="number"]{
                 </div>
                 <div class="switch_box zero-bottom-margin">
                     <label class="switch-container">
-                        <input type="checkbox" id="reply_profile_jpn_ratio_hdn_switch" disabled>
-                        <span class="slider"></span>
-                        <div class="switch-text">
-                            <span class="switch-label">リプライユーザーのプロフィール内テキストの「ひらがな／カタカナ／漢字」の割合が次未満のリプライをミュートにする</span>
-                            <span class="switch_sub_text">※数字が大きくなるほど厳しくなります</span>
-                            <span class="switch_sub_text">※特に巻き込みミュートが発生しやすいオプションのためご注意ください</span>
-                            <span class="switch_sub_text"><span class="font_red">※2026/04/04時点でこの機能は動作しなくなっており無効化されています、次回アップデートで削除予定です</span>
-                        </div>
-                    </label>
-                    <div class="switch_sub_option" id="reply_profile_jpn_ratio_hdn_subOption">→ ミュートにする日本語率：<input type="number" id="reply_profile_jpn_ratio_hdn" class="number-input" value="0" min="0">%以下をミュート</div>
-                </div>
-                <div class="switch_box zero-bottom-margin">
-                    <label class="switch-container">
                         <input type="checkbox" id="reply_mute_word_settings_apply">
                         <span class="slider"></span>
                         <div class="switch-text">
@@ -777,7 +756,7 @@ input[type="number"]{
             </div>
 
             <div class="option_block collapsed">
-            <div class="option-title">リンク設定</div>
+            <div class="option-title">ポスト設定</div>
             <div class="switch_box small-bottom-margin">
                 <label class="switch-container">
                     <input type="checkbox" id="link_card_emphasis">
@@ -858,6 +837,16 @@ input[type="number"]{
             <div>
             ※セーフドメインに指定されたドメインが遷移先の場合、一致していなくても赤字警告にならなくなります<br>
             ※ドメイン部のみで判定するため「https://」や「www」、末尾の「/」は除外してください
+            </div>
+            <div class="switch_box small-bottom-margin">
+                <label class="switch-container">
+                    <input type="checkbox" id="post_tap_newtab">
+                    <span class="slider"></span>
+                    <div class="switch-text">
+                        <span class="switch-label">ポストをタップしたとき新しいタブで開く</span>
+                        <span class="switch_sub_text">※ミュート数が多い場合、スクロール位置が変わってしまうのを抑止するため新しいタブでポストを開きます</span>
+                    </div>
+                </label>
             </div>
             </div>
 
@@ -954,8 +943,6 @@ input[type="number"]{
                         </div>
                     </label>
                 </div>
-                <h4>処理間隔（数字が小さいほどポストが素早く非表示になるが動作が重くなる） <button id="default_set_2">初期値に戻す</button></h4>
-                <input type="number" id="interval_time" class="number-input" value="200"><span>ミリ秒</span><br>
                 <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
                 <div>
                     ※階層はクラス名の要素から何階層上を非表示にするか<br>

@@ -13,6 +13,10 @@ chrome.runtime.onMessage.addListener(
         url: chrome.runtime.getURL("option.html")
       });
       return true;
+    case "openOptionsPage":
+      chrome.runtime.openOptionsPage();
+      sendResponse({success: true});
+      return true;
     default:
       console.log("Error: Unkown request.");
 	  return;
