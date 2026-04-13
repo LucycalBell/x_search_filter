@@ -1614,7 +1614,6 @@
     }
 
     function getTrend(){
-        console.log("in getTrend");
         let trend = new Array();
         let doc = document.getElementsByTagName("div");
         for(let i=0;i<doc.length;i++){
