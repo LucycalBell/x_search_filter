@@ -436,7 +436,6 @@
     }
 
     function CardLinkEmphasis(){
-        console.log("CardLinkEmphasis");
         let a;
         let cardList = [];
         let b;

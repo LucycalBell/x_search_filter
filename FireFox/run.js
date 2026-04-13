@@ -75,6 +75,113 @@
         OptionLoad_run();
     }
 
+    let targetNode;
+    let observer;
+    function hasRelevantTweetMutation(mutations) {
+        if (!Array.isArray(mutations) || mutations.length === 0) {
+            return false;
+        }
+
+        const tweetSelector = 'article[data-testid="tweet"]';
+        const cardMediaSelector = 'div[data-testid="card.wrapper"]';
+        const trendSelector = 'div[data-testid="trend"]';
+
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                const target = mutation.target;
+                if (
+                    target instanceof Element &&
+                    (
+                        target.matches(tweetSelector) ||
+                        target.closest(tweetSelector) != null ||
+                        target.matches(cardMediaSelector) ||
+                        target.closest(cardMediaSelector) != null ||
+                        target.matches(trendSelector) ||
+                        target.closest(trendSelector) != null
+
+                    )
+                ) {
+                    return true;
+                }
+
+                for (const addedNode of mutation.addedNodes) {
+                    if (!(addedNode instanceof Element)) {
+                        continue;
+                    }
+                    if (
+                        addedNode.matches(tweetSelector) ||
+                        addedNode.querySelector(tweetSelector) != null ||
+                        addedNode.matches(cardMediaSelector) ||
+                        addedNode.querySelector(cardMediaSelector) != null ||
+                        addedNode.matches(trendSelector) ||
+                        addedNode.querySelector(trendSelector) != null
+                    ) {
+                        return true;
+                    }
+                }
+            }
+
+            if (mutation.type === "characterData") {
+                const parentElement = mutation.target && mutation.target.parentElement;
+                if (
+                    parentElement instanceof Element &&
+                    (
+                        parentElement.closest(tweetSelector) != null ||
+                        parentElement.closest(cardMediaSelector) != null ||
+                        parentElement.closest(trendSelector) != null
+                    )
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function HandleObserverMutations(mutations) {
+        if (!hasRelevantTweetMutation(mutations)) {
+            return;
+        }
+        MainLoopX();
+    }
+
+    function ResetObserver() {
+        if(observer) {
+            observer.disconnect();
+            observer = null;
+        }
+        targetNode = null;
+    }
+
+    function ObserverStart() {
+        if(observer) {
+            observer.disconnect();
+            observer = null;
+        }
+        targetNode = getPostViewLine();
+        if(targetNode == null || targetNode == undefined) {
+            targetNode = null;
+            setTimeout(ObserverStart, 50);
+            return;
+        }
+        const config = { childList: true, characterData: true, subtree: true };
+        observer = new MutationObserver(HandleObserverMutations);
+        observer.observe(targetNode, config);
+    }
+
+    function ObserverActiveCheck() {
+        if(observer != null && observer != undefined) {
+            const latestTargetNode = getPostViewLine();
+            if(targetNode == null || !targetNode.isConnected || (latestTargetNode != null && latestTargetNode != targetNode)) {
+                ResetObserver();
+            }
+        }
+        if(observer == null || observer == undefined) {
+            ObserverStart();
+        }
+        setTimeout(ObserverActiveCheck, 100);
+    }
+
     function SafeListLoad(cb){
         browser.storage.local.get(["XFILTER_OPTION_SAFE_USER"]).then((result) => {
             try{
@@ -96,7 +203,7 @@
 
     function SafeListSave(cb){
         let saveList = safe_user_list.filter(checkEmpty);
-        browser.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(saveList)}, function() {
+        browser.storage.local.set({"XFILTER_OPTION_SAFE_USER": JSON.stringify(saveList)}).then((result) => {
             if(cb != null){
                 cb();
             }
@@ -149,7 +256,6 @@
             X_OPTION.SPACE_BORDER = getOptionPram(r.SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.HIRA_KATA_COV = getOptionPram(r.HIRA_KATA_COV, true, TYPE_BOOL);
             X_OPTION.CASE_CONV = getOptionPram(r.CASE_CONV, false, TYPE_BOOL);
-            X_OPTION.INTERVAL_TIME = getOptionPram(r.INTERVAL_TIME, 350, TYPE_INTEGER);
             X_OPTION.TARGET_URL = getOptionPram(r.TARGET_URL, TARGET_URL, TYPE_ARRAY);
             X_OPTION.URL_XT_CONVERT = getOptionPram(r.URL_XT_CONVERT, true, TYPE_BOOL);
             X_OPTION.REG_EXP = getOptionPram(r.REG_EXP, false, TYPE_BOOL);
@@ -182,14 +288,14 @@
             X_OPTION.REPLY_JPN_RATIO_HDN = getOptionPram(r.REPLY_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.REPLY_MULTI_COUNT_BORDER = getOptionPram(r.REPLY_MULTI_COUNT_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
-            X_OPTION.REPLY_PROFILE_JPN_RATIO_HDN = getOptionPram(r.REPLY_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
-            X_OPTION.POST_PROFILE_JPN_RATIO_HDN = getOptionPram(r.POST_PROFILE_JPN_RATIO_HDN, 0, TYPE_INTEGER);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
+            X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -218,6 +324,8 @@
                 }
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
                 MainLoopX();
+                ObserverStart();
+                ObserverActiveCheck();
             });
             FollowTabCheck();
         });
@@ -288,20 +396,21 @@
             }
         }
 
-        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
-            CardLinkEmphasis();
-        }
-
         for(let i=0;i<postList.length;i++){
             if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
             } else {
                 if(activeUrl || X_OPTION.LINK_EMPHASIS_ALL){
                     AddLinkClickListener(postList[i]);
+                    if(X_OPTION.POST_TAP_NEW_TAB){
+                        postTapNewWindow(postList[i]);
+                    }
                 }
             }
         }
-        setTimeout(MainLoopX, X_OPTION.INTERVAL_TIME);
+        if((X_OPTION.LINK_EMPHASIS || X_OPTION.LINK_CARD_URL_VIEW) && (activeUrl || X_OPTION.LINK_EMPHASIS_ALL)) {
+            CardLinkEmphasis();
+        }
     }
 
     function getPostList() {
@@ -1114,6 +1223,13 @@
     function PostBlockCheck(post){
         block_type = -1;
 
+        // 自分の投稿を除外するオプションが有効で自分のポストの場合、ミュート処理をスキップ
+        if(X_OPTION.EXCLUDE_MY_POSTS && X_OPTION.EXCLUDE_MY_POSTS.trim() !== ""){
+            if(getPostUserName(post, true) === X_OPTION.EXCLUDE_MY_POSTS.trim().replace("@", "")){
+                return false;
+            }
+        }
+
         if(!checked_IdList.includes(getPostId(post))){
             checked_IdList.push(getPostId(post));
             checked_UserNameList.push(getPostUserName(post, true));
@@ -1138,7 +1254,7 @@
 
         /* ポストページに関するオプション処理 */
         if(isPostPageOptionActive()) {
-            if(X_OPTION.POST_TREE_NONBLOCK && isPosttree(post)){
+            if(X_OPTION.POST_TREE_NONBLOCK && isPostTree(post)){
                 return false;
             }
             /* ミュートワードオプション適用する場合（セーフ判定するためポストページ最優先） */
@@ -1271,7 +1387,7 @@
         if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
             if(isSearchPage()) {
                 if (isSearchWordEditing() == false && 0 < getSearchWordList().length) {
-                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))) {
+                    if(!(getSearchWordList().some(item => searchWordConversion(getPostText(post)).includes(searchWordConversion(item))))) {
                         block_type = 18;
                         return true;
                     }
@@ -1498,6 +1614,7 @@
     }
 
     function getTrend(){
+        console.log("in getTrend");
         let trend = new Array();
         let doc = document.getElementsByTagName("div");
         for(let i=0;i<doc.length;i++){
@@ -1817,7 +1934,15 @@
             };
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                browser.runtime.sendMessage({type: "openOptions"});
+                try {
+                    browser.runtime.sendMessage({type: "openOptionsPage"}, function(response){
+                        if(browser.runtime.lastError){
+                            window.open(browser.runtime.getURL("option.html"), "_blank");
+                        }
+                    });
+                } catch(err) {
+                    window.open(browser.runtime.getURL("option.html"), "_blank");
+                }
             }, false);
             lstArea.appendChild(optionsBtn);
             
@@ -2133,6 +2258,8 @@
         return res;
     }
 
+    /* ポストからユーザー名を取得 */
+    /* dltAtがtrueのときはユーザー名から@を削除して返却 */
     function getPostUserName(post, dltAt){
         let a = getPostParent(post, postClass_Hierarchy[1]).getElementsByTagName("a");
         for(let i=0;i<a.length;i++){
@@ -2220,17 +2347,22 @@
         return false;
     }
 
-    function getSearchWordList(){
+    function getSearchWordList() {
         let res = [];
-        let wordLst = getSearchWord().replaceAll("　", " ").split(" ");
+        let wordLst = getSearchWord().replaceAll("　", " ").match(/"[^"]*"|'[^']*'|[^\s]+/g) || [];
         if(0 < wordLst.length){
-            for(const item of wordLst){
-                if(item.trim() != "" && /.+:.+/.test(item) == false){
+            for(let item of wordLst){
+                item = item.trim().replace(/^(["'])(.*)\1$/, "$2");
+                if(item != "" && /.+:.+/.test(item) == false){
                     res.push(item);
                 }
             }
         }
         return res;
+    }
+
+    function getPostViewLine() {
+        return document.querySelector('[data-testid="primaryColumn"]');
     }
 
     function isFromSearch() {
@@ -2244,77 +2376,13 @@
         return false;
     }
 
-    function isPosttree(post) {
-        try {
-            if(post == null || post == void 0){
-                return false;
-            }
-
-            const avatar = post.querySelector('[data-testid="Tweet-User-Avatar"]');
-            if(avatar == null){
-                return false;
-            }
-
-            const avatarRect = avatar.getBoundingClientRect();
-            const postRect = post.getBoundingClientRect();
-            if(avatarRect.width <= 0 || avatarRect.height <= 0 || postRect.width <= 0 || postRect.height <= 0){
-                return false;
-            }
-
-            const divList = post.getElementsByTagName("div");
-            for(const item of divList){
-                if(item == null || item == avatar || avatar.contains(item)){
-                    continue;
-                }
-
-                if(item.querySelector("img,svg,video,a,button")){
-                    continue;
-                }
-
-                if(item.textContent != null && item.textContent.trim() != ""){
-                    continue;
-                }
-
-                const rect = item.getBoundingClientRect();
-                if(rect.width <= 0 || rect.height <= 0){
-                    continue;
-                }
-
-                if(rect.height < 18 || rect.width > 8){
-                    continue;
-                }
-
-                if(rect.left < (postRect.left - 2) || rect.right > (avatarRect.right + 8)){
-                    continue;
-                }
-
-                if(rect.left > (avatarRect.left + 8)){
-                    continue;
-                }
-
-                if(rect.bottom < (avatarRect.top - 24) || rect.top > (avatarRect.bottom + 48)){
-                    continue;
-                }
-
-                const style = getComputedStyle(item);
-                if(style.display == "none" || style.visibility == "hidden" || Number(style.opacity) === 0){
-                    continue;
-                }
-
-                const hasVisibleLine = (
-                    style.backgroundColor != "rgba(0, 0, 0, 0)" &&
-                    style.backgroundColor != "transparent"
-                ) || 0 < parseFloat(style.borderLeftWidth) || 0 < parseFloat(style.borderRightWidth);
-
-                if(hasVisibleLine){
-                    return true;
-                }
-            }
-        } catch(e) {
-            return false;
-        }
-
-        return false;
+    function isPostTree(post) {
+        const tweet = post.closest('[data-testid="tweet"]');
+        if (!tweet) return false;
+        const avatar = tweet.querySelector('[data-testid="Tweet-User-Avatar"]');
+        if (!avatar) return false;
+        const avatarColumn = avatar.parentElement;
+        return avatarColumn.children.length > 1;
     }
 
     function isAutoTranslationPost(post) {
@@ -2381,6 +2449,55 @@
         } catch (e) {
             return false;
         }
+    }
+
+    function postTapNewWindow(post) {
+        if(!post || post.dataset.xsfPostTapNewWindowAdded === "true"){
+            return;
+        }
+
+        post.dataset.xsfPostTapNewWindowAdded = "true";
+        post.addEventListener("click", function(event){
+            if(event.defaultPrevented){
+                return;
+            }
+
+            if(event.button !== 0){
+                return;
+            }
+
+            if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey){
+                return;
+            }
+
+            const selection = window.getSelection ? window.getSelection() : null;
+            if(selection && String(selection).trim() !== ""){
+                return;
+            }
+
+            const target = event.target;
+            if(!(target instanceof Element)){
+                return;
+            }
+
+            if(target.closest('a, button, input, textarea, select, label, summary, [role="button"], [role="link"], [role="menuitem"], [contenteditable="true"]')){
+                return;
+            }
+
+            if(target.closest('[data-testid="caret"], [data-testid="reply"], [data-testid="retweet"], [data-testid="like"], [data-testid="bookmark"], [data-testid="videoComponent"], [data-testid="placementTracking"]')){
+                return;
+            }
+
+            const postUrl = getPostUrl(post);
+            if(!postUrl){
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            window.open(postUrl, "_blank", "noopener,noreferrer");
+        }, true);
     }
 
     function FollowingTabClick(retryCount = 0) {
@@ -2793,6 +2910,55 @@
         checked_IdList = [];
         checked_UserNameList = [];
         block_postIdList = [];
+    }
+
+    /* 検索用に変換 */
+    /* 大文字に統一、ひらがなをカタカナに変換 */
+    function searchWordConversion(text) { 
+        return hanKanaToZenKana(hiraToKana(toHalfWidth(text).toUpperCase())).trim().replace(/^['"]|['"]$/g, '');
+    }
+
+    /* 全角英数字を半角に変換 */
+    function toHalfWidth(str) {
+        str = str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+        return str;
+    }
+
+    /* 半角カタカナを全角カタカナに変換 */
+    function hanKanaToZenKana(text) {
+        var kanaMap = {
+            'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
+            'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ',
+            'ﾀﾞ': 'ダ', 'ﾁﾞ': 'ヂ', 'ﾂﾞ': 'ヅ', 'ﾃﾞ': 'デ', 'ﾄﾞ': 'ド',
+            'ﾊﾞ': 'バ', 'ﾋﾞ': 'ビ', 'ﾌﾞ': 'ブ', 'ﾍﾞ': 'ベ', 'ﾎﾞ': 'ボ',
+            'ﾊﾟ': 'パ', 'ﾋﾟ': 'ピ', 'ﾌﾟ': 'プ', 'ﾍﾟ': 'ペ', 'ﾎﾟ': 'ポ',
+            'ｳﾞ': 'ヴ', 'ﾜﾞ': 'ヷ', 'ｦﾞ': 'ヺ',
+            'ｱ': 'ア', 'ｲ': 'イ', 'ｳ': 'ウ', 'ｴ': 'エ', 'ｵ': 'オ',
+            'ｶ': 'カ', 'ｷ': 'キ', 'ｸ': 'ク', 'ｹ': 'ケ', 'ｺ': 'コ',
+            'ｻ': 'サ', 'ｼ': 'シ', 'ｽ': 'ス', 'ｾ': 'セ', 'ｿ': 'ソ',
+            'ﾀ': 'タ', 'ﾁ': 'チ', 'ﾂ': 'ツ', 'ﾃ': 'テ', 'ﾄ': 'ト',
+            'ﾅ': 'ナ', 'ﾆ': 'ニ', 'ﾇ': 'ヌ', 'ﾈ': 'ネ', 'ﾉ': 'ノ',
+            'ﾊ': 'ハ', 'ﾋ': 'ヒ', 'ﾌ': 'フ', 'ﾍ': 'ヘ', 'ﾎ': 'ホ',
+            'ﾏ': 'マ', 'ﾐ': 'ミ', 'ﾑ': 'ム', 'ﾒ': 'メ', 'ﾓ': 'モ',
+            'ﾔ': 'ヤ', 'ﾕ': 'ユ', 'ﾖ': 'ヨ',
+            'ﾗ': 'ラ', 'ﾘ': 'リ', 'ﾙ': 'ル', 'ﾚ': 'レ', 'ﾛ': 'ロ',
+            'ﾜ': 'ワ', 'ｦ': 'ヲ', 'ﾝ': 'ン',
+            'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ',
+            'ｯ': 'ッ', 'ｬ': 'ャ', 'ｭ': 'ュ', 'ｮ': 'ョ',
+            '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・'
+        };
+        var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
+        return text.replace(reg, function (match) {
+            return kanaMap[match];
+        }).replace(/ﾞ/g, '゛').replace(/ﾟ/g, '゜');
+    }
+
+    function hiraToKana(text) {
+        return text.replace(/[\u3041-\u3096]/g, function(s){
+        return String.fromCharCode(s.charCodeAt(0) + 0x60);
+        });
     }
 
     TwitterSearchBlockMain();
