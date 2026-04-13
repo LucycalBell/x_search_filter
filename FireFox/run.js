@@ -179,7 +179,7 @@
         if(observer == null || observer == undefined) {
             ObserverStart();
         }
-        setTimeout(ObserverActiveCheck, 100);
+        setTimeout(ObserverActiveCheck, 500);
     }
 
     function SafeListLoad(cb){
@@ -324,7 +324,6 @@
                 }
                 X_OPTION.POST_CLASS = getOptionPram(c, X_OPTION.POST_CLASS, TYPE_ARRAY);
                 MainLoopX();
-                ObserverStart();
                 ObserverActiveCheck();
             });
             FollowTabCheck();
