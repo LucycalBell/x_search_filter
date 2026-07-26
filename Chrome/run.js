@@ -294,6 +294,7 @@
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
             TrendDataLoad();
@@ -1408,7 +1409,7 @@
         }
 
         if(X_OPTION.AUTO_TRANSLATION_POST_BLOCK) {
-            if(isAutoTranslationPost(post)){
+            if(isAutoTranslationPost(post, X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST)){
                 block_type = 19;
                 return true;
             }
@@ -2383,13 +2384,101 @@
         return avatarColumn.children.length > 1;
     }
 
-    function isAutoTranslationPost(post) {
+    function isAutoTranslationPost(post, checkQuotedPost = false) {
         try {
             if (!post) {
                 return false;
             }
 
+            if (isSelfAutoTranslationPost(post)) {
+                return true;
+            }
+
+            if (checkQuotedPost) {
+                const quotedPost = getQuotePostElement(post);
+                if (quotedPost) {
+                    return isQuotedAutoTranslationPost(quotedPost);
+                }
+            }
+
+            return false;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /* ポスト本体（引用元を除く）が自動翻訳されているか判定 */
+    function isSelfAutoTranslationPost(post) {
+        let isTranslated = false;
+        try {
+            if (!post) {
+                return isTranslated;
+            }
+
             const tweetText = post.querySelector('[data-testid="tweetText"]');
+            if (!tweetText) {
+                return isTranslated;
+            }
+
+            const translationBlock = tweetText.previousElementSibling;
+            if (!translationBlock) {
+                return isTranslated;
+            }
+
+            const buttons = translationBlock.getElementsByTagName('button');
+
+            if (buttons.length === 0) {
+                return isTranslated;
+            }
+
+            const svg = getTranslationIconSvg(translationBlock);
+            if (!svg) {
+                return isTranslated;
+            }
+
+            for (const button of buttons) {
+                if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                    continue;
+                }
+
+                const textElements = translationBlock.querySelectorAll('span, div');
+                let hasTextBetween = false;
+
+                for (const textElement of textElements) {
+                    if (textElement.contains(svg) || textElement.contains(button)) {
+                        continue;
+                    }
+                    if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                        continue;
+                    }
+                    if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                        continue;
+                    }
+                    if (textElement.textContent && textElement.textContent.trim() !== '') {
+                        hasTextBetween = true;
+                        break;
+                    }
+                }
+
+                if (hasTextBetween) {
+                    isTranslated = true;
+                    break;
+                }
+            }
+
+            return isTranslated;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isQuotedAutoTranslationPost(quotedPost) {
+        try {
+            if (!quotedPost) {
+                return false;
+            }
+
+            const tweetText = quotedPost.querySelector('[data-testid="tweetText"]');
             if (!tweetText) {
                 return false;
             }
@@ -2399,54 +2488,63 @@
                 return false;
             }
 
-            const svgs = translationBlock.getElementsByTagName('svg');
-            const buttons = translationBlock.getElementsByTagName('button');
-
-            if (svgs.length === 0 || buttons.length === 0) {
+            if (translationBlock.querySelector('[data-testid]')) {
                 return false;
             }
 
-            for (const svg of svgs) {
-                const paths = svg.getElementsByTagName('path');
-                for (const path of paths) {
-                    const d = path.getAttribute('d');
-                    if (d && d.startsWith('M12.745 20.54')) {
-                        for (const button of buttons) {
-                            if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                continue;
-                            }
+            if (translationBlock.querySelector('a, button, [role="button"], [role="link"]')) {
+                return false;
+            }
 
-                            const textElements = translationBlock.querySelectorAll('span, div');
-                            let hasTextBetween = false;
+            const svg = getTranslationIconSvg(translationBlock);
+            if (!svg) {
+                return false;
+            }
 
-                            for (const textElement of textElements) {
-                                if (textElement.contains(svg) || textElement.contains(button)) {
-                                    continue;
-                                }
-                                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                    continue;
-                                }
-                                if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                    continue;
-                                }
-                                if (textElement.textContent && textElement.textContent.trim() !== '') {
-                                    hasTextBetween = true;
-                                    break;
-                                }
-                            }
-
-                            if (hasTextBetween) {
-                                return true;
-                            }
-                        }
-                    }
+            const textElements = translationBlock.querySelectorAll('span, div');
+            for (const textElement of textElements) {
+                if (textElement.contains(svg)) {
+                    continue;
+                }
+                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                    continue;
+                }
+                if (textElement.textContent && textElement.textContent.trim() !== '') {
+                    return true;
                 }
             }
-            
+
             return false;
         } catch (e) {
             return false;
         }
+    }
+
+    function getTranslationIconSvg(block) {
+        const svgs = block.getElementsByTagName('svg');
+        for (const svg of svgs) {
+            const paths = svg.getElementsByTagName('path');
+            for (const path of paths) {
+                const d = path.getAttribute('d');
+                if (d && d.startsWith('M12.745 20.54')) {
+                    return svg;
+                }
+            }
+        }
+        return null;
+    }
+
+    function getQuotePostElement(postElement) {
+        if (!postElement) return null;
+        const linkElements = postElement.querySelectorAll('[role="link"]');
+        for (const linkEl of linkElements) {
+            const hasUserName = linkEl.querySelector('[data-testid="User-Name"]');
+            
+            if (hasUserName) {
+            return linkEl.parentElement;
+            }
+        }
+        return null;
     }
 
     function postTapNewWindow(post) {

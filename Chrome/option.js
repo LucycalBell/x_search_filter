@@ -87,6 +87,7 @@ function LoadOption(){
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
 
@@ -132,6 +133,7 @@ function LoadOption(){
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
             document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
             document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
+            document.getElementById("auto_translation_post_block_quoted_post").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST;
             document.getElementById("post_tap_newtab").checked = X_OPTION.POST_TAP_NEW_TAB;
             document.getElementById("my_username").value = X_OPTION.EXCLUDE_MY_POSTS;
 
@@ -288,6 +290,7 @@ function OptionSave(){
     SAVE_OBJ.SEARCH_NO_HIT_BLOCK = document.getElementById("search_notmatch_block").checked;
     SAVE_OBJ.POST_TREE_NONBLOCK = document.getElementById("post_tree_nonBlock").checked;
     SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK = document.getElementById("auto_translation_post_block").checked;
+    SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = document.getElementById("auto_translation_post_block_quoted_post").checked;
     SAVE_OBJ.TARGET_URL = getActiveUrlList();
     SAVE_OBJ.POST_TAP_NEW_TAB = document.getElementById("post_tap_newtab").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
@@ -405,6 +408,13 @@ function LinkOptionChange(){
     } else {
         document.getElementById("default_selected_follow_tab_latest_select").disabled = false;
     }
+
+    if(!document.getElementById("auto_translation_post_block").checked){
+        document.getElementById("auto_translation_post_block_quoted_post").checked = false;
+        document.getElementById("auto_translation_post_block_quoted_post").disabled = true;
+    } else {
+        document.getElementById("auto_translation_post_block_quoted_post").disabled = false;
+    }
 }
 
 function ArrayObjtoText(arr){
@@ -506,6 +516,7 @@ function EventSet(){
     document.getElementById("search_notmatch_block").addEventListener("click", OptionSave, false);
     document.getElementById("post_tree_nonBlock").addEventListener("click", OptionSave, false);
     document.getElementById("auto_translation_post_block").addEventListener("click", OptionSave, false);
+    document.getElementById("auto_translation_post_block_quoted_post").addEventListener("click", OptionSave, false);
     document.getElementById("active_url_home").addEventListener("change", OptionSave, false);
     document.getElementById("active_url_search").addEventListener("change", OptionSave, false);
     document.getElementById("active_url_post").addEventListener("change", OptionSave, false);
