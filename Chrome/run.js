@@ -2364,13 +2364,15 @@
         // 検索ワードの変換が必要な場合、対象テキスト・検索ワード共に変換
         let searchText = searchConvert ? searchWordConversion(text) : text;
         if (searchConvert) {
-            for(item of searchWordList) {
+            for(let item of searchWordList) {
                 item[0] = searchWordConversion(item[0]);
             }
         }
-
+        // どこかでマッチしたときのフラグ
+        let anyMatch = false;
         for(let [word, isQuoted] of searchWordList) {
             if(searchText.includes(word)) {
+                anyMatch = true;
                 if(!isAllMatch && !isQuotedRequired) {
                     // 特にオプションが無い場合どこかでヒットしていればtrue
                     return true;
@@ -2386,9 +2388,12 @@
                 }
             }
         }
-        if(isAllMatch || isQuotedRequired) {
-            // 必須オプション付きで即リターンしていない場合true
+        if(isAllMatch) {
+            // 全必須オプション付きで即リターンしていない場合true
             return true;
+        } else if(isQuotedRequired) {
+            // 引用付必須オプション付きで即リターンしていない場合、anyMatch(=どこかにヒット)していればtrue
+            return anyMatch;
         } else {
             // オプションなしでここに到達している場合どこのワードにもヒットしていないためfalse
             return false;
