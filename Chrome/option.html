@@ -623,13 +623,33 @@ input[type="number"]{
             <div class="option_block collapsed">
                 <div class="option-title">検索専用オプション</div>
                 <div class="font_red">※本カテゴリは検索ページでのみ機能します（それ以外の画面では機能しません）</div>
-                <div class="switch_box">
+                <div class="switch_box zero-bottom-margin">
                     <label class="switch-container">
                         <input type="checkbox" id="search_notmatch_block">
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">検索ワードがポスト本文に含まれていないポストをミュート</span>
                             <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。</span>
+                            <span class="switch_sub_text">※検索ワードがひとつでも含まれていれば表示されます。全て必須としたい場合は以下のオプションを使用してください</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box sub-tree zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_quoted_word_required">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">引用付（"または'）で囲まれたワードは必須とする</span>
+                            <span class="switch_sub_text">※引用付で囲まれたワードが無い場合、本オプションOFFのときと同様の動作となります</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box sub-tree zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_all_word_required">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">全ての検索ワードを必須とする</span>
                         </div>
                     </label>
                 </div>
