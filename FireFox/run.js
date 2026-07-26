@@ -292,8 +292,11 @@
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
+            X_OPTION.SEARCH_QUOTED_WORD_REQUIRED = getOptionPram(r.SEARCH_QUOTED_WORD_REQUIRED, false, TYPE_BOOL);
+            X_OPTION.SEARCH_ALL_WORD_REQUIRED = getOptionPram(r.SEARCH_ALL_WORD_REQUIRED, false, TYPE_BOOL);
             X_OPTION.POST_TREE_NONBLOCK = getOptionPram(r.POST_TREE_NONBLOCK, false, TYPE_BOOL);
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK, false, TYPE_BOOL);
+            X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
             TrendDataLoad();
@@ -1374,8 +1377,8 @@
         if(X_OPTION.SEARCH_HIT_USERNAME_BLOCK){
             if(isSearchPage()){
                 if(0 < getSearchWordList().length){
-                    if(!(getSearchWordList().some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
-                        if((getSearchWordList().some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
+                    if(!(getSearchWordList(true).some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList(true).some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
                             block_type = 9;
                             return true;
                         }
@@ -1386,7 +1389,7 @@
         if(X_OPTION.SEARCH_NO_HIT_BLOCK) {
             if(isSearchPage()) {
                 if (isSearchWordEditing() == false && 0 < getSearchWordList().length) {
-                    if(!(getSearchWordList().some(item => searchWordConversion(getPostText(post)).includes(searchWordConversion(item))))) {
+                    if(!isSearchWordMatch(getPostText(post), X_OPTION.SEARCH_ALL_WORD_REQUIRED, X_OPTION.SEARCH_QUOTED_WORD_REQUIRED, true)) {
                         block_type = 18;
                         return true;
                     }
@@ -1408,7 +1411,7 @@
         }
 
         if(X_OPTION.AUTO_TRANSLATION_POST_BLOCK) {
-            if(isAutoTranslationPost(post)){
+            if(isAutoTranslationPost(post, X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST)){
                 block_type = 19;
                 return true;
             }
@@ -2345,14 +2348,79 @@
         return false;
     }
 
-    function getSearchWordList() {
+    /*
+     * 引数として渡された文字列に検索ワードが存在するかチェックします
+     * - text: チェック対象の文字列
+     * - isAllMatch: trueの場合、検索ワードのすべてがtextに含まれている場合のみtrueを返します。falseの場合、いずれかの検索ワードが含まれていればtrueを返します
+     * - isQuotedRequired: trueの場合、引用符で囲まれた検索ワードが全て含まれていない限りtrueになりません
+     * - searchConvert: trueの場合、検索ワードを検索用に変換（searchWordConversion）してからチェックします
+     * - Return: 上記オプションを加味し検索ワードが存在する場合はtrue、存在しない場合はfalse
+     */
+    function isSearchWordMatch(text, isAllMatch = false, isQuotedRequired = false, searchConvert = false) {
+        let searchWordList = getSearchWordList();
+        if (searchWordList.length === 0) {
+            return false;
+        }
+        // 検索ワードの変換が必要な場合、対象テキスト・検索ワード共に変換
+        let searchText = searchConvert ? searchWordConversion(text) : text;
+        if (searchConvert) {
+            for(let item of searchWordList) {
+                item[0] = searchWordConversion(item[0]);
+            }
+        }
+        // どこかでマッチしたときのフラグ
+        let anyMatch = false;
+        for(let [word, isQuoted] of searchWordList) {
+            if(searchText.includes(word)) {
+                anyMatch = true;
+                if(!isAllMatch && !isQuotedRequired) {
+                    // 特にオプションが無い場合どこかでヒットしていればtrue
+                    return true;
+                }
+            } else {
+                if(isAllMatch) {
+                    // 全必須オプションが設定されている状態で未ヒットが出た場合false
+                    return false;
+                }
+                if(isQuotedRequired && isQuoted) {
+                    // 引用付必須オプションがオンの状態で引用付ワード未ヒットの場合false
+                    return false;
+                }
+            }
+        }
+        if(isAllMatch) {
+            // 全必須オプション付きで即リターンしていない場合true
+            return true;
+        } else if(isQuotedRequired) {
+            // 引用付必須オプション付きで即リターンしていない場合、anyMatch(=どこかにヒット)していればtrue
+            return anyMatch;
+        } else {
+            // オプションなしでここに到達している場合どこのワードにもヒットしていないためfalse
+            return false;
+        }
+    }
+
+
+    /*
+     * 検索ワードを分割して配列で返します。引用符(" または ')で囲まれていたワードは引用符を除去した上でisQuotedにtrueを設定します
+     * 但し、コロン(:)を含むワードは除外します（lang:ja などの検索オプションを除外するため）
+     * - simpleListがtrueの場合、単純に分割したワードの配列を返します（従来の形式）
+     * - Return: [ [word, isQuoted], ... ]
+    */
+    function getSearchWordList(simpleList = false) {
         let res = [];
         let wordLst = getSearchWord().replaceAll("　", " ").match(/"[^"]*"|'[^']*'|[^\s]+/g) || [];
         if(0 < wordLst.length){
             for(let item of wordLst){
-                item = item.trim().replace(/^(["'])(.*)\1$/, "$2");
-                if(item != "" && /.+:.+/.test(item) == false){
-                    res.push(item);
+                let trimmedItem = item.trim();
+                let isQuoted = /^(".*"|'.*')$/.test(trimmedItem);
+                let word = trimmedItem.replace(/^("|')(.*)\1$/, "$2");
+                if(word != "" && /.+:.+/.test(word) == false){
+                    if(simpleList){
+                        res.push(word);
+                    } else {
+                        res.push([word, isQuoted]);
+                    }
                 }
             }
         }
@@ -2363,6 +2431,10 @@
         return document.querySelector('[data-testid="primaryColumn"]');
     }
 
+    /*
+     * 検索がfrom検索（ユーザー指定の検索）かどうかを判定します
+     * - Return: from検索の場合true、それ以外はfalse
+     */
     function isFromSearch() {
         let input = getSearchWord();
         return /^from:|[\s\u3000]+from:/i.test(input);
@@ -2383,13 +2455,101 @@
         return avatarColumn.children.length > 1;
     }
 
-    function isAutoTranslationPost(post) {
+    function isAutoTranslationPost(post, checkQuotedPost = false) {
         try {
             if (!post) {
                 return false;
             }
 
+            if (isSelfAutoTranslationPost(post)) {
+                return true;
+            }
+
+            if (checkQuotedPost) {
+                const quotedPost = getQuotePostElement(post);
+                if (quotedPost) {
+                    return isQuotedAutoTranslationPost(quotedPost);
+                }
+            }
+
+            return false;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /* ポスト本体（引用元を除く）が自動翻訳されているか判定 */
+    function isSelfAutoTranslationPost(post) {
+        let isTranslated = false;
+        try {
+            if (!post) {
+                return isTranslated;
+            }
+
             const tweetText = post.querySelector('[data-testid="tweetText"]');
+            if (!tweetText) {
+                return isTranslated;
+            }
+
+            const translationBlock = tweetText.previousElementSibling;
+            if (!translationBlock) {
+                return isTranslated;
+            }
+
+            const buttons = translationBlock.getElementsByTagName('button');
+
+            if (buttons.length === 0) {
+                return isTranslated;
+            }
+
+            const svg = getTranslationIconSvg(translationBlock);
+            if (!svg) {
+                return isTranslated;
+            }
+
+            for (const button of buttons) {
+                if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                    continue;
+                }
+
+                const textElements = translationBlock.querySelectorAll('span, div');
+                let hasTextBetween = false;
+
+                for (const textElement of textElements) {
+                    if (textElement.contains(svg) || textElement.contains(button)) {
+                        continue;
+                    }
+                    if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                        continue;
+                    }
+                    if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                        continue;
+                    }
+                    if (textElement.textContent && textElement.textContent.trim() !== '') {
+                        hasTextBetween = true;
+                        break;
+                    }
+                }
+
+                if (hasTextBetween) {
+                    isTranslated = true;
+                    break;
+                }
+            }
+
+            return isTranslated;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isQuotedAutoTranslationPost(quotedPost) {
+        try {
+            if (!quotedPost) {
+                return false;
+            }
+
+            const tweetText = quotedPost.querySelector('[data-testid="tweetText"]');
             if (!tweetText) {
                 return false;
             }
@@ -2399,54 +2559,63 @@
                 return false;
             }
 
-            const svgs = translationBlock.getElementsByTagName('svg');
-            const buttons = translationBlock.getElementsByTagName('button');
-
-            if (svgs.length === 0 || buttons.length === 0) {
+            if (translationBlock.querySelector('[data-testid]')) {
                 return false;
             }
 
-            for (const svg of svgs) {
-                const paths = svg.getElementsByTagName('path');
-                for (const path of paths) {
-                    const d = path.getAttribute('d');
-                    if (d && d.startsWith('M12.745 20.54')) {
-                        for (const button of buttons) {
-                            if ((svg.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                continue;
-                            }
+            if (translationBlock.querySelector('a, button, [role="button"], [role="link"]')) {
+                return false;
+            }
 
-                            const textElements = translationBlock.querySelectorAll('span, div');
-                            let hasTextBetween = false;
+            const svg = getTranslationIconSvg(translationBlock);
+            if (!svg) {
+                return false;
+            }
 
-                            for (const textElement of textElements) {
-                                if (textElement.contains(svg) || textElement.contains(button)) {
-                                    continue;
-                                }
-                                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                    continue;
-                                }
-                                if ((textElement.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-                                    continue;
-                                }
-                                if (textElement.textContent && textElement.textContent.trim() !== '') {
-                                    hasTextBetween = true;
-                                    break;
-                                }
-                            }
-
-                            if (hasTextBetween) {
-                                return true;
-                            }
-                        }
-                    }
+            const textElements = translationBlock.querySelectorAll('span, div');
+            for (const textElement of textElements) {
+                if (textElement.contains(svg)) {
+                    continue;
+                }
+                if ((svg.compareDocumentPosition(textElement) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+                    continue;
+                }
+                if (textElement.textContent && textElement.textContent.trim() !== '') {
+                    return true;
                 }
             }
-            
+
             return false;
         } catch (e) {
             return false;
         }
+    }
+
+    function getTranslationIconSvg(block) {
+        const svgs = block.getElementsByTagName('svg');
+        for (const svg of svgs) {
+            const paths = svg.getElementsByTagName('path');
+            for (const path of paths) {
+                const d = path.getAttribute('d');
+                if (d && d.startsWith('M12.745 20.54')) {
+                    return svg;
+                }
+            }
+        }
+        return null;
+    }
+
+    function getQuotePostElement(postElement) {
+        if (!postElement) return null;
+        const linkElements = postElement.querySelectorAll('[role="link"]');
+        for (const linkEl of linkElements) {
+            const hasUserName = linkEl.querySelector('[data-testid="User-Name"]');
+            
+            if (hasUserName) {
+            return linkEl.parentElement;
+            }
+        }
+        return null;
     }
 
     function postTapNewWindow(post) {
