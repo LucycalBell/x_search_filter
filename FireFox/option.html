@@ -420,10 +420,10 @@ input[type="number"]{
                 <ul>
                     <li>本ツールは非公式拡張機能です。X公式とは関係ありません。</li>
                     <li>ツールの使用は自己責任でお願いします。</li>
-                    <li>Androidブラウザでも使用できます（Chrome拡張機能に対応しているブラウザが必要）。ブラウザの機能でホーム画面にXを配置するとブラウザUIが非表示になりアプリのように使えます（PWA）</li>
+                    <li>Androidブラウザでも使用できます（FireFoxまたはChrome拡張機能に対応しているブラウザが必要）。ブラウザの機能でホーム画面にXを配置するとブラウザUIが非表示になりアプリのように使えます（PWA）</li>
                     <li>不具合などある場合は以下にレビューまたはissuesで報告いただければ可能な範囲で対応したいと思います</li>
                     <ul>
-                        <li><a href="https://addons.mozilla.org/ja/firefox/addon/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/" target="_blank">Firefox Browser ADD-ONS</a></li>
+                                                <li><a href="https://addons.mozilla.org/ja/firefox/addon/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/" target="_blank">Firefox Browser ADD-ONS</a></li>
                         <li><a href="https://github.com/LucycalBell/x_search_filter/" target="_blank">GitHub</a></li>
                     </ul>
                 </ul>
@@ -609,18 +609,47 @@ input[type="number"]{
                         </div>
                     </label>
                 </div>
+                <div class="switch_box sub-tree zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="auto_translation_post_block_quoted_post">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">引用ポストも参照する</span>
+                        </div>
+                    </label>
+                </div>
             </div>
 
             <div class="option_block collapsed">
                 <div class="option-title">検索専用オプション</div>
                 <div class="font_red">※本カテゴリは検索ページでのみ機能します（それ以外の画面では機能しません）</div>
-                <div class="switch_box">
+                <div class="switch_box zero-bottom-margin">
                     <label class="switch-container">
                         <input type="checkbox" id="search_notmatch_block">
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">検索ワードがポスト本文に含まれていないポストをミュート</span>
                             <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。</span>
+                            <span class="switch_sub_text">※検索ワードがひとつでも含まれていれば表示されます。全て必須としたい場合は以下のオプションを使用してください</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box sub-tree zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_quoted_word_required">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">引用付（"または'）で囲まれたワードは必須とする</span>
+                            <span class="switch_sub_text">※引用付で囲まれたワードが無い場合、本オプションOFFのときと同様の動作となります</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box sub-tree zero-top-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_all_word_required">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">全ての検索ワードを必須とする</span>
                         </div>
                     </label>
                 </div>
