@@ -92,6 +92,7 @@ function LoadOption(){
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
+            X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN = getOptionPram(r.OPTION_CHANGE_DIALOG_HIDDEN, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
@@ -140,6 +141,7 @@ function LoadOption(){
             document.getElementById("auto_translation_post_block_quoted_post").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST;
             document.getElementById("post_tap_newtab").checked = X_OPTION.POST_TAP_NEW_TAB;
             document.getElementById("my_username").value = X_OPTION.EXCLUDE_MY_POSTS;
+            document.getElementById("option_change_dialog_hidden").checked = X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -299,6 +301,7 @@ function OptionSave(){
     SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = document.getElementById("auto_translation_post_block_quoted_post").checked;
     SAVE_OBJ.TARGET_URL = getActiveUrlList();
     SAVE_OBJ.POST_TAP_NEW_TAB = document.getElementById("post_tap_newtab").checked;
+    SAVE_OBJ.OPTION_CHANGE_DIALOG_HIDDEN = document.getElementById("option_change_dialog_hidden").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -544,6 +547,7 @@ function EventSet(){
     document.getElementById("post_tap_newtab").addEventListener("change", OptionSave, false);
     document.getElementById("exclude_my_posts").addEventListener("change", OptionSave, false);
     document.getElementById("my_username").addEventListener("input", OptionSave, false);
+    document.getElementById("option_change_dialog_hidden").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;

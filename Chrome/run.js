@@ -47,6 +47,7 @@
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
     const TREND_URL = "https://x.com/explore/tabs/trending";
+    const OPTION_OVERLAY_ID = "xsf_opt_overlay";
     
     let postBlockViewNumber = 0;
     let hidden_posts = [];
@@ -299,6 +300,7 @@
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
+            X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN = getOptionPram(r.OPTION_CHANGE_DIALOG_HIDDEN, false, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -1933,18 +1935,12 @@
             optionsBtn.onmouseout = function(){
                 this.style.opacity = "1";
             };
+
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                try {
-                    chrome.runtime.sendMessage({type: "openOptionsPage"}, function(response){
-                        if(chrome.runtime.lastError){
-                            window.open(chrome.runtime.getURL("option.html"), "_blank");
-                        }
-                    });
-                } catch(err) {
-                    window.open(chrome.runtime.getURL("option.html"), "_blank");
-                }
+                showOptionsOverlay();
             }, false);
+
             lstArea.appendChild(optionsBtn);
             
             let closeBtn = document.createElement("div");
@@ -2099,6 +2095,54 @@
                 HiddenPostList();
             });
         }
+    }
+
+    /**
+     * ツール動作画面からオプション画面をオーバーレイで表示します
+     * @returns {void}
+     */
+    function showOptionsOverlay(){
+        if(document.getElementById(OPTION_OVERLAY_ID) != null){
+            document.getElementById(OPTION_OVERLAY_ID).style.display = "block";
+            return;
+        }
+        let overlay = document.createElement("div");
+        overlay.id = OPTION_OVERLAY_ID;
+        overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;" +
+            "background:rgba(0,0,0,0.5);z-index:2147483647;";
+
+        let frameWrapper = document.createElement("div");
+        frameWrapper.style.cssText = "position:absolute;top:5%;left:50%;transform:translateX(-50%);" +
+            "width:min(98%, 1200px);height:90%;";
+
+        let frame = document.createElement("iframe");
+        frame.src = chrome.runtime.getURL("option.html");
+        frame.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;border:none;" +
+            "border-radius:12px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3);";
+
+        let closeBtn = document.createElement("div");
+        closeBtn.textContent = "✕ 閉じる";
+        closeBtn.style.cssText = "position:absolute;top:0;right:0;transform:translateY(-110%);" +
+            "color:#fff;cursor:pointer;font-weight:bold;padding:4px 8px;white-space:nowrap;";
+        closeBtn.addEventListener("click", () => { CloseOptionsOverlay(); });
+        overlay.addEventListener("click", (ev) => { if(ev.target === overlay) CloseOptionsOverlay(); });
+
+        frameWrapper.appendChild(frame);
+        frameWrapper.appendChild(closeBtn);
+        overlay.appendChild(frameWrapper);
+        document.body.appendChild(overlay);
+    }
+
+    /**
+     * オーバーレイ表示していたオプション画面を閉じます
+     * @returns {void}
+     */
+    function CloseOptionsOverlay(){
+        if(X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN == false) {
+            alert("変更したオプションはページを再読み込みしてから反映されます。\n※このダイアログは「ツールシステム設定」から非表示に出来ます");
+        }
+        let overlay = document.getElementById(OPTION_OVERLAY_ID);
+        if(overlay) overlay.style.display = "none";
     }
 
     function HiddenPostList_Cls(e){

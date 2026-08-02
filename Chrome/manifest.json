@@ -35,5 +35,11 @@
       "32": "icons/icon32.png"
     },
     "default_title": "X検索ミュートツール"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["option.html"],
+      "matches": ["https://twitter.com/*", "https://x.com/*"]
+    }
+  ]
 }
