@@ -65,6 +65,7 @@ function LoadOption(){
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK = getOptionPram(r.SEARCH_HIT_ACCOUNTNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
@@ -117,6 +118,7 @@ function LoadOption(){
             document.getElementById("search_all_word_required").checked = X_OPTION.SEARCH_ALL_WORD_REQUIRED;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
+            document.getElementById("search_hit_accountname_block").checked = X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK;
             document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
             document.getElementById("link_card_url_view_oneLine").checked = X_OPTION.LINK_CARD_URL_VIEW_ONELINE;
             document.getElementById("link_card_mismatch_warning").checked = X_OPTION.LINK_CARD_MISMATCH_WARNING;
@@ -278,6 +280,7 @@ function OptionSave(){
     }
     
     SAVE_OBJ.SEARCH_HIT_USERNAME_BLOCK = document.getElementById("search_hit_username_block").checked;
+    SAVE_OBJ.SEARCH_HIT_ACCOUNTNAME_BLOCK = document.getElementById("search_hit_accountname_block").checked;
     SAVE_OBJ.LINK_CARD_URL_VIEW = document.getElementById("link_card_url_view").checked;
     SAVE_OBJ.LINK_CARD_URL_VIEW_ONELINE = document.getElementById("link_card_url_view_oneLine").checked;
     SAVE_OBJ.LINK_CARD_MISMATCH_WARNING = document.getElementById("link_card_mismatch_warning").checked;
@@ -504,6 +507,7 @@ function EventSet(){
     document.getElementById("manual_import_delete").addEventListener("click", ManualListDelete, false);
     document.getElementById("accountname_space_border").addEventListener("input", OptionSave, false);
     document.getElementById("search_hit_username_block").addEventListener("click", OptionSave, false);
+    document.getElementById("search_hit_accountname_block").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_url_view").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_url_view_oneLine").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_mismatch_warning").addEventListener("click", OptionSave, false);

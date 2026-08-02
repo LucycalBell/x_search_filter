@@ -37,7 +37,8 @@
         16:"プロフィール文の日本語比率が指定値以下",
         17:"プロフィールの文字数が指定値以下",
         18:"検索ワードにヒットしないポスト",
-        19:"自動翻訳されたポスト"
+        19:"自動翻訳されたポスト",
+        20:"アカウント名のみ一致"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -273,6 +274,7 @@
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK = getOptionPram(r.SEARCH_HIT_ACCOUNTNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
@@ -1394,6 +1396,18 @@
                     if(!isSearchWordMatch(getPostText(post), X_OPTION.SEARCH_ALL_WORD_REQUIRED, X_OPTION.SEARCH_QUOTED_WORD_REQUIRED, true)) {
                         block_type = 18;
                         return true;
+                    }
+                }
+            }
+        }
+        if(X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK){
+            if(isSearchPage()){
+                if(0 < getSearchWordList().length){
+                    if(!(getSearchWordList(true).some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList(true).some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
+                            block_type = 20;
+                            return true;
+                        }
                     }
                 }
             }

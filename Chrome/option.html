@@ -659,9 +659,19 @@ input[type="number"]{
                         <input type="checkbox" id="search_hit_username_block">
                         <span class="slider"></span>
                         <div class="switch-text">
-                            <span class="switch-label">ユーザー名のみで検索にヒットしているポストをミュート</span>
+                            <span class="switch-label">ユーザー名（@から始まる文字列）のみで検索にヒットしているポストをミュート</span>
                             <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合ミュートとなります</span>
-                            <span class="switch_sub_text">※Xのアップデートでアカウント名が検索にヒットしなくなりましたがユーザー名（@から始まる文字列）は引き続き検索対象となっているため本機能残しています</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_hit_accountname_block">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">アカウント名（アイコン横の文字列）のみで検索にヒットしているポストをミュート</span>
+                            <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合ミュートとなります</span>
                         </div>
                     </label>
                 </div>
