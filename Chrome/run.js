@@ -38,7 +38,9 @@
         17:"プロフィールの文字数が指定値以下",
         18:"検索ワードにヒットしないポスト",
         19:"自動翻訳されたポスト",
-        20:"アカウント名のみ一致"
+        20:"アカウント名のみ一致",
+        21:"ミュートワード一致（アカウント）",
+        22:"ミュートアカウント一致"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -251,6 +253,8 @@
             if(r == void 0){r = {};}
             X_OPTION = {};
             X_OPTION.BLOCK_WORDS = getOptionPram(r.BLOCK_WORDS, [], TYPE_ARRAY);
+            X_OPTION.MUTE_ACCOUNT_NAME = getOptionPram(r.MUTE_ACCOUNT_NAME, [], TYPE_ARRAY);
+            X_OPTION.MUTE_USER_NAME = getOptionPram(r.MUTE_USER_NAME, [], TYPE_ARRAY);
             X_OPTION.EXCLUDE_WORDS = getOptionPram(r.EXCLUDE_WORDS, [], TYPE_ARRAY);
             X_OPTION.TAG_BORDER = getOptionPram(r.TAG_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_ICON_BLOCK = getOptionPram(r.DEFAULT_ICON_BLOCK, false, TYPE_BOOL);
@@ -313,6 +317,16 @@
                 for(let i=0;i<X_OPTION.MANUAL_SPAM_LIST.length;i++){
                     if(X_OPTION.MANUAL_SPAM_LIST[i] != void 0 && X_OPTION.MANUAL_SPAM_LIST[i] != null && X_OPTION.MANUAL_SPAM_LIST[i].trim() != ""){
                         manual_spam_list.push(X_OPTION.MANUAL_SPAM_LIST[i].replace("@", ""));
+                    }
+                }
+            }
+
+            if(X_OPTION.MUTE_USER_NAME == void 0 || X_OPTION.MUTE_USER_NAME == null || X_OPTION.MUTE_USER_NAME.length == 0){
+                X_OPTION.MUTE_USER_NAME = [];
+            } else {
+                for(let i=0;i<X_OPTION.MUTE_USER_NAME.length;i++){
+                    if(X_OPTION.MUTE_USER_NAME[i] != void 0 && X_OPTION.MUTE_USER_NAME[i] != null && X_OPTION.MUTE_USER_NAME[i].trim() != ""){
+                        X_OPTION.MUTE_USER_NAME[i] = X_OPTION.MUTE_USER_NAME[i].replace("@", "");
                     }
                 }
             }
@@ -1330,6 +1344,21 @@
                 return false;
         }
 
+        /* アカウント名ミュート判定 */
+        switch(AccountWordCheck(post)){
+            case WORD_BLOCK_TYPE.BLOCKED:
+                block_type = 21;
+                return true;
+        }
+
+        /* ミュートユーザー判定 */
+        if(0 < X_OPTION.MUTE_USER_NAME.length){
+            if(X_OPTION.MUTE_USER_NAME.some(item => getPostUserName(post, true).toUpperCase() == item.toUpperCase())){
+                block_type = 22;
+                return true;
+            }
+        }
+
         /* 表示中ユーザーの投稿は除外 */
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
@@ -1457,7 +1486,11 @@
         }
     }
 
-    /* ワード系のミュート判定 */
+    /**
+     * ポストのミュートワード判定を行います
+     * @param {*} post 対象のポスト
+     * @returns WORD_BLOCK_TYPE.BLOCKED: ミュート対象, WORD_BLOCK_TYPE.EXCLUDE: セーフワード対象, WORD_BLOCK_TYPE.NONE: ミュート対象外
+     */
     function postWordCheck(post) {
         let postl;
         if(X_OPTION.POST_CHECK_ALL){
@@ -1465,11 +1498,12 @@
         } else {
             postl = getPostText(post).split(/\n/);
         }
-        if(X_OPTION.REG_EXP){
-            /* 正規表現モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
+
+        // セーフワードチェック
+        for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+            if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                for(let p=0;p<postl.length;p++){
+                    if(isRegexSarch(X_OPTION.EXCLUDE_WORDS[i]) || X_OPTION.REG_EXP){
                         try {
                             if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
                             if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
@@ -1479,12 +1513,21 @@
                         } catch(e) {
                             ;
                         }
+                    } else {
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        }
                     }
                 }
             }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
+        }
+
+        for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+            if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                for(let p=0;p<postl.length;p++){
+                    if(isRegexSarch(X_OPTION.BLOCK_WORDS[i]) || X_OPTION.REG_EXP){
                         try {
                             if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
                             if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
@@ -1494,25 +1537,7 @@
                         } catch(e) {
                             ;
                         }
-                    }
-                }
-            }
-        } else {
-            /* 通常モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
-                        }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
+                    } else {
                         if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
                         if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
                             /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
@@ -1523,6 +1548,53 @@
             }
         }
         return WORD_BLOCK_TYPE.NONE;
+    }
+
+    /**
+     * アカウント名のミュート判定を行います
+     * @param {*} post 対象のポスト
+     * @returns WORD_BLOCK_TYPE.BLOCKED: ミュート対象, WORD_BLOCK_TYPE.NONE: ミュート対象外
+     */
+    function AccountWordCheck(post) {
+        let accountName = getPostAccountName(post);
+        for(let i=0;i<X_OPTION.MUTE_ACCOUNT_NAME.length;i++){
+            if(X_OPTION.MUTE_ACCOUNT_NAME[i].trim() != ""){
+                if(isRegexSarch(X_OPTION.MUTE_ACCOUNT_NAME[i])){
+                    try {
+                        if(ConvertUppercase(HiraToKana(accountName)).match(ConvertUppercase(HiraToKana(getSearchString(X_OPTION.MUTE_ACCOUNT_NAME[i]))))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                    } catch(e) {
+                        ;
+                    }
+                } else {
+                    if(ConvertUppercase(HiraToKana(accountName)).includes(ConvertUppercase(HiraToKana(getSearchString(X_OPTION.MUTE_ACCOUNT_NAME[i]))))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                }
+            }
+        }
+        return WORD_BLOCK_TYPE.NONE;
+    }
+
+    /**
+     * 正規表現での検索を行うかどうかを判定します
+     * @param {*} str 検索ワード
+     * @returns 検索ワードの先頭が「regex:」で始まる場合はtrue
+     */
+    function isRegexSarch(str) {
+        if(str.startsWith("regex:")) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 検索に使用する文字列を返却します
+     * @param {*} str 検索ワード
+     * @returns 検索ワードの先頭が「regex:」で始まる場合は「regex:」を除いた文字列、それ以外はそのままの文字列
+     */
+    function getSearchString(str) {
+        if(str.startsWith("regex:")) {
+            return str.substring(6);
+        }
+        return str;
     }
 
     function PostBlockRelease() {

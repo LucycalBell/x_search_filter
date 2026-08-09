@@ -42,6 +42,8 @@ function LoadOption(){
             }
             X_OPTION = {};
             X_OPTION.BLOCK_WORDS = getOptionPram(r.BLOCK_WORDS, [], TYPE_ARRAY);
+            X_OPTION.MUTE_ACCOUNT_NAME = getOptionPram(r.MUTE_ACCOUNT_NAME, [], TYPE_ARRAY);
+            X_OPTION.MUTE_USER_NAME = getOptionPram(r.MUTE_USER_NAME, [], TYPE_ARRAY);
             X_OPTION.EXCLUDE_WORDS = getOptionPram(r.EXCLUDE_WORDS, [], TYPE_ARRAY);
             X_OPTION.TAG_BORDER = getOptionPram(r.TAG_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_ICON_BLOCK = getOptionPram(r.DEFAULT_ICON_BLOCK, false, TYPE_BOOL);
@@ -96,6 +98,8 @@ function LoadOption(){
             X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN = getOptionPram(r.OPTION_CHANGE_DIALOG_HIDDEN, false, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
+            document.getElementById("mute_account_name").value = ArrayObjtoText(X_OPTION.MUTE_ACCOUNT_NAME);
+            document.getElementById("mute_user_name").value = ArrayObjtoText(X_OPTION.MUTE_USER_NAME);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
             document.getElementById("reg_exp").checked = X_OPTION.REG_EXP ? true : false;
             document.getElementById("hashtag_border").value = X_OPTION.TAG_BORDER;
@@ -228,6 +232,8 @@ function OptionSave(){
     SAVE_OBJ.ONLINE_UPDATE = false;
     SAVE_OBJ.ONLINE_SPAM_LIST = false;
     SAVE_OBJ.BLOCK_WORDS = document.getElementById("mute_words").value.split(/\n/);
+    SAVE_OBJ.MUTE_ACCOUNT_NAME = document.getElementById("mute_account_name").value.split(/\n/);
+    SAVE_OBJ.MUTE_USER_NAME = document.getElementById("mute_user_name").value.split(/\n/);
     SAVE_OBJ.EXCLUDE_WORDS = document.getElementById("exclude_words").value.split(/\n/);
     SAVE_OBJ.REG_EXP = document.getElementById("reg_exp").checked;
     if(document.getElementById("hashtag_border_switch").checked){
@@ -484,6 +490,8 @@ function SetupOptionBlockToggle(){
 
 function EventSet(){
     document.getElementById("mute_words").addEventListener("input", OptionSave, false);
+    document.getElementById("mute_account_name").addEventListener("input", OptionSave, false);
+    document.getElementById("mute_user_name").addEventListener("input", OptionSave, false);
     document.getElementById("exclude_words").addEventListener("input", OptionSave, false);
     document.getElementById("reg_exp").addEventListener("click", OptionSave, false);
     document.getElementById("hashtag_border").addEventListener("input", OptionSave, false);

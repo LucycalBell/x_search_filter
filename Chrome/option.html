@@ -452,7 +452,8 @@ input[type="number"]{
 
                     <h4>セーフワード（除外しないワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションONまたは先頭に「regex:」を付けることで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※正規表現オプションがONの場合は「regex:」が先頭に付いているか否かに関わらず全て正規表現として扱われる為ご注意ください</span>
                     </div>
                     <textarea id="exclude_words" class="area-input"></textarea>
 
@@ -460,7 +461,11 @@ input[type="number"]{
                         <label class="switch-container">
                             <input type="checkbox" id="reg_exp">
                             <span class="slider"></span>
-                            <span class="switch-label">ミュート/セーフワードに正規表現を使用する</span>
+                            <div class="switch-text">
+                                <span class="switch-label">ミュート/セーフワードに正規表現を使用する（非推奨）</span>
+                                <div class="switch_sub_text">※互換性の為残していますが通常ワードも正規表現として扱われ意図しない判定となる恐れがあるため将来的に削除予定のオプションです</div>
+                                <div class="switch_sub_text">※正規表現を使用したい場合は行の先頭に「regex:」を付ける方式を推奨します（例：regex:^あいう）</div>
+                            </div>
                         </label>
                     </div>
 
@@ -468,7 +473,10 @@ input[type="number"]{
                         <label class="switch-container">
                             <input type="checkbox" id="post_check_accountname">
                             <span class="slider"></span>
-                            <span class="switch-label">アカウント名にも適用する</span>
+                            <div class="switch-text">
+                                <span class="switch-label">アカウント名にも適用する</span>
+                                <div class="switch_sub_text">※アカウント名のみを対象としたい場合は「アカウント・ユーザー名ミュート設定」オプションの使用をおすすめします</div>
+                            </div>
                         </label>
                     </div>
 
@@ -482,11 +490,28 @@ input[type="number"]{
                             </div>
                         </label>
                     </div>
+            </div>
 
-                    <h4>セーフユーザー（非表示にしないユーザー/1行1ユーザー）</h4>
+            <div class="option_block collapsed">
+                <div class="option-title">アカウント・ユーザー名ミュート設定</div>
+                <div>※競合した場合、「セーフ」系の設定が優先されます</div>
+                    <h4>セーフユーザー名（非表示にしないユーザー/1行1ユーザー）</h4>
                     <div class="switch_sub_text">※こちらは「@」から始まるユーザー名で指定します</div>
                     <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
                     <textarea id="safe_user" class="area-input"></textarea>
+
+                    <h4>ミュートアカウント名（ポストを非表示にするユーザー名/1行1ワード）</h4>
+                    <div class="switch-text">
+                        <span class="switch_sub_text">※部分一致です</span>
+                        <span class="switch_sub_text">※行の先頭に「regex:」を付けるとその行のみ正規表現として判定されます</span>
+                    </div>
+                    <textarea id="mute_account_name" class="area-input"></textarea>
+
+                    <h4>ミュートユーザー名（ポストを非表示にする@から始まるユーザー名/1行1アカウント）</h4>
+                    <div class="switch-text">
+                        <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
+                    </div>
+                    <textarea id="mute_user_name" class="area-input"></textarea>
             </div>
 
             <div class="option_block collapsed">
