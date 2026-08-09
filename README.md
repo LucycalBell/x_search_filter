@@ -21,11 +21,9 @@ Xの検索結果にミュートワードを設定し、該当するポストを�
 
 ## 第三者素材について
 
-本プロジェクトには、ICOON MONO（https://icooon-mono.com/）の
-アイコンを一部改変して使用しています。
+本プロジェクトには、ICOON MONO（<https://icooon-mono.com/>）のアイコンを一部改変して使用しています。
 
-当該アイコンについては、プロジェクトのMIT Licenseとは別に、
-ICOON MONOのライセンス条件が適用されます。
+当該アイコンについては、プロジェクトのMIT Licenseとは別に、ICOON MONOのライセンス条件が適用されます。
 
 ライセンス：
 https://icooon-mono.com/license/
