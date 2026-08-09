@@ -416,6 +416,7 @@
             }
         }
 
+        AddExtensionMuteMenu();
         for(let i=0;i<postList.length;i++){
             if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
@@ -2746,6 +2747,184 @@
             }
         }
         return null;
+    }
+
+    /*
+     * ポストメニューに拡張機能のユーザーミュート項目を追加するクリックイベントを登録します
+     * - Return: なし
+     */
+    function AddExtensionMuteMenu() {
+        if(document.documentElement.dataset.xsfExtensionMuteListenerAdded === "true"){
+            return;
+        }
+
+        document.documentElement.dataset.xsfExtensionMuteListenerAdded = "true";
+        document.addEventListener("click", function(event){
+            const target = event.target;
+            if(!(target instanceof Element) || !target.closest('[data-testid="caret"]')){
+                return;
+            }
+
+            const sourcePost = target.closest('article[data-testid="tweet"]');
+            const addMenuItem = function(){
+                const dropdowns = document.querySelectorAll('[data-testid="Dropdown"]');
+                const dropdown = dropdowns[dropdowns.length - 1];
+                if(!dropdown){
+                    return false;
+                }
+
+                const userName = getExtensionMuteMenuUserName(dropdown, sourcePost);
+                if(!userName){
+                    return false;
+                }
+
+                const addedMenuItem = dropdown.querySelector('[data-xsf-extension-mute-menu="true"]');
+                if(addedMenuItem){
+                    if(addedMenuItem.dataset.xsfMuteUser == userName.toUpperCase()){
+                        return true;
+                    }
+                    addedMenuItem.remove();
+                }
+
+                const menuItems = dropdown.querySelectorAll('[role="menuitem"]');
+                if(menuItems.length === 0){
+                    return false;
+                }
+
+                const extensionMenuItem = menuItems[menuItems.length - 1].cloneNode(true);
+                extensionMenuItem.dataset.xsfExtensionMuteMenu = "true";
+                extensionMenuItem.dataset.xsfMuteUser = userName.toUpperCase();
+                const menuLabel = "@" + userName + "さんをミュート（拡張機能）";
+                const textWalker = document.createTreeWalker(extensionMenuItem, NodeFilter.SHOW_TEXT);
+                const textNodes = [];
+                const currentIcon = extensionMenuItem.querySelector("svg");
+                if(currentIcon){
+                    const muteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    muteIcon.setAttribute("viewBox", "0 0 24 24");
+                    muteIcon.setAttribute("aria-hidden", "true");
+                    muteIcon.setAttribute("width", "20");
+                    muteIcon.setAttribute("height", "20");
+                    muteIcon.setAttribute("fill", "currentColor");
+
+                    const iconPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    // 一旦アイコンは非表示
+                    iconPath.setAttribute("d", "");
+                    muteIcon.appendChild(iconPath);
+
+                    currentIcon.replaceWith(muteIcon);
+                }
+                let currentTextNode;
+                while((currentTextNode = textWalker.nextNode())){
+                    if(currentTextNode.nodeValue && currentTextNode.nodeValue.trim() !== ""){
+                        textNodes.push(currentTextNode);
+                    }
+                }
+                if(textNodes.length === 0){
+                    return false;
+                }
+                textNodes[0].nodeValue = menuLabel;
+                for(let i=1;i<textNodes.length;i++){
+                    textNodes[i].nodeValue = "";
+                }
+
+                extensionMenuItem.addEventListener("click", function(event){
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    if(!window.confirm("【X検索ミュートツール】\n@" + userName + "さんをミュートしますか？")){
+                        return;
+                    }
+
+                    if(!X_OPTION.MUTE_USER_NAME.some(item => item.toUpperCase() == userName.toUpperCase())){
+                        X_OPTION.MUTE_USER_NAME.push(userName);
+                        chrome.storage.local.set({
+                            "XFILTER_OPTION": JSON.stringify(X_OPTION)
+                        }, function(){
+                            MainLoopX();
+                        });
+                    }
+                    document.dispatchEvent(new KeyboardEvent("keydown", {
+                        key: "Escape",
+                        code: "Escape",
+                        bubbles: true
+                    }));
+                }, true);
+
+                menuItems[menuItems.length - 1].after(extensionMenuItem);
+                return true;
+            };
+
+            const observer = new MutationObserver(function(){
+                addMenuItem();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            setTimeout(function(){
+                addMenuItem();
+            }, 0);
+            setTimeout(function(){ observer.disconnect(); }, 2000);
+        }, true);
+    }
+
+    /*
+     * ポストメニュー内のURLから対象ユーザー名を取得します
+     * URLから取得できない場合は、クリック元ポストのURLまたは表示内容から取得します
+     * - dropdown: 対象のポストメニュー要素
+     * - sourcePost: メニューを開いたクリック元のポスト要素
+     * - Return: @を除いたユーザー名。取得できない場合は空文字
+     */
+    function getExtensionMuteMenuUserName(dropdown, sourcePost) {
+        const links = dropdown.querySelectorAll('a[href]');
+        let statusUserName = "";
+        for(const link of links){
+            const linkUser = getUserNameFromXUrl(link.href);
+            if(!linkUser){
+                continue;
+            }
+            const pathParts = new URL(link.href, location.origin).pathname.split("/").filter(Boolean);
+            if(pathParts.length === 1){
+                return linkUser;
+            }
+            if(pathParts[1] === "status"){
+                statusUserName = linkUser;
+            }
+        }
+        if(statusUserName){
+            return statusUserName;
+        }
+
+        if(sourcePost){
+            return getUserNameFromXUrl(getPostUrl(sourcePost)) || getPostUserName(sourcePost, true);
+        }
+        return "";
+    }
+
+    /*
+     * XまたはTwitterのURLからユーザー名を取得します
+     * - url: ユーザー名を取得するURL
+     * - Return: URLの先頭パスにあるユーザー名。取得できない場合は空文字
+     */
+    function getUserNameFromXUrl(url) {
+        if(!url){
+            return "";
+        }
+        try {
+            const parsedUrl = new URL(url, location.origin);
+            if(parsedUrl.hostname !== "x.com" && parsedUrl.hostname !== "twitter.com" &&
+                parsedUrl.hostname !== "www.x.com" && parsedUrl.hostname !== "www.twitter.com"){
+                return "";
+            }
+
+            const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+            const userName = pathParts[0] || "";
+            const reservedPaths = ["compose", "explore", "hashtag", "home", "i", "intent", "messages", "notifications", "privacy", "search", "settings", "tos"];
+            if(reservedPaths.includes(userName.toLowerCase()) || !/^[A-Za-z0-9_]{1,15}$/.test(userName)){
+                return "";
+            }
+            return userName;
+        } catch(e) {
+            return "";
+        }
     }
 
     function postTapNewWindow(post) {
