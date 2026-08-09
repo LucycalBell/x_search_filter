@@ -19,6 +19,17 @@ Xの検索結果にミュートワードを設定し、該当するポストを�
 
 もしくは[x_search_filter/Chrome/](https://github.com/LucycalBell/x_search_filter/tree/main/Chrome)、[x_search_filter/FireFox/](https://github.com/LucycalBell/x_search_filter/tree/main/FireFox)のソースコードを直接インポートしてください（開発者モードをONにする必要がある場合があります）
 
+## 第三者素材について
+
+本プロジェクトには、ICOON MONO（https://icooon-mono.com/）の
+アイコンを一部改変して使用しています。
+
+当該アイコンについては、プロジェクトのMIT Licenseとは別に、
+ICOON MONOのライセンス条件が適用されます。
+
+ライセンス：
+https://icooon-mono.com/license/
+
 ## 更新履歴(v1.0.1 - v1.0.6)
 
 **Ver.1.0.7以降の変更は[リリース](https://github.com/LucycalBell/x_search_filter/releases)をご確認ください**
