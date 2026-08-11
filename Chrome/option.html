@@ -433,7 +433,8 @@ input[type="number"]{
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
                     <h4>ミュートワード（ポストを非表示にするワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションONまたは先頭に「regex:」を付けることで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※正規表現オプションがONの場合は「regex:」が先頭に付いているか否かに関わらず全て正規表現として扱われる為ご注意ください</span>
                     </div>
                     <textarea id="mute_words" class="area-input"></textarea>
 
@@ -500,7 +501,7 @@ input[type="number"]{
                     <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
                     <textarea id="safe_user" class="area-input"></textarea>
 
-                    <h4>ミュートアカウント名（ポストを非表示にするユーザー名/1行1ワード）</h4>
+                    <h4>ミュートアカウント名（ポストを非表示にするアカウント名/1行1ワード）</h4>
                     <div class="switch-text">
                         <span class="switch_sub_text">※部分一致です</span>
                         <span class="switch_sub_text">※行の先頭に「regex:」を付けるとその行のみ正規表現として判定されます</span>
@@ -512,6 +513,18 @@ input[type="number"]{
                         <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
                     </div>
                     <textarea id="mute_user_name" class="area-input"></textarea>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="add_mute_menu">
+                            <span class="slider"></span>
+                            <div class="switch-text">
+                                <span class="switch-label">ポストのメニューにミュート項目を追加する</span>
+                                <button class="image-button" data-image="/images/img_05.webp">イメージ</button>
+                                <span class="switch_sub_text">※ツールが動作する画面でのみ表示されます</span>
+                            </div>
+                        </label>
+                    </div>
             </div>
 
             <div class="option_block collapsed">
