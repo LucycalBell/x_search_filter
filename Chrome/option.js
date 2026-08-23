@@ -86,6 +86,7 @@ function LoadOption(){
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_QUOTED = getOptionPram(r.POST_CHECK_QUOTED, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.SEARCH_QUOTED_WORD_REQUIRED = getOptionPram(r.SEARCH_QUOTED_WORD_REQUIRED, false, TYPE_BOOL);
@@ -142,6 +143,7 @@ function LoadOption(){
             document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
             document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN;
             document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME;
+            document.getElementById("post_check_quoted").checked = X_OPTION.POST_CHECK_QUOTED;
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
             document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
             document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
@@ -303,6 +305,7 @@ function OptionSave(){
     SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = document.getElementById("default_selected_follow_tab_latest_select").checked;
     SAVE_OBJ.MUTE_WORD_LIST_HIDDEN = document.getElementById("mute_word_list_hidden").checked;
     SAVE_OBJ.POST_CHECK_ACCOUNTNAME = document.getElementById("post_check_accountname").checked;
+    SAVE_OBJ.POST_CHECK_QUOTED = document.getElementById("post_check_quoted").checked;
     SAVE_OBJ.REPLY_MUTE_WORD_SETTINGS_APPLY = document.getElementById("reply_mute_word_settings_apply").checked;
     SAVE_OBJ.SEARCH_NO_HIT_BLOCK = document.getElementById("search_notmatch_block").checked;
     SAVE_OBJ.SEARCH_QUOTED_WORD_REQUIRED = document.getElementById("search_quoted_word_required").checked;
@@ -546,6 +549,7 @@ function EventSet(){
     document.getElementById("default_selected_follow_tab_latest_select").addEventListener("change", OptionSave, false);
     document.getElementById("mute_word_list_hidden").addEventListener("click", OptionSave, false);
     document.getElementById("post_check_accountname").addEventListener("click", OptionSave, false);
+    document.getElementById("post_check_quoted").addEventListener("click", OptionSave, false);
     document.getElementById("reply_mute_word_settings_apply").addEventListener("click", OptionSave, false);
     document.getElementById("search_notmatch_block").addEventListener("click", OptionSave, false);
     document.getElementById("search_quoted_word_required").addEventListener("click", OptionSave, false);

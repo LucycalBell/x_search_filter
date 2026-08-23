@@ -297,6 +297,7 @@
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_QUOTED = getOptionPram(r.POST_CHECK_QUOTED, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.SEARCH_QUOTED_WORD_REQUIRED = getOptionPram(r.SEARCH_QUOTED_WORD_REQUIRED, false, TYPE_BOOL);
@@ -1499,6 +1500,11 @@
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
         } else {
             postl = getPostText(post).split(/\n/);
+            if(X_OPTION.POST_CHECK_QUOTED && isQuotedPost(post)){
+                // 「引用ポストにも適用する」オプションONの時は引用ポスト本文を結合
+                postl = postl.concat(getQuotePostText(post).split(/\n/));
+                console.log(postl);
+            }
         }
 
         // セーフワードチェック
@@ -2981,6 +2987,28 @@
         } catch(e) {
             return "";
         }
+    }
+    
+    /**
+     * 引用ポストの本文を取得します
+     * @param {Element} ポスト要素（引用元を含むポスト要素）
+     * @returns {string} 引用ポストの本文文字列。引用ポストがない、または本文が取得できない場合は空文字列
+     */
+    function getQuotePostText(post) {
+        const quotedPost = getQuotePostElement(post);
+        if (!quotedPost) {
+            return "";
+        }
+        return getPostTextTag(quotedPost)?.innerText || "";
+    }
+
+    /**
+     * 引用ポストの有無を判定します
+     * @param {Element} post 
+     * @returns {boolean} 引用ポスト付きポストの場合はtrue、そうでない場合はfalseを返します
+     */
+    function isQuotedPost(post) {
+        return getQuotePostElement(post) !== null;
     }
 
     function postTapNewWindow(post) {
