@@ -1244,7 +1244,6 @@
     
     function PostBlockCheck(post){
         block_type = -1;
-
         // 自分の投稿を除外するオプションが有効で自分のポストの場合、ミュート処理をスキップ
         if(X_OPTION.EXCLUDE_MY_POSTS && X_OPTION.EXCLUDE_MY_POSTS.trim() !== ""){
             if(getPostUserName(post, true) === X_OPTION.EXCLUDE_MY_POSTS.trim().replace("@", "")){
@@ -1503,7 +1502,6 @@
             if(X_OPTION.POST_CHECK_QUOTED && isQuotedPost(post)){
                 // 「引用ポストにも適用する」オプションONの時は引用ポスト本文を結合
                 postl = postl.concat(getQuotePostText(post).split(/\n/));
-                console.log(postl);
             }
         }
 
