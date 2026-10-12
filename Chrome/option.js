@@ -237,7 +237,7 @@ function OptionSave(){
     SAVE_OBJ.ONLINE_SPAM_LIST = false;
     SAVE_OBJ.BLOCK_WORDS = document.getElementById("mute_words").value.split(/\n/);
     SAVE_OBJ.MUTE_ACCOUNT_NAME = document.getElementById("mute_account_name").value.split(/\n/);
-    SAVE_OBJ.MUTE_USER_NAME = document.getElementById("mute_user_name").value.split(/\n/);
+    SAVE_OBJ.MUTE_USER_NAME = document.getElementById("mute_user_name").value.split(/\n/).filter(item => item.trim() !== "");;
     SAVE_OBJ.EXCLUDE_WORDS = document.getElementById("exclude_words").value.split(/\n/);
     SAVE_OBJ.REG_EXP = document.getElementById("reg_exp").checked;
     if(document.getElementById("hashtag_border_switch").checked){
