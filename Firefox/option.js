@@ -42,6 +42,8 @@ function LoadOption(){
             }
             X_OPTION = {};
             X_OPTION.BLOCK_WORDS = getOptionPram(r.BLOCK_WORDS, [], TYPE_ARRAY);
+            X_OPTION.MUTE_ACCOUNT_NAME = getOptionPram(r.MUTE_ACCOUNT_NAME, [], TYPE_ARRAY);
+            X_OPTION.MUTE_USER_NAME = getOptionPram(r.MUTE_USER_NAME, [], TYPE_ARRAY);
             X_OPTION.EXCLUDE_WORDS = getOptionPram(r.EXCLUDE_WORDS, [], TYPE_ARRAY);
             X_OPTION.TAG_BORDER = getOptionPram(r.TAG_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_ICON_BLOCK = getOptionPram(r.DEFAULT_ICON_BLOCK, false, TYPE_BOOL);
@@ -65,6 +67,7 @@ function LoadOption(){
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK = getOptionPram(r.SEARCH_HIT_ACCOUNTNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
@@ -83,6 +86,7 @@ function LoadOption(){
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_QUOTED = getOptionPram(r.POST_CHECK_QUOTED, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.SEARCH_QUOTED_WORD_REQUIRED = getOptionPram(r.SEARCH_QUOTED_WORD_REQUIRED, false, TYPE_BOOL);
@@ -92,8 +96,12 @@ function LoadOption(){
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
+            X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN = getOptionPram(r.OPTION_CHANGE_DIALOG_HIDDEN, false, TYPE_BOOL);
+            X_OPTION.ADD_MUTE_MENU = getOptionPram(r.ADD_MUTE_MENU, true, TYPE_BOOL);
 
             document.getElementById("mute_words").value = ArrayObjtoText(X_OPTION.BLOCK_WORDS);
+            document.getElementById("mute_account_name").value = ArrayObjtoText(X_OPTION.MUTE_ACCOUNT_NAME);
+            document.getElementById("mute_user_name").value = ArrayObjtoText(X_OPTION.MUTE_USER_NAME);
             document.getElementById("exclude_words").value = ArrayObjtoText(X_OPTION.EXCLUDE_WORDS);
             document.getElementById("reg_exp").checked = X_OPTION.REG_EXP ? true : false;
             document.getElementById("hashtag_border").value = X_OPTION.TAG_BORDER;
@@ -116,6 +124,7 @@ function LoadOption(){
             document.getElementById("search_all_word_required").checked = X_OPTION.SEARCH_ALL_WORD_REQUIRED;
             document.getElementById("accountname_space_border").value = X_OPTION.ACCOUNTNAME_SPACE_BORDER;
             document.getElementById("search_hit_username_block").checked = X_OPTION.SEARCH_HIT_USERNAME_BLOCK;
+            document.getElementById("search_hit_accountname_block").checked = X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK;
             document.getElementById("link_card_url_view").checked = X_OPTION.LINK_CARD_URL_VIEW;
             document.getElementById("link_card_url_view_oneLine").checked = X_OPTION.LINK_CARD_URL_VIEW_ONELINE;
             document.getElementById("link_card_mismatch_warning").checked = X_OPTION.LINK_CARD_MISMATCH_WARNING;
@@ -134,12 +143,15 @@ function LoadOption(){
             document.getElementById("default_selected_follow_tab_latest_select").checked = X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT;
             document.getElementById("mute_word_list_hidden").checked = X_OPTION.MUTE_WORD_LIST_HIDDEN;
             document.getElementById("post_check_accountname").checked = X_OPTION.POST_CHECK_ACCOUNTNAME;
+            document.getElementById("post_check_quoted").checked = X_OPTION.POST_CHECK_QUOTED;
             document.getElementById("reply_mute_word_settings_apply").checked = X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY;
             document.getElementById("post_tree_nonBlock").checked = X_OPTION.POST_TREE_NONBLOCK;
             document.getElementById("auto_translation_post_block").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK;
             document.getElementById("auto_translation_post_block_quoted_post").checked = X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST;
             document.getElementById("post_tap_newtab").checked = X_OPTION.POST_TAP_NEW_TAB;
             document.getElementById("my_username").value = X_OPTION.EXCLUDE_MY_POSTS;
+            document.getElementById("option_change_dialog_hidden").checked = X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN;
+            document.getElementById("add_mute_menu").checked = X_OPTION.ADD_MUTE_MENU;
 
             if(X_OPTION.MANUAL_SPAM_LIST != void 0 && X_OPTION.MANUAL_SPAM_LIST != null){
                 if(0 < X_OPTION.MANUAL_SPAM_LIST.length){
@@ -224,6 +236,8 @@ function OptionSave(){
     SAVE_OBJ.ONLINE_UPDATE = false;
     SAVE_OBJ.ONLINE_SPAM_LIST = false;
     SAVE_OBJ.BLOCK_WORDS = document.getElementById("mute_words").value.split(/\n/);
+    SAVE_OBJ.MUTE_ACCOUNT_NAME = document.getElementById("mute_account_name").value.split(/\n/);
+    SAVE_OBJ.MUTE_USER_NAME = document.getElementById("mute_user_name").value.split(/\n/).filter(item => item.trim() !== "");;
     SAVE_OBJ.EXCLUDE_WORDS = document.getElementById("exclude_words").value.split(/\n/);
     SAVE_OBJ.REG_EXP = document.getElementById("reg_exp").checked;
     if(document.getElementById("hashtag_border_switch").checked){
@@ -276,6 +290,7 @@ function OptionSave(){
     }
     
     SAVE_OBJ.SEARCH_HIT_USERNAME_BLOCK = document.getElementById("search_hit_username_block").checked;
+    SAVE_OBJ.SEARCH_HIT_ACCOUNTNAME_BLOCK = document.getElementById("search_hit_accountname_block").checked;
     SAVE_OBJ.LINK_CARD_URL_VIEW = document.getElementById("link_card_url_view").checked;
     SAVE_OBJ.LINK_CARD_URL_VIEW_ONELINE = document.getElementById("link_card_url_view_oneLine").checked;
     SAVE_OBJ.LINK_CARD_MISMATCH_WARNING = document.getElementById("link_card_mismatch_warning").checked;
@@ -290,6 +305,7 @@ function OptionSave(){
     SAVE_OBJ.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = document.getElementById("default_selected_follow_tab_latest_select").checked;
     SAVE_OBJ.MUTE_WORD_LIST_HIDDEN = document.getElementById("mute_word_list_hidden").checked;
     SAVE_OBJ.POST_CHECK_ACCOUNTNAME = document.getElementById("post_check_accountname").checked;
+    SAVE_OBJ.POST_CHECK_QUOTED = document.getElementById("post_check_quoted").checked;
     SAVE_OBJ.REPLY_MUTE_WORD_SETTINGS_APPLY = document.getElementById("reply_mute_word_settings_apply").checked;
     SAVE_OBJ.SEARCH_NO_HIT_BLOCK = document.getElementById("search_notmatch_block").checked;
     SAVE_OBJ.SEARCH_QUOTED_WORD_REQUIRED = document.getElementById("search_quoted_word_required").checked;
@@ -299,6 +315,8 @@ function OptionSave(){
     SAVE_OBJ.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = document.getElementById("auto_translation_post_block_quoted_post").checked;
     SAVE_OBJ.TARGET_URL = getActiveUrlList();
     SAVE_OBJ.POST_TAP_NEW_TAB = document.getElementById("post_tap_newtab").checked;
+    SAVE_OBJ.OPTION_CHANGE_DIALOG_HIDDEN = document.getElementById("option_change_dialog_hidden").checked;
+    SAVE_OBJ.ADD_MUTE_MENU = document.getElementById("add_mute_menu").checked;
     if(document.getElementById("trend_word_border_text_switch").checked){
         SAVE_OBJ.TREND_WORD_BORDER_TEXT = document.getElementById("trend_word_border_text").value;
     } else {
@@ -478,6 +496,8 @@ function SetupOptionBlockToggle(){
 
 function EventSet(){
     document.getElementById("mute_words").addEventListener("input", OptionSave, false);
+    document.getElementById("mute_account_name").addEventListener("input", OptionSave, false);
+    document.getElementById("mute_user_name").addEventListener("input", OptionSave, false);
     document.getElementById("exclude_words").addEventListener("input", OptionSave, false);
     document.getElementById("reg_exp").addEventListener("click", OptionSave, false);
     document.getElementById("hashtag_border").addEventListener("input", OptionSave, false);
@@ -501,6 +521,7 @@ function EventSet(){
     document.getElementById("manual_import_delete").addEventListener("click", ManualListDelete, false);
     document.getElementById("accountname_space_border").addEventListener("input", OptionSave, false);
     document.getElementById("search_hit_username_block").addEventListener("click", OptionSave, false);
+    document.getElementById("search_hit_accountname_block").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_url_view").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_url_view_oneLine").addEventListener("click", OptionSave, false);
     document.getElementById("link_card_mismatch_warning").addEventListener("click", OptionSave, false);
@@ -528,6 +549,7 @@ function EventSet(){
     document.getElementById("default_selected_follow_tab_latest_select").addEventListener("change", OptionSave, false);
     document.getElementById("mute_word_list_hidden").addEventListener("click", OptionSave, false);
     document.getElementById("post_check_accountname").addEventListener("click", OptionSave, false);
+    document.getElementById("post_check_quoted").addEventListener("click", OptionSave, false);
     document.getElementById("reply_mute_word_settings_apply").addEventListener("click", OptionSave, false);
     document.getElementById("search_notmatch_block").addEventListener("click", OptionSave, false);
     document.getElementById("search_quoted_word_required").addEventListener("click", OptionSave, false);
@@ -544,6 +566,8 @@ function EventSet(){
     document.getElementById("post_tap_newtab").addEventListener("change", OptionSave, false);
     document.getElementById("exclude_my_posts").addEventListener("change", OptionSave, false);
     document.getElementById("my_username").addEventListener("input", OptionSave, false);
+    document.getElementById("option_change_dialog_hidden").addEventListener("change", OptionSave, false);
+    document.getElementById("add_mute_menu").addEventListener("change", OptionSave, false);
 
     document.getElementById("default_set_1").addEventListener("click", function(){
         document.getElementById("default_icon_name").value = DEFAULT_ICON_NAME;
