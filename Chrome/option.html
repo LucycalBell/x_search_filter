@@ -420,7 +420,7 @@ input[type="number"]{
                 <ul>
                     <li>本ツールは非公式拡張機能です。X公式とは関係ありません。</li>
                     <li>ツールの使用は自己責任でお願いします。</li>
-                    <li>Androidブラウザでも使用できます（FireFoxまたはChrome拡張機能に対応しているブラウザが必要）。ブラウザの機能でホーム画面にXを配置するとブラウザUIが非表示になりアプリのように使えます（PWA）</li>
+                    <li>Androidブラウザでも使用できます（FirefoxまたはChrome拡張機能に対応しているブラウザが必要）。ブラウザの機能でホーム画面にXを配置するとブラウザUIが非表示になりアプリのように使えます（PWA）</li>
                     <li>不具合などある場合は以下にレビューまたはissuesで報告いただければ可能な範囲で対応したいと思います</li>
                     <ul>
                         <li><a href="https://chromewebstore.google.com/detail/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/nggagmpbcbkpgbjbdiobbikgehcmkmkh" target="_blank">chrome ウェブストア</a></li>
@@ -433,7 +433,8 @@ input[type="number"]{
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
                     <h4>ミュートワード（ポストを非表示にするワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションをONにするか、先頭に「regex:」を付けることでそのワードのみ正規表現の判定が可能です</span>
+                        <span class="switch_sub_text">※「regex:」を使用する場合、「正規表現を使用する」オプションをOFFにしてください（ONだと全て正規表現として扱われます）</span>
                     </div>
                     <textarea id="mute_words" class="area-input"></textarea>
 
@@ -452,7 +453,8 @@ input[type="number"]{
 
                     <h4>セーフワード（除外しないワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONで正規表現が使用可能です</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションをONにするか、先頭に「regex:」を付けることでそのワードのみ正規表現の判定が可能です</span>
+                        <span class="switch_sub_text">※「regex:」を使用する場合、「正規表現を使用する」オプションをOFFにしてください（ONだと全て正規表現として扱われます）</span>
                     </div>
                     <textarea id="exclude_words" class="area-input"></textarea>
 
@@ -460,7 +462,9 @@ input[type="number"]{
                         <label class="switch-container">
                             <input type="checkbox" id="reg_exp">
                             <span class="slider"></span>
-                            <span class="switch-label">ミュート/セーフワードに正規表現を使用する</span>
+                            <div class="switch-text">
+                                <span class="switch-label">ミュート/セーフワードに正規表現を使用する</span>
+                            </div>
                         </label>
                     </div>
 
@@ -468,7 +472,18 @@ input[type="number"]{
                         <label class="switch-container">
                             <input type="checkbox" id="post_check_accountname">
                             <span class="slider"></span>
-                            <span class="switch-label">アカウント名にも適用する</span>
+                            <div class="switch-text">
+                                <span class="switch-label">アカウント名にも適用する</span>
+                                <div class="switch_sub_text">※アカウント名のみを対象としたい場合は「アカウント・ユーザー名ミュート設定」オプションの使用をおすすめします</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="post_check_quoted">
+                            <span class="slider"></span>
+                            <span class="switch-label">引用ポストにも適用する</span>
                         </label>
                     </div>
 
@@ -482,11 +497,40 @@ input[type="number"]{
                             </div>
                         </label>
                     </div>
+            </div>
 
-                    <h4>セーフユーザー（非表示にしないユーザー/1行1ユーザー）</h4>
+            <div class="option_block collapsed">
+                <div class="option-title">アカウント・ユーザー名ミュート設定</div>
+                <div>※競合した場合、「セーフ」系の設定が優先されます</div>
+                    <h4>セーフユーザー名（非表示にしないユーザー/1行1ユーザー）</h4>
                     <div class="switch_sub_text">※こちらは「@」から始まるユーザー名で指定します</div>
                     <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
                     <textarea id="safe_user" class="area-input"></textarea>
+
+                    <h4>ミュートアカウント名（ポストを非表示にするアカウント名/1行1ワード）</h4>
+                    <div class="switch-text">
+                        <span class="switch_sub_text">※部分一致です</span>
+                        <span class="switch_sub_text">※行の先頭に「regex:」を付けるとその行のみ正規表現として判定されます</span>
+                    </div>
+                    <textarea id="mute_account_name" class="area-input"></textarea>
+
+                    <h4>ミュートユーザー名（ポストを非表示にする@から始まるユーザー名/1行1アカウント）</h4>
+                    <div class="switch-text">
+                        <div class="switch_sub_text">※<span class="font_bold">完全一致</span>です正規表現は<span class="font_red">使用できません</span></div>
+                    </div>
+                    <textarea id="mute_user_name" class="area-input"></textarea>
+
+                    <div class="switch_box">
+                        <label class="switch-container">
+                            <input type="checkbox" id="add_mute_menu">
+                            <span class="slider"></span>
+                            <div class="switch-text">
+                                <span class="switch-label">ポストのメニューにミュート項目を追加する</span>
+                                <button class="image-button" data-image="/images/img_05.webp">イメージ</button>
+                                <span class="switch_sub_text">※ツールが動作する画面でのみ表示されます</span>
+                            </div>
+                        </label>
+                    </div>
             </div>
 
             <div class="option_block collapsed">
@@ -659,9 +703,19 @@ input[type="number"]{
                         <input type="checkbox" id="search_hit_username_block">
                         <span class="slider"></span>
                         <div class="switch-text">
-                            <span class="switch-label">ユーザー名のみで検索にヒットしているポストをミュート</span>
+                            <span class="switch-label">ユーザー名（@から始まる文字列）のみで検索にヒットしているポストをミュート</span>
                             <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合ミュートとなります</span>
-                            <span class="switch_sub_text">※Xのアップデートでアカウント名が検索にヒットしなくなりましたがユーザー名（@から始まる文字列）は引き続き検索対象となっているため本機能残しています</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="switch_box">
+                    <label class="switch-container">
+                        <input type="checkbox" id="search_hit_accountname_block">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">アカウント名（アイコン横の文字列）のみで検索にヒットしているポストをミュート</span>
+                            <span class="switch_sub_text">※「:」が含まれる単語は検索コマンドで使用されるため判定対象外です。複数のワードを検索した場合、本文に一切検索ワードが一致しない状態でユーザー名に何れかのワードが一致する場合ミュートとなります</span>
                         </div>
                     </label>
                 </div>
@@ -975,7 +1029,6 @@ input[type="number"]{
                 <h4>クラス定義(クラス名, 階層, タグ名) <button id="default_set_4">初期値に戻す</button></h4>
                 <div>
                     ※階層はクラス名の要素から何階層上を非表示にするか<br>
-                    ※「実行時にオンラインで定義を更新」をONにしている場合以下の定義は使用されません<br>
                     ※「tweet」と記載した場合のみ特別に「tweet」が付与されたdata属性を参照します
                 </div>
                 <textarea id="post_class_area" class="area-input area-input-mini">tweet, 3, article
@@ -989,6 +1042,16 @@ input[type="number"]{
                         <span class="slider"></span>
                         <div class="switch-text">
                             <span class="switch-label">デフォルト設定のクラスを優先的に使用する</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="switch_box zero-bottom-margin">
+                    <label class="switch-container">
+                        <input type="checkbox" id="option_change_dialog_hidden">
+                        <span class="slider"></span>
+                        <div class="switch-text">
+                            <span class="switch-label">Xの画面でオプションを変更した際の注意ダイアログを表示しない</span>
+                            <span class="switch_sub_text">※「変更はページを再読み込みしたときに反映されます」ダイアログを表示しなくなります</span>
                         </div>
                     </label>
                 </div>

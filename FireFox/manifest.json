@@ -1,6 +1,6 @@
 {
   "name": "X検索ミュートツール",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "manifest_version": 3,
   "description": "Xの検索結果にミュートワードを設定出来るようにします",
   "icons": {
@@ -41,5 +41,14 @@
         "required": ["none"]
       }
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["option.html"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ]
+    }
+  ]
 }

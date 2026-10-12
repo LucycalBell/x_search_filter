@@ -37,7 +37,10 @@
         16:"プロフィール文の日本語比率が指定値以下",
         17:"プロフィールの文字数が指定値以下",
         18:"検索ワードにヒットしないポスト",
-        19:"自動翻訳されたポスト"
+        19:"自動翻訳されたポスト",
+        20:"アカウント名のみ一致",
+        21:"ミュートワード一致（アカウント名）",
+        22:"ミュートユーザー名一致"
     };
     const WORD_BLOCK_TYPE = {
         NONE: 0,
@@ -47,6 +50,7 @@
     const CLASS_LINK_ICON = "gX5c7aMKHJte";
     const CLASS_LINK_TEXT = "38vLw0IMLBxf";
     const TREND_URL = "https://x.com/explore/tabs/trending";
+    const OPTION_OVERLAY_ID = "xsf_opt_overlay";
     
     let postBlockViewNumber = 0;
     let hidden_posts = [];
@@ -249,6 +253,8 @@
             if(r == void 0){r = {};}
             X_OPTION = {};
             X_OPTION.BLOCK_WORDS = getOptionPram(r.BLOCK_WORDS, [], TYPE_ARRAY);
+            X_OPTION.MUTE_ACCOUNT_NAME = getOptionPram(r.MUTE_ACCOUNT_NAME, [], TYPE_ARRAY);
+            X_OPTION.MUTE_USER_NAME = getOptionPram(r.MUTE_USER_NAME, [], TYPE_ARRAY);
             X_OPTION.EXCLUDE_WORDS = getOptionPram(r.EXCLUDE_WORDS, [], TYPE_ARRAY);
             X_OPTION.TAG_BORDER = getOptionPram(r.TAG_BORDER, 0, TYPE_INTEGER);
             X_OPTION.DEFAULT_ICON_BLOCK = getOptionPram(r.DEFAULT_ICON_BLOCK, false, TYPE_BOOL);
@@ -272,6 +278,7 @@
             X_OPTION.MANUAL_SPAM_LIST = getOptionPram(r.MANUAL_SPAM_LIST, false, TYPE_ARRAY);
             X_OPTION.ACCOUNTNAME_SPACE_BORDER = getOptionPram(r.ACCOUNTNAME_SPACE_BORDER, 0, TYPE_INTEGER);
             X_OPTION.SEARCH_HIT_USERNAME_BLOCK = getOptionPram(r.SEARCH_HIT_USERNAME_BLOCK, false, TYPE_BOOL);
+            X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK = getOptionPram(r.SEARCH_HIT_ACCOUNTNAME_BLOCK, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW = getOptionPram(r.LINK_CARD_URL_VIEW, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_URL_VIEW_ONELINE = getOptionPram(r.LINK_CARD_URL_VIEW_ONELINE, false, TYPE_BOOL);
             X_OPTION.LINK_CARD_MISMATCH_WARNING = getOptionPram(r.LINK_CARD_MISMATCH_WARNING, false, TYPE_BOOL);
@@ -290,6 +297,7 @@
             X_OPTION.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT = getOptionPram(r.DEFAULT_SELECTED_FOLLOW_TAB_LATEST_SELECT, false, TYPE_BOOL);
             X_OPTION.MUTE_WORD_LIST_HIDDEN = getOptionPram(r.MUTE_WORD_LIST_HIDDEN, false, TYPE_BOOL);
             X_OPTION.POST_CHECK_ACCOUNTNAME = getOptionPram(r.POST_CHECK_ACCOUNTNAME, false, TYPE_BOOL);
+            X_OPTION.POST_CHECK_QUOTED = getOptionPram(r.POST_CHECK_QUOTED, false, TYPE_BOOL);
             X_OPTION.REPLY_MUTE_WORD_SETTINGS_APPLY = getOptionPram(r.REPLY_MUTE_WORD_SETTINGS_APPLY, false, TYPE_BOOL);
             X_OPTION.SEARCH_NO_HIT_BLOCK = getOptionPram(r.SEARCH_NO_HIT_BLOCK, false, TYPE_BOOL);
             X_OPTION.SEARCH_QUOTED_WORD_REQUIRED = getOptionPram(r.SEARCH_QUOTED_WORD_REQUIRED, false, TYPE_BOOL);
@@ -299,6 +307,8 @@
             X_OPTION.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST = getOptionPram(r.AUTO_TRANSLATION_POST_BLOCK_QUOTED_POST, false, TYPE_BOOL);
             X_OPTION.POST_TAP_NEW_TAB = getOptionPram(r.POST_TAP_NEW_TAB, false, TYPE_BOOL);
             X_OPTION.EXCLUDE_MY_POSTS = getOptionPram(r.EXCLUDE_MY_POSTS, "", TYPE_STRING);
+            X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN = getOptionPram(r.OPTION_CHANGE_DIALOG_HIDDEN, false, TYPE_BOOL);
+            X_OPTION.ADD_MUTE_MENU = getOptionPram(r.ADD_MUTE_MENU, true, TYPE_BOOL);
             TrendDataLoad();
 
             if(X_OPTION.MANUAL_SPAM_LIST == void 0 || X_OPTION.MANUAL_SPAM_LIST == null || X_OPTION.MANUAL_SPAM_LIST.length == 0){
@@ -309,6 +319,16 @@
                 for(let i=0;i<X_OPTION.MANUAL_SPAM_LIST.length;i++){
                     if(X_OPTION.MANUAL_SPAM_LIST[i] != void 0 && X_OPTION.MANUAL_SPAM_LIST[i] != null && X_OPTION.MANUAL_SPAM_LIST[i].trim() != ""){
                         manual_spam_list.push(X_OPTION.MANUAL_SPAM_LIST[i].replace("@", ""));
+                    }
+                }
+            }
+
+            if(X_OPTION.MUTE_USER_NAME == void 0 || X_OPTION.MUTE_USER_NAME == null || X_OPTION.MUTE_USER_NAME.length == 0){
+                X_OPTION.MUTE_USER_NAME = [];
+            } else {
+                for(let i=0;i<X_OPTION.MUTE_USER_NAME.length;i++){
+                    if(X_OPTION.MUTE_USER_NAME[i] != void 0 && X_OPTION.MUTE_USER_NAME[i] != null && X_OPTION.MUTE_USER_NAME[i].trim() != ""){
+                        X_OPTION.MUTE_USER_NAME[i] = X_OPTION.MUTE_USER_NAME[i].replace("@", "");
                     }
                 }
             }
@@ -397,7 +417,7 @@
                 document.getElementById("x9uVvQH").style.display = "none";
             }
         }
-
+        AddExtensionMuteMenu();
         for(let i=0;i<postList.length;i++){
             if((activeUrl || isPostPageOptionActive()) && PostBlockCheck(postList[i])){
                 PostBlock(postList[i]);
@@ -1224,7 +1244,6 @@
     
     function PostBlockCheck(post){
         block_type = -1;
-
         // 自分の投稿を除外するオプションが有効で自分のポストの場合、ミュート処理をスキップ
         if(X_OPTION.EXCLUDE_MY_POSTS && X_OPTION.EXCLUDE_MY_POSTS.trim() !== ""){
             if(getPostUserName(post, true) === X_OPTION.EXCLUDE_MY_POSTS.trim().replace("@", "")){
@@ -1326,6 +1345,22 @@
                 return false;
         }
 
+        /* アカウント名ミュート判定 */
+        switch(AccountWordCheck(post)){
+            case WORD_BLOCK_TYPE.BLOCKED:
+                block_type = 21;
+                return true;
+        }
+
+        /* ミュートユーザー判定 */
+        if(0 < X_OPTION.MUTE_USER_NAME.length){
+            const postUserName = getPostUserName(post, true).toUpperCase();
+            if(X_OPTION.MUTE_USER_NAME.some(item => typeof item === "string" && postUserName == item.toUpperCase())){
+                block_type = 22;
+                return true;
+            }
+        }
+
         /* 表示中ユーザーの投稿は除外 */
         if(getUrlUserName() != "" && getUrlUserName() == getPostUserName(post, true)){
             return false;
@@ -1380,6 +1415,18 @@
                     if(!(getSearchWordList(true).some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
                         if((getSearchWordList(true).some(item => getPostUserName(post).toUpperCase().includes(item.toUpperCase())))){
                             block_type = 9;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        if(X_OPTION.SEARCH_HIT_ACCOUNTNAME_BLOCK){
+            if(isSearchPage()){
+                if(0 < getSearchWordList().length){
+                    if(!(getSearchWordList(true).some(item => getPostText(post).toUpperCase().includes(item.toUpperCase())))){
+                        if((getSearchWordList(true).some(item => getPostAccountName(post).toUpperCase().includes(item.toUpperCase())))){
+                            block_type = 20;
                             return true;
                         }
                     }
@@ -1441,72 +1488,139 @@
         }
     }
 
-    /* ワード系のミュート判定 */
+    /**
+     * ポストのミュートワード判定を行います
+     * @param {*} post 対象のポスト
+     * @returns WORD_BLOCK_TYPE.BLOCKED: ミュート対象, WORD_BLOCK_TYPE.EXCLUDE: セーフワード対象, WORD_BLOCK_TYPE.NONE: ミュート対象外
+     */
     function postWordCheck(post) {
         let postl;
         if(X_OPTION.POST_CHECK_ALL){
             postl = getPostParent(post, postClass_Hierarchy[1]).innerText.split(/\n/);
         } else {
             postl = getPostText(post).split(/\n/);
+            if(X_OPTION.POST_CHECK_QUOTED && isQuotedPost(post)){
+                // 「引用ポストにも適用する」オプションONの時は引用ポスト本文を結合
+                postl = postl.concat(getQuotePostText(post).split(/\n/));
+            }
         }
-        if(X_OPTION.REG_EXP){
-            /* 正規表現モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
+
+        // セーフワードチェック
+        for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
+            if(typeof X_OPTION.EXCLUDE_WORDS[i] !== "string"){
+                continue;
+            }
+            const searchString = getSearchString(X_OPTION.EXCLUDE_WORDS[i]);
+            if(searchString.trim() == ""){
+                continue;
+            }
+            if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
+                for(let p=0;p<postl.length;p++){
+                    if(isRegexSearch(X_OPTION.EXCLUDE_WORDS[i]) || X_OPTION.REG_EXP){
                         try {
-                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.EXCLUDE; }
                             if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
                                 /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.EXCLUDE; }
                             }
                         } catch(e) {
                             ;
                         }
+                    } else {
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
+                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                        }
                     }
                 }
             }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
+        }
+
+        for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
+            if(typeof X_OPTION.BLOCK_WORDS[i] !== "string"){
+                continue;
+            }
+            const searchString = getSearchString(X_OPTION.BLOCK_WORDS[i]);
+            if(searchString.trim() == ""){
+                continue;
+            }
+            if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
+                for(let p=0;p<postl.length;p++){
+                    if(isRegexSearch(X_OPTION.BLOCK_WORDS[i]) || X_OPTION.REG_EXP){
                         try {
-                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            if(ConvertUppercase(HiraToKana(postl[p])).match(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
                             if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
                                 /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                                if(ConvertUppercase(HiraToKana(getPostAccountName(post))).match(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
                             }
                         } catch(e) {
                             ;
                         }
-                    }
-                }
-            }
-        } else {
-            /* 通常モード */
-            for(let i=0;i<X_OPTION.EXCLUDE_WORDS.length;i++){
-                if(X_OPTION.EXCLUDE_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
+                    } else {
+                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
                         if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
                             /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.EXCLUDE_WORDS[i])))){ return WORD_BLOCK_TYPE.EXCLUDE; }
-                        }
-                    }
-                }
-            }
-            for(let i=0;i<X_OPTION.BLOCK_WORDS.length;i++){
-                if(X_OPTION.BLOCK_WORDS[i].trim() != ""){
-                    for(let p=0;p<postl.length;p++){
-                        if(ConvertUppercase(HiraToKana(postl[p])).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
-                        if(X_OPTION.POST_CHECK_ACCOUNTNAME) {
-                            /* 「アカウント名にも適用する」オプションONの時はアカウント名もチェック */
-                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(X_OPTION.BLOCK_WORDS[i])))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                            if(ConvertUppercase(HiraToKana(getPostAccountName(post))).includes(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
                         }
                     }
                 }
             }
         }
         return WORD_BLOCK_TYPE.NONE;
+    }
+
+    /**
+     * アカウント名のミュート判定を行います
+     * @param {*} post 対象のポスト
+     * @returns WORD_BLOCK_TYPE.BLOCKED: ミュート対象, WORD_BLOCK_TYPE.NONE: ミュート対象外
+     */
+    function AccountWordCheck(post) {
+        let accountName = getPostAccountName(post);
+        for(let i=0;i<X_OPTION.MUTE_ACCOUNT_NAME.length;i++){
+            if(typeof X_OPTION.MUTE_ACCOUNT_NAME[i] !== "string"){
+                continue;
+            }
+
+            const searchString = getSearchString(X_OPTION.MUTE_ACCOUNT_NAME[i]);
+            if(searchString.trim() == ""){
+                continue;
+            }
+            if(isRegexSearch(X_OPTION.MUTE_ACCOUNT_NAME[i])){
+                try {
+                    if(ConvertUppercase(HiraToKana(accountName)).match(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
+                } catch(e) {
+                    ;
+                }
+            } else {
+                if(ConvertUppercase(HiraToKana(accountName)).includes(ConvertUppercase(HiraToKana(searchString)))){ return WORD_BLOCK_TYPE.BLOCKED; }
+            }
+        }
+        return WORD_BLOCK_TYPE.NONE;
+    }
+
+    /**
+     * 正規表現での検索を行うかどうかを判定します
+     * @param {*} str 検索ワード
+     * @returns 検索ワードの先頭が「regex:」で始まる場合はtrue
+     */
+    function isRegexSearch(str) {
+        if(str.startsWith("regex:")) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 検索に使用する文字列を返却します
+     * @param {*} str 検索ワード
+     * @returns 検索ワードの先頭が「regex:」で始まる場合は「regex:」を除いた文字列、それ以外はそのままの文字列
+     */
+    function getSearchString(str) {
+        if(str.startsWith("regex:")) {
+            return str.substring(6);
+        }
+        return str;
     }
 
     function PostBlockRelease() {
@@ -1933,18 +2047,12 @@
             optionsBtn.onmouseout = function(){
                 this.style.opacity = "1";
             };
+
             optionsBtn.addEventListener("click", function(e){
                 e.stopPropagation();
-                try {
-                    chrome.runtime.sendMessage({type: "openOptionsPage"}, function(response){
-                        if(chrome.runtime.lastError){
-                            window.open(chrome.runtime.getURL("option.html"), "_blank");
-                        }
-                    });
-                } catch(err) {
-                    window.open(chrome.runtime.getURL("option.html"), "_blank");
-                }
+                showOptionsOverlay();
             }, false);
+
             lstArea.appendChild(optionsBtn);
             
             let closeBtn = document.createElement("div");
@@ -2099,6 +2207,54 @@
                 HiddenPostList();
             });
         }
+    }
+
+    /**
+     * ツール動作画面からオプション画面をオーバーレイで表示します
+     * @returns {void}
+     */
+    function showOptionsOverlay(){
+        if(document.getElementById(OPTION_OVERLAY_ID) != null){
+            document.getElementById(OPTION_OVERLAY_ID).style.display = "block";
+            return;
+        }
+        let overlay = document.createElement("div");
+        overlay.id = OPTION_OVERLAY_ID;
+        overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;" +
+            "background:rgba(0,0,0,0.5);z-index:2147483647;";
+
+        let frameWrapper = document.createElement("div");
+        frameWrapper.style.cssText = "position:absolute;top:5%;left:50%;transform:translateX(-50%);" +
+            "width:min(98%, 1200px);height:90%;";
+
+        let frame = document.createElement("iframe");
+        frame.src = chrome.runtime.getURL("option.html");
+        frame.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;border:none;" +
+            "border-radius:12px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3);";
+
+        let closeBtn = document.createElement("div");
+        closeBtn.textContent = "✕ 閉じる";
+        closeBtn.style.cssText = "position:absolute;top:0;right:0;transform:translateY(-110%);" +
+            "color:#fff;cursor:pointer;font-weight:bold;padding:4px 8px;white-space:nowrap;";
+        closeBtn.addEventListener("click", () => { CloseOptionsOverlay(); });
+        overlay.addEventListener("click", (ev) => { if(ev.target === overlay) CloseOptionsOverlay(); });
+
+        frameWrapper.appendChild(frame);
+        frameWrapper.appendChild(closeBtn);
+        overlay.appendChild(frameWrapper);
+        document.body.appendChild(overlay);
+    }
+
+    /**
+     * オーバーレイ表示していたオプション画面を閉じます
+     * @returns {void}
+     */
+    function CloseOptionsOverlay(){
+        if(X_OPTION.OPTION_CHANGE_DIALOG_HIDDEN == false) {
+            alert("変更したオプションはページを再読み込みしてから反映されます。\n※このダイアログは「ツールシステム設定」から非表示に出来ます");
+        }
+        let overlay = document.getElementById(OPTION_OVERLAY_ID);
+        if(overlay) overlay.style.display = "none";
     }
 
     function HiddenPostList_Cls(e){
@@ -2618,6 +2774,241 @@
         return null;
     }
 
+    /*
+     * ポストメニューに拡張機能のユーザーミュート項目を追加するクリックイベントを登録します
+     * - Return: なし
+     */
+    function AddExtensionMuteMenu() {
+        if(document.documentElement.dataset.xsfExtensionMuteListenerAdded === "true"){
+            return;
+        }
+
+        document.documentElement.dataset.xsfExtensionMuteListenerAdded = "true";
+        document.addEventListener("click", function(event){
+            if(!activeUrl || !X_OPTION.ADD_MUTE_MENU){
+                return;
+            }
+            const target = event.target;
+            if(!(target instanceof Element) || !target.closest('[data-testid="caret"]')){
+                return;
+            }
+
+            const sourcePost = target.closest('article[data-testid="tweet"]');
+            const addMenuItem = function(){
+                const dropdowns = document.querySelectorAll('[data-testid="Dropdown"]');
+                const dropdown = dropdowns[dropdowns.length - 1];
+                if(!dropdown){
+                    return false;
+                }
+
+                const userName = getExtensionMuteMenuUserName(dropdown, sourcePost);
+                if(!userName){
+                    return false;
+                }
+
+                const addedMenuItem = dropdown.querySelector('[data-xsf-extension-mute-menu="true"]');
+                if(addedMenuItem){
+                    if(addedMenuItem.dataset.xsfMuteUser == userName.toUpperCase()){
+                        return true;
+                    }
+                    addedMenuItem.remove();
+                }
+
+                const menuItems = dropdown.querySelectorAll('[role="menuitem"]');
+                if(menuItems.length === 0){
+                    return false;
+                }
+
+                const extensionMenuItem = menuItems[menuItems.length - 1].cloneNode(true);
+                extensionMenuItem.dataset.xsfExtensionMuteMenu = "true";
+                extensionMenuItem.dataset.xsfMuteUser = userName.toUpperCase();
+                const menuLabel = "@" + userName + "さんをミュート（拡張機能）";
+                const textWalker = document.createTreeWalker(extensionMenuItem, NodeFilter.SHOW_TEXT);
+                const textNodes = [];
+                const currentIcon = extensionMenuItem.querySelector("svg");
+                if(currentIcon){
+                    const muteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    muteIcon.setAttribute("viewBox", "0 0 24 24");
+                    muteIcon.setAttribute("aria-hidden", "true");
+                    muteIcon.setAttribute("width", "20");
+                    muteIcon.setAttribute("height", "20");
+                    muteIcon.setAttribute("fill", "currentColor");
+
+                    const iconPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    // アイコンは非表示
+                    iconPath.setAttribute("d", "");
+                    muteIcon.appendChild(iconPath);
+
+                    currentIcon.replaceWith(muteIcon);
+                }
+                let currentTextNode;
+                while((currentTextNode = textWalker.nextNode())){
+                    if(currentTextNode.nodeValue && typeof currentTextNode.nodeValue === "string" && currentTextNode.nodeValue.trim() !== ""){
+                        textNodes.push(currentTextNode);
+                    }
+                }
+                if(textNodes.length === 0){
+                    return false;
+                }
+                textNodes[0].nodeValue = menuLabel;
+                for(let i=1;i<textNodes.length;i++){
+                    textNodes[i].nodeValue = "";
+                }
+
+                extensionMenuItem.addEventListener("click", function(event){
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    const result = window.confirm("【X検索ミュートツール】\n@" + userName + "さんをミュートしますか？");
+
+                    if(result) {
+                        if(!X_OPTION.MUTE_USER_NAME.some(item => typeof item === "string" && item.toUpperCase() == userName.toUpperCase())){
+                            X_OPTION.MUTE_USER_NAME.push(userName);
+                            MuteUserNameSave(userName, function(){
+                                MainLoopX();
+                                alert("@" + userName + "さんをミュートしました。\n※このミュートはX検索ミュートツールでのみ有効です（公式のミュート機能に変更はありません）");
+                            });
+                        } else {
+                            alert("@" + userName + "さんは既にミュート済みです。\n※ツールが動作していない画面、from検索や該当ユーザーのプロフィールを開くなど明示的にそのアカウントの情報を表示している場合はミュート済みでも表示されます");
+                        }
+                    }
+                }, true);
+
+                menuItems[menuItems.length - 1].after(extensionMenuItem);
+                return true;
+            };
+
+            let observerTimeout;
+            const observer = new MutationObserver(function(){
+                if(addMenuItem()){
+                    observer.disconnect();
+                    clearTimeout(observerTimeout);
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            setTimeout(function(){
+                if(addMenuItem()){
+                    observer.disconnect();
+                    clearTimeout(observerTimeout);
+                }
+            }, 0);
+            observerTimeout = setTimeout(function(){ observer.disconnect(); }, 2000);
+        }, true);
+    }
+
+    /*
+     * 保存済みオプションにミュートユーザー名を追加して保存します
+     * X_OPTIONはページ読み込み時点の内容のため、他画面での変更を巻き戻さないよう保存済みの内容を読み直して更新します
+     * - userName: 追加する「@」を除いたユーザー名
+     * - cb: 保存完了後に実行するコールバック
+     * - Return: なし
+     */
+    function MuteUserNameSave(userName, cb) {
+        chrome.storage.local.get(["XFILTER_OPTION"]).then((result) => {
+            let r;
+            try{
+                r = JSON.parse(result.XFILTER_OPTION);
+            } catch(e){
+                r = {};
+            }
+            if(r == void 0 || r == null){ r = {}; }
+
+            let muteUserNameList = getOptionPram(r.MUTE_USER_NAME, [], TYPE_ARRAY);
+            if(!muteUserNameList.some(item => typeof item === "string" && item.replace("@", "").toUpperCase() == userName.toUpperCase())){
+                muteUserNameList.push(userName);
+            }
+            r.MUTE_USER_NAME = muteUserNameList;
+
+            chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(r)}).then(() => {
+                if(cb){ cb(); }
+            });
+        });
+    }
+
+    /*
+     * ポストメニュー内のURLから対象ユーザー名を取得します
+     * URLから取得できない場合は、クリック元ポストのURLまたは表示内容から取得します
+     * - dropdown: 対象のポストメニュー要素
+     * - sourcePost: メニューを開いたクリック元のポスト要素
+     * - Return: @を除いたユーザー名。取得できない場合は空文字
+     */
+    function getExtensionMuteMenuUserName(dropdown, sourcePost) {
+        const links = dropdown.querySelectorAll('a[href]');
+        let statusUserName = "";
+        for(const link of links){
+            const linkUser = getUserNameFromXUrl(link.href);
+            if(!linkUser){
+                continue;
+            }
+            const pathParts = new URL(link.href, location.origin).pathname.split("/").filter(Boolean);
+            if(pathParts.length === 1){
+                return linkUser;
+            }
+            if(pathParts[1] === "status"){
+                statusUserName = linkUser;
+            }
+        }
+        if(statusUserName){
+            return statusUserName;
+        }
+
+        if(sourcePost){
+            return getUserNameFromXUrl(getPostUrl(sourcePost)) || getPostUserName(sourcePost, true);
+        }
+        return "";
+    }
+
+    /*
+     * XまたはTwitterのURLからユーザー名を取得します
+     * - url: ユーザー名を取得するURL
+     * - Return: URLの先頭パスにあるユーザー名。取得できない場合は空文字
+     */
+    function getUserNameFromXUrl(url) {
+        if(!url){
+            return "";
+        }
+        try {
+            const parsedUrl = new URL(url, location.origin);
+            if(parsedUrl.hostname !== "x.com" && parsedUrl.hostname !== "twitter.com" &&
+                parsedUrl.hostname !== "www.x.com" && parsedUrl.hostname !== "www.twitter.com"){
+                return "";
+            }
+
+            const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+            const userName = pathParts[0] || "";
+            const reservedPaths = ["compose", "explore", "hashtag", "home", "i", "intent", "messages", "notifications", "privacy", "search", "settings", "tos"];
+            if(reservedPaths.includes(userName.toLowerCase()) || !/^[A-Za-z0-9_]{1,15}$/.test(userName)){
+                return "";
+            }
+            return userName;
+        } catch(e) {
+            return "";
+        }
+    }
+    
+    /**
+     * 引用ポストの本文を取得します
+     * @param {Element} ポスト要素（引用元を含むポスト要素）
+     * @returns {string} 引用ポストの本文文字列。引用ポストがない、または本文が取得できない場合は空文字列
+     */
+    function getQuotePostText(post) {
+        const quotedPost = getQuotePostElement(post);
+        if (!quotedPost) {
+            return "";
+        }
+        return getPostTextTag(quotedPost)?.innerText || "";
+    }
+
+    /**
+     * 引用ポストの有無を判定します
+     * @param {Element} post 
+     * @returns {boolean} 引用ポスト付きポストの場合はtrue、そうでない場合はfalseを返します
+     */
+    function isQuotedPost(post) {
+        return getQuotePostElement(post) !== null;
+    }
+
     function postTapNewWindow(post) {
         if(!post || post.dataset.xsfPostTapNewWindowAdded === "true"){
             return;
@@ -3015,13 +3406,35 @@
         });
     }
 
+    /*
+     * リンクカードのセーフリストにドメインを追加して保存します
+     * X_OPTIONはページ読み込み時点の内容のため、他画面での変更を巻き戻さないよう保存済みの内容を読み直して更新します
+     * - domain: 追加するドメイン
+     * - Return: なし
+     */
     function addDomainToSafelist(domain){
-        if(X_OPTION.LINK_CARD_URL_SAFE){
-            if(!X_OPTION.LINK_CARD_URL_SAFE.includes(domain)){
-                X_OPTION.LINK_CARD_URL_SAFE.push(domain);
-                chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(X_OPTION)});
-            }
+        if(!X_OPTION.LINK_CARD_URL_SAFE || X_OPTION.LINK_CARD_URL_SAFE.includes(domain)){
+            return;
         }
+        X_OPTION.LINK_CARD_URL_SAFE.push(domain);
+
+        chrome.storage.local.get(["XFILTER_OPTION"]).then((result) => {
+            let r;
+            try{
+                r = JSON.parse(result.XFILTER_OPTION);
+            } catch(e){
+                r = {};
+            }
+            if(r == void 0 || r == null){ r = {}; }
+
+            let safeDomainList = getOptionPram(r.LINK_CARD_URL_SAFE, [], TYPE_ARRAY);
+            if(!safeDomainList.includes(domain)){
+                safeDomainList.push(domain);
+            }
+            r.LINK_CARD_URL_SAFE = safeDomainList;
+
+            chrome.storage.local.set({"XFILTER_OPTION": JSON.stringify(r)});
+        });
     }
 
     /* 渡されたテキスト要素から日本語（ひらがな／カタカナ／漢字）の割合を返却 */

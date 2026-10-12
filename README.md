@@ -10,14 +10,14 @@ Xの検索結果にミュートワードを設定し、該当するポストを�
 **Chromium系ブラウザの場合**  
 [X検索ミュートツール - Chrome ウェブストア](https://chromewebstore.google.com/detail/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/nggagmpbcbkpgbjbdiobbikgehcmkmkh?authuser=0&hl=ja)
 
-**FireFoxの場合**  
+**Firefoxの場合**  
 [X検索ミュートツール – 🦊 Firefox (ja) 向け拡張機能を入手](https://addons.mozilla.org/ja/firefox/addon/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/)
 
 **Microsoft Edgeの場合**  
 [X検索ミュートツール - Microsoft Edge Addons](https://microsoftedge.microsoft.com/addons/detail/x%E6%A4%9C%E7%B4%A2%E3%83%9F%E3%83%A5%E3%83%BC%E3%83%88%E3%83%84%E3%83%BC%E3%83%AB/idmpfaefjapagfjmdgkfljfmnlaifdoj)  
 ※EdgeはChromium系ブラウザのためChrome ウェブストアのものも同様に使用できます。スマホ版Edgeにインストールする際などはこちらからになるかも  
 
-もしくは[x_search_filter/Chrome/](https://github.com/LucycalBell/x_search_filter/tree/main/Chrome)、[x_search_filter/FireFox/](https://github.com/LucycalBell/x_search_filter/tree/main/FireFox)のソースコードを直接インポートしてください（開発者モードをONにする必要がある場合があります）
+もしくは[x_search_filter/Chrome/](https://github.com/LucycalBell/x_search_filter/tree/main/Chrome)、[x_search_filter/Firefox/](https://github.com/LucycalBell/x_search_filter/tree/main/Firefox)のソースコードを直接インポートしてください（開発者モードをONにする必要がある場合があります）
 
 ## 第三者素材について
 
