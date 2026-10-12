@@ -433,8 +433,8 @@ input[type="number"]{
                 <div>※競合した場合、「セーフ」系の設定が優先されます</div>
                     <h4>ミュートワード（ポストを非表示にするワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONまたは先頭に「regex:」を付けることで正規表現が使用可能です</span>
-                        <span class="switch_sub_text">※正規表現オプションがONの場合は「regex:」が先頭に付いているか否かに関わらず全て正規表現として扱われる為ご注意ください</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションをONにするか、先頭に「regex:」を付けることでそのワードのみ正規表現の判定が可能です</span>
+                        <span class="switch_sub_text">※「regex:」を使用する場合、「正規表現を使用する」オプションをOFFにしてください（ONだと全て正規表現として扱われます）</span>
                     </div>
                     <textarea id="mute_words" class="area-input"></textarea>
 
@@ -453,8 +453,8 @@ input[type="number"]{
 
                     <h4>セーフワード（除外しないワード/1行1ワード）</h4>
                     <div class="switch-text">
-                        <span class="switch_sub_text">※部分一致です。正規表現オプションONまたは先頭に「regex:」を付けることで正規表現が使用可能です</span>
-                        <span class="switch_sub_text">※正規表現オプションがONの場合は「regex:」が先頭に付いているか否かに関わらず全て正規表現として扱われる為ご注意ください</span>
+                        <span class="switch_sub_text">※部分一致です。正規表現オプションをONにするか、先頭に「regex:」を付けることでそのワードのみ正規表現の判定が可能です</span>
+                        <span class="switch_sub_text">※「regex:」を使用する場合、「正規表現を使用する」オプションをOFFにしてください（ONだと全て正規表現として扱われます）</span>
                     </div>
                     <textarea id="exclude_words" class="area-input"></textarea>
 
@@ -463,9 +463,7 @@ input[type="number"]{
                             <input type="checkbox" id="reg_exp">
                             <span class="slider"></span>
                             <div class="switch-text">
-                                <span class="switch-label">ミュート/セーフワードに正規表現を使用する（非推奨）</span>
-                                <div class="switch_sub_text">※互換性の為残していますが通常ワードも正規表現として扱われ意図しない判定となる恐れがあるため将来的に削除予定のオプションです</div>
-                                <div class="switch_sub_text">※正規表現を使用したい場合は行の先頭に「regex:」を付ける方式を推奨します（例：regex:^あいう）</div>
+                                <span class="switch-label">ミュート/セーフワードに正規表現を使用する</span>
                             </div>
                         </label>
                     </div>
